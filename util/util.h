@@ -10,6 +10,8 @@
 #ifndef ICUTIL_H_INCLUDED
 #define ICUTIL_H_INCLUDED
 
+#include "VersionNo.h"
+
 extern const double ilvlScaleCoeff;
 extern const char* trinket_list[];
 extern const char* race_str_param[];
