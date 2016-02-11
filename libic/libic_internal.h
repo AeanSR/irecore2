@@ -10,12 +10,14 @@
 #ifndef LIBIC_INTL_H_INCLUDED
 #define LIBIC_INTL_H_INCLUDED
 
+#define _CRT_SECURE_NO_WARNINGS
 #ifdef __APPLE__
 #include <OpenCL/opencl.h>
 #else
 #include <CL/cl.h>
 #endif
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <chrono>
 #include <random>
@@ -91,6 +93,7 @@ struct config_t{
     int trinket2_ilvl;
     int enemy_is_demonic;
     printcb_t printcb;
+    char* kernel_str;
     config_t() {
         memset(this, 0, sizeof *this);
         raidbuff.vers = 1;
