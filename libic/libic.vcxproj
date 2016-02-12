@@ -52,10 +52,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(CUDA_PATH)\include\;$(AMDAPPSDKROOT)\include\;$(SolutionDir)\util\;$(IncludePath)</IncludePath>
     <LibraryPath>$(CUDA_PATH)\lib\$(PlatformName)\;$(AMDAPPSDKROOT)\lib\x86\;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)\libic\</OutDir>
+    <IntDir>$(SolutionDir)\libic\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(CUDA_PATH)\include\;$(AMDAPPSDKROOT)\include\;$(SolutionDir)\util\;$(IncludePath)</IncludePath>
     <LibraryPath>$(CUDA_PATH)\lib\$(PlatformName)\;$(AMDAPPSDKROOT)\lib\x86\;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)\libic\</OutDir>
+    <IntDir>$(SolutionDir)\libic\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
