@@ -61,7 +61,7 @@ void ic_printbanner(void){
 }
 
 // API: set callback function for print.
-void ic_setprintcallback(printcb_t cbf){
+void ic_setprintcallback(ic_printcb_t cbf){
     config().printcb = cbf;
 }
 
@@ -79,7 +79,8 @@ void ic_init(void){
         fclose(f);
     }
     // Lookup available devices.
-    if (config().device_list.empty()){
+    if (!config().context){
+        config().device_list.clear();
         cl_int err;
         cl_uint num;
         std::vector<cl_platform_id> platforms;
@@ -103,14 +104,14 @@ void ic_init(void){
             clGetPlatformInfo(platforms[platform_id], CL_PLATFORM_NAME, info_c, &platname[0], 0);
 
             cl_context_properties prop[] = { CL_CONTEXT_PLATFORM, reinterpret_cast<cl_context_properties>(platforms[platform_id]), 0 };
-            cl_context context = clCreateContextFromType(prop, CL_DEVICE_TYPE_ALL, NULL, NULL, NULL);
-            if (context == 0) {
+            config().context = clCreateContextFromType(prop, CL_DEVICE_TYPE_ALL, NULL, NULL, NULL);
+            if (config().context == 0) {
                 cbprintf("Can't create OpenCL context\n");
                 abort();
             }
-            clGetContextInfo(context, CL_CONTEXT_DEVICES, 0, NULL, &dev_c);
+            clGetContextInfo(config().context, CL_CONTEXT_DEVICES, 0, NULL, &dev_c);
             std::vector<cl_device_id> devices(dev_c / sizeof(cl_device_id));
-            clGetContextInfo(context, CL_CONTEXT_DEVICES, dev_c, &devices[0], 0);
+            clGetContextInfo(config().context, CL_CONTEXT_DEVICES, dev_c, &devices[0], 0);
             for (auto i = devices.begin(); i != devices.end(); i++) {
                 clGetDeviceInfo(*i, CL_DEVICE_NAME, 0, NULL, &info_c);
                 std::string devname;
@@ -125,7 +126,7 @@ void ic_init(void){
                 config().device_list.push_back(icd);
                 device_counter++;
             }
-            clReleaseContext(context);
+            // clReleaseContext(config().context);
         }
     }
 }
@@ -312,11 +313,11 @@ void ic_setparam(const char* key, const char* value) {
         if (config().power_max < 0.0f) config().power_max = 0.0f;
     }
     else if (0 == strcmp(key, "num_enemies")) {
-        config().num_enemies = atof(value);
+        config().num_enemies = atoi(value);
         if (config().num_enemies < 1) config().num_enemies = 1;
     }
     else if (0 == strcmp(key, "glyph_of_ragingwind")) {
-        config().glyph_of_ragingwind = atof(value);
+        config().glyph_of_ragingwind = atoi(value);
     }
     else if (0 == strcmp(key, "plate_specialization")) {
         config().plate_specialization = !!atoi(value);
@@ -461,13 +462,13 @@ void ic_setparam(const char* key, const char* value) {
         cbprintf("The option \"support_non_c99\" has been deprecated since irecore-620-49. IreCore should works well on all main-stream platforms now.\n");
     }
     else if (0 == strcmp(key, "output")) {
-        if(config().output_file){
+        if (config().output_file){
             fclose(config().output_file);
             config().output_file = 0;
             config().printcb = &vprintf;
         }
         config().output_file = fopen(value, "wb");
-        if(config().output_file){
+        if (config().output_file){
             config().printcb = &vofprintf;
         }
     }
@@ -496,148 +497,752 @@ char* ftoa(double val, char* dstbuf){
 
 // API: get parameters.
 const char* ic_getparam(const char* key){
-#define GETI(k) if( 0 == strcmp(key, STR(k))){ return itoa(config().k, exchbuf(), 10); } else
-#define GETBUF(k) if( 0 == strcmp(key, "raidbuff_" STR(k))){ return itoa(config().raidbuff.k, exchbuf(), 10); } else
+#define GETI(k) if( 0 == strcmp(key, STR(k))){ return _itoa(config().k, exchbuf(), 10); } else
+#define GETBUF(k) if( 0 == strcmp(key, "raidbuff_" STR(k))){ return _itoa(config().raidbuff.k, exchbuf(), 10); } else
 #define GETF(k) if( 0 == strcmp(key, STR(k))){ return ftoa(config().k, exchbuf()); } else
     GETBUF(str)
-    GETBUF(ap)
-    GETBUF(sp)
-    GETBUF(sta)
-    GETBUF(crit)
-    GETBUF(haste)
-    GETBUF(mastery)
-    GETBUF(vers)
-    GETBUF(mult)
-    GETBUF(flask)
-    GETBUF(food)
-    GETBUF(potion)
-    GETBUF(bloodlust)
-    GETI(gear_str)
-    GETI(gear_crit)
-    GETI(gear_haste)
-    GETI(gear_mastery)
-    GETI(gear_mult)
-    GETI(gear_vers)
-    GETI(seed)
-    GETI(iterations)
-    GETF(vary_combat_length)
-    GETF(max_length)
-    GETF(initial_health_percentage)
-    GETF(death_pct)
-    GETF(power_max)
-    GETI(glyph_of_ragingwind)
-    GETI(num_enemies)
-    GETI(plate_specialization)
-    GETI(single_minded)
-    GETF(mh_speed)
-    GETF(oh_speed)
-    GETI(mh_low)
-    GETI(mh_high)
-    GETI(oh_low)
-    GETI(oh_high)
-    GETI(strict_gcd)
-    GETI(sync_melee)
-    GETI(wbr_never_expire)
-    GETI(avatar_like_bloodbath)
-    GETI(default_actions)
-    GETI(archmages_incandescence)
-    GETI(archmages_greater_incandescence)
-    GETI(legendary_ring)
-    GETI(t17_2pc)
-    GETI(t17_4pc)
-    GETI(t18_2pc)
-    GETI(t18_4pc)
-    GETI(trinket1_ilvl)
-    GETI(trinket2_ilvl)
-    GETI(enemy_is_demonic)
-    GETI(opencl_device_id)
-    GETI(developer_debug)
-    if(0 == strcmp(key, "talent")){
-        for(int i = 0; i < 7; i++)
-            exchbuf()[i] = TALENT_TIER(i+1);
-        exchbuf()[7] = 0;
-        return exchbuf();
-    } else
-    if(0 == strcmp(key, "mh_enchant")){
-        if(config().thunderlord_mh) return "thunderlord";
-        if(config().bleeding_hollow_mh) return "bleedinghollow";
-        if(config().shattered_hand_mh) return "shatteredhand";
-        return "none";
-    } else
-    if(0 == strcmp(key, "oh_enchant")){
-        if(config().thunderlord_oh) return "thunderlord";
-        if(config().bleeding_hollow_oh) return "bleedinghollow";
-        if(config().shattered_hand_oh) return "shatteredhand";
-        return "none";
-    } else
-    if(0 == strcmp(key, "mh_type")){
-        const char* typestr[] = { "2h", "1h", "dagger", };
-        return typestr[config().mh_type];
-    } else
-    if(0 == strcmp(key, "oh_type")){
-        const char* typestr[] = { "2h", "1h", "dagger", };
-        return typestr[config().oh_type];
-    } else
-    if(0 == strcmp(key, "trinket1")){
-        return trinket_list[config().trinket1];
-    } else
-    if(0 == strcmp(key, "trinket2")){
-        return trinket_list[config().trinket2];
-    } else
-    if(0 == strcmp(key, "race")){
-        return race_str_param[config().race];
-    } else
-    if(0 == strcmp(key, "rng_engine")){
-		switch(config().rng_engine){
-		case 127: return "mt127";
-		case 64: return "mwc64x";
-        case 32: default: return "lcg32";
+        GETBUF(ap)
+        GETBUF(sp)
+        GETBUF(sta)
+        GETBUF(crit)
+        GETBUF(haste)
+        GETBUF(mastery)
+        GETBUF(vers)
+        GETBUF(mult)
+        GETBUF(flask)
+        GETBUF(food)
+        GETBUF(potion)
+        GETBUF(bloodlust)
+        GETI(gear_str)
+        GETI(gear_crit)
+        GETI(gear_haste)
+        GETI(gear_mastery)
+        GETI(gear_mult)
+        GETI(gear_vers)
+        GETI(seed)
+        GETI(iterations)
+        GETF(vary_combat_length)
+        GETF(max_length)
+        GETF(initial_health_percentage)
+        GETF(death_pct)
+        GETF(power_max)
+        GETI(glyph_of_ragingwind)
+        GETI(num_enemies)
+        GETI(plate_specialization)
+        GETI(single_minded)
+        GETF(mh_speed)
+        GETF(oh_speed)
+        GETI(mh_low)
+        GETI(mh_high)
+        GETI(oh_low)
+        GETI(oh_high)
+        GETI(strict_gcd)
+        GETI(sync_melee)
+        GETI(wbr_never_expire)
+        GETI(avatar_like_bloodbath)
+        GETI(default_actions)
+        GETI(archmages_incandescence)
+        GETI(archmages_greater_incandescence)
+        GETI(legendary_ring)
+        GETI(t17_2pc)
+        GETI(t17_4pc)
+        GETI(t18_2pc)
+        GETI(t18_4pc)
+        GETI(trinket1_ilvl)
+        GETI(trinket2_ilvl)
+        GETI(enemy_is_demonic)
+        GETI(opencl_device_id)
+        GETI(developer_debug)
+        if (0 == strcmp(key, "talent")){
+            for (int i = 0; i < 7; i++)
+                exchbuf()[i] = TALENT_TIER(i + 1);
+            exchbuf()[7] = 0;
+            return exchbuf();
         }
-    } else
-    if(0 == strcmp(key, "actions")){
-        // TODO
-    } else
+        else if (0 == strcmp(key, "mh_enchant")){
+            if (config().thunderlord_mh) return "thunderlord";
+            if (config().bleeding_hollow_mh) return "bleedinghollow";
+            if (config().shattered_hand_mh) return "shatteredhand";
+            return "none";
+        }
+        else if (0 == strcmp(key, "oh_enchant")){
+            if (config().thunderlord_oh) return "thunderlord";
+            if (config().bleeding_hollow_oh) return "bleedinghollow";
+            if (config().shattered_hand_oh) return "shatteredhand";
+            return "none";
+        }
+        else if (0 == strcmp(key, "mh_type")){
+            const char* typestr[] = { "2h", "1h", "dagger", };
+            return typestr[config().mh_type];
+        }
+        else if (0 == strcmp(key, "oh_type")){
+            const char* typestr[] = { "2h", "1h", "dagger", };
+            return typestr[config().oh_type];
+        }
+        else if (0 == strcmp(key, "trinket1")){
+            return trinket_list[config().trinket1];
+        }
+        else if (0 == strcmp(key, "trinket2")){
+            return trinket_list[config().trinket2];
+        }
+        else if (0 == strcmp(key, "race")){
+            return race_str_param[config().race];
+        }
+        else if (0 == strcmp(key, "rng_engine")){
+            switch (config().rng_engine){
+            case 127: return "mt127";
+            case 64: return "mwc64x";
+            case 32: default: return "lcg32";
+            }
+        }
+        else if (0 == strcmp(key, "actions")){
+            if (config().apl){
+                return config().apl->c_str();
+            }
+            else{
+                exchbuf()[0] = 0;
+                return exchbuf();
+            }
+        }
+        else {
+            cbprintf("Cannot parse parameter \"%s\".\n", key);
+            return 0;
+        }
+}
 
-    {
-        cbprintf("Cannot parse parameter \"%s\".\n", key);
+// API: reset all parameters to default.
+void ic_resetparam(void){
+    config_t blank;
+    blank.device_list = config().device_list;
+    blank.kernel_str = config().kernel_str;
+    blank.printcb = config().printcb;
+    config() = blank;
+}
+
+// API: default apl.
+const char* ic_defaultapl(void) {
+    std::string apl = "if(!UP(enrage.expire)||(REMAIN(bloodthirst.cd)>FROM_SECONDS(3)&&rti->player.ragingblow.stack<2))SPELL(berserkerrage);\n";
+    apl.append("if((((num_enemies>1.000000f)||!0)&&(((T63(1,0)&&(T63(TO_SECONDS(REMAIN(bladestorm.cd)),0)==0.000000f))||UP(recklessness.expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<25.000000f))))LEGENDARY(SPELL(thorasus_the_stone_heart_of_draenor),0);\n");
+    apl.append("if((((enemy_health_percent(rti)<20.000000f)&&UP(recklessness.expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<=30.000000f)))POTION(SPELL(potion),0);\n");
+
+    if (0 == strcmp(trinket_list[config().trinket1], "vial_of_convulsive_shadows") || 0 == strcmp(trinket_list[config().trinket2], "vial_of_convulsive_shadows"))
+        if (TALENT_TIER(7) == 1) apl.append("if(UP(recklessness.expire)||TIME_DISTANT(rti->expected_combat_length)<FROM_SECONDS(25))SPELL(vial_of_convulsive_shadows);\n");
+        else apl.append("SPELL(vial_of_convulsive_shadows);\n");
+        if (0 == strcmp(trinket_list[config().trinket1], "bonemaws_big_toe") || 0 == strcmp(trinket_list[config().trinket2], "bonemaws_big_toe"))
+            if (TALENT_TIER(7) == 1) apl.append("if(UP(recklessness.expire)||TIME_DISTANT(rti->expected_combat_length)<FROM_SECONDS(25))SPELL(bonemaws_big_toe);\n");
+            else apl.append("SPELL(bonemaws_big_toe);\n");
+            if (0 == strcmp(trinket_list[config().trinket1], "scabbard_of_kyanos") || 0 == strcmp(trinket_list[config().trinket2], "scabbard_of_kyanos")) apl.append("SPELL(scabbard_of_kyanos);\n");
+            if (0 == strcmp(trinket_list[config().trinket1], "emberscale_talisman") || 0 == strcmp(trinket_list[config().trinket2], "emberscale_talisman")) apl.append("SPELL(emberscale_talisman);\n");
+            if (0 == strcmp(trinket_list[config().trinket1], "badge_of_victory") || 0 == strcmp(trinket_list[config().trinket2], "badge_of_victory")) apl.append("SPELL(badge_of_victory);\n");
+
+            apl.append("if((((((T62(UP(bloodbath.expire),0)||(T62(TO_SECONDS(REMAIN(bloodbath.cd)),0)>25.000000f))||!T62(1,0))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<15.000000f))&&((T63(1,0)&&(!0||(num_enemies==1.000000f)))||!T63(1,0)))&&t18_4pc))SPELL(recklessness);\n");
+            apl.append("if(((T71(1,0)&&((T63(1,0)&&(!0||(num_enemies==1.000000f)))||!T63(1,0)))&&!t18_4pc)){\n");
+            apl.append("if((((TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))>140.000000f)||(enemy_health_percent(rti)<20.000000f))&&((T62(UP(bloodbath.expire),0)||!T62(1,0))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<15.000000f))))SPELL(recklessness);\n");
+            apl.append("}\n");
+            apl.append("if(((!T71(1,0)&&((T63(1,0)&&(!0||(num_enemies==1.000000f)))||!T63(1,0)))&&!t18_4pc)){\n");
+            apl.append("if((((TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))>190.000000f)||(enemy_health_percent(rti)<20.000000f))&&((T62(UP(bloodbath.expire),0)||!T62(1,0))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<15.000000f))))SPELL(recklessness);\n");
+            apl.append("}\n");
+            apl.append("if(((UP(recklessness.expire)||(TO_SECONDS(REMAIN(recklessness.cd))>60.000000f))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<30.000000f)))T61(SPELL(avatar),0);\n");
+            apl.append("if(((T62(UP(bloodbath.expire),0)||!T62(1,0))||UP(recklessness.expire)))ORC(SPELL(bloodfury),0);\n");
+            apl.append("if(((T62(UP(bloodbath.expire),0)||!T62(1,0))||UP(recklessness.expire)))TROLL(SPELL(berserking),0);\n");
+            apl.append("if((rti->player.power<(power_max-40.000000f)))BELF(SPELL(arcanetorrent),0);\n");
+            apl.append("if((num_enemies==2.000000f)){\n");
+            apl.append("T62(SPELL(bloodbath),0);\n");
+            apl.append("if((T62(UP(bloodbath.expire),0)||!T62(1,0)))T72(SPELL(ravager),0);\n");
+            apl.append("if((T62(UP(bloodbath.expire),0)||!T62(1,0)))T43(SPELL(dragonroar),0);\n");
+            apl.append("{\n");
+            apl.append("if(((TO_SECONDS(REMAIN(enrage.expire))>6.000000f)&&((((T71(1,0)&&(0>45.000000f))||(!T71(1,0)&&(0>60.000000f)))||!0)||(num_enemies>num_enemies))))SPELL(recklessness);\n");
+            apl.append("if(((TO_SECONDS(REMAIN(enrage.expire))>6.000000f)&&((((T71(1,0)&&(0>45.000000f))||(!T71(1,0)&&(0>60.000000f)))||!0)||(num_enemies>num_enemies))))T63(SPELL(bladestorm),0);\n");
+            apl.append("}\n");
+            apl.append("if(((!UP(enrage.expire)||(rti->player.power<40.000000f))||!UP(ragingblow.expire)))SPELL(bloodthirst);\n");
+            apl.append("T73(SPELL(siegebreaker),0);\n");
+            apl.append("SPELL(execute);\n");
+            apl.append("if((UP(meatcleaver.expire)||(enemy_health_percent(rti)<20.000000f)))SPELL(ragingblow);\n");
+            apl.append("if((!UP(meatcleaver.expire)&&(enemy_health_percent(rti)>20.000000f)))SPELL(whirlwind);\n");
+            apl.append("if(UP(bloodsurge.expire))SPELL(wildstrike);\n");
+            apl.append("SPELL(bloodthirst);\n");
+            apl.append("SPELL(whirlwind);\n");
+            apl.append("}\n");
+            apl.append("if((num_enemies==3.000000f)){\n");
+            apl.append("T62(SPELL(bloodbath),0);\n");
+            apl.append("if((T62(UP(bloodbath.expire),0)||!T62(1,0)))T72(SPELL(ravager),0);\n");
+            apl.append("{\n");
+            apl.append("if(((TO_SECONDS(REMAIN(enrage.expire))>6.000000f)&&((((T71(1,0)&&(0>45.000000f))||(!T71(1,0)&&(0>60.000000f)))||!0)||(num_enemies>num_enemies))))SPELL(recklessness);\n");
+            apl.append("if(((TO_SECONDS(REMAIN(enrage.expire))>6.000000f)&&((((T71(1,0)&&(0>45.000000f))||(!T71(1,0)&&(0>60.000000f)))||!0)||(num_enemies>num_enemies))))T63(SPELL(bladestorm),0);\n");
+            apl.append("}\n");
+            apl.append("if(((!UP(enrage.expire)||(rti->player.power<50.000000f))||!UP(ragingblow.expire)))SPELL(bloodthirst);\n");
+            apl.append("if((rti->player.meatcleaver.stack>=2.000000f))SPELL(ragingblow);\n");
+            apl.append("T73(SPELL(siegebreaker),0);\n");
+            apl.append("SPELL(execute);\n");
+            apl.append("if((T62(UP(bloodbath.expire),0)||!T62(1,0)))T43(SPELL(dragonroar),0);\n");
+            apl.append("if((enemy_health_percent(rti)>20.000000f))SPELL(whirlwind);\n");
+            apl.append("SPELL(bloodthirst);\n");
+            apl.append("if(UP(bloodsurge.expire))SPELL(wildstrike);\n");
+            apl.append("SPELL(ragingblow);\n");
+            apl.append("}\n");
+            apl.append("if((num_enemies>3.000000f)){\n");
+            apl.append("T62(SPELL(bloodbath),0);\n");
+            apl.append("if((T62(UP(bloodbath.expire),0)||!T62(1,0)))T72(SPELL(ravager),0);\n");
+            apl.append("if(((rti->player.meatcleaver.stack>=3.000000f)&&UP(enrage.expire)))SPELL(ragingblow);\n");
+            apl.append("if(((!UP(enrage.expire)||(rti->player.power<50.000000f))||!UP(ragingblow.expire)))SPELL(bloodthirst);\n");
+            apl.append("if((rti->player.meatcleaver.stack>=3.000000f))SPELL(ragingblow);\n");
+            apl.append("{\n");
+            apl.append("if(((TO_SECONDS(REMAIN(enrage.expire))>6.000000f)&&((((T71(1,0)&&(0>45.000000f))||(!T71(1,0)&&(0>60.000000f)))||!0)||(num_enemies>num_enemies))))SPELL(recklessness);\n");
+            apl.append("if(((TO_SECONDS(REMAIN(enrage.expire))>6.000000f)&&((((T71(1,0)&&(0>45.000000f))||(!T71(1,0)&&(0>60.000000f)))||!0)||(num_enemies>num_enemies))))T63(SPELL(bladestorm),0);\n");
+            apl.append("}\n");
+            apl.append("SPELL(whirlwind);\n");
+            apl.append("T73(SPELL(siegebreaker),0);\n");
+            apl.append("if(T32(UP(suddendeath.expire),0))SPELL(execute);\n");
+            apl.append("if((T62(UP(bloodbath.expire),0)||!T62(1,0)))T43(SPELL(dragonroar),0);\n");
+            apl.append("SPELL(bloodthirst);\n");
+            apl.append("if(UP(bloodsurge.expire))SPELL(wildstrike);\n");
+            apl.append("}\n");
+            apl.append("{\n");
+            apl.append("T62(SPELL(bloodbath),0);\n");
+            apl.append("if(((enemy_health_percent(rti)<20.000000f)&&0))SPELL(recklessness);\n");
+            apl.append("if(((rti->player.power>(power_max-20.000000f))&&(enemy_health_percent(rti)>20.000000f)))SPELL(wildstrike);\n");
+            apl.append("if((((!T33(1,0)&&(rti->player.power<(power_max-40.000000f)))||!UP(enrage.expire))||(rti->player.ragingblow.stack<2.000000f)))SPELL(bloodthirst);\n");
+            apl.append("if((T62(UP(bloodbath.expire),0)||(!T62(1,0)&&((!0||(0>60.000000f))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<40.000000f)))))T72(SPELL(ravager),0);\n");
+            apl.append("T73(SPELL(siegebreaker),0);\n");
+            apl.append("if(T32(UP(suddendeath.expire),0))SPELL(execute);\n");
+            apl.append("T41(SPELL(stormbolt),0);\n");
+            apl.append("if(UP(bloodsurge.expire))SPELL(wildstrike);\n");
+            apl.append("if((UP(enrage.expire)||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<12.000000f)))SPELL(execute);\n");
+            apl.append("if((T62(UP(bloodbath.expire),0)||!T62(1,0)))T43(SPELL(dragonroar),0);\n");
+            apl.append("SPELL(ragingblow);\n");
+            apl.append("if(((TO_SECONDS(REMAIN(bloodthirst.cd))<0.500000f)&&(rti->player.power<50.000000f)))return;\n");
+            apl.append("if((UP(enrage.expire)&&(enemy_health_percent(rti)>20.000000f)))SPELL(wildstrike);\n");
+            apl.append("if(!0)T63(SPELL(bladestorm),0);\n");
+            apl.append("if(!T33(1,0))T42(SPELL(shockwave),0);\n");
+            apl.append("SPELL(bloodthirst);\n");
+            apl.append("}\n");
+            return apl.c_str();
+}
+
+// parameter validation.
+config_t parameters_consistency() {
+    config_t blank(config());
+    blank.single_minded = (blank.mh_type == 1 && blank.oh_type == 1);
+    if (blank.trinket1 == blank.trinket2 && 0 != blank.trinket1) {
+        cbprintf("Duplicated trinkets \"%s\" not allowed. Trinket 2 reset to none.\n", trinket_list[blank.trinket2]);
+        blank.trinket2 = 0;
+    }
+    if (blank.mh_high < blank.mh_low) {
+        cbprintf("MH Low Damage is higher than MH High Damage, exchanged.\n");
+        int t = blank.mh_high;
+        blank.mh_high = blank.mh_low;
+        blank.mh_low = t;
+    }
+    if (blank.oh_high < blank.oh_low) {
+        cbprintf("OH Low Damage is higher than OH High Damage, exchanged.\n");
+        int t = blank.oh_high;
+        blank.oh_high = blank.oh_low;
+        blank.oh_low = t;
+    }
+    if (blank.mh_speed <= .0) {
+        cbprintf("MH Speed less than or equal to zero, reset to 1.5s.\n");
+        blank.mh_speed = 1.5;
+    }
+    if (blank.oh_speed <= .0) {
+        cbprintf("OH Speed less than or equal to zero, reset to 1.5s.\n");
+        blank.oh_speed = 1.5;
+    }
+    if (blank.num_enemies < 1) {
+        cbprintf("Num Enemies less than 1, reset to 1.\n");
+        blank.num_enemies = 1;
+    }
+    if (blank.num_enemies > 20) {
+        cbprintf("Num Enemies greater than 20, reset to 20.");
+        blank.num_enemies = 20;
+    }
+    if (blank.raidbuff.flask) {
+        blank.gear_str += 250;
+    }
+    if (blank.raidbuff.food) {
+        blank.gear_crit += 125 * (blank.race == 14 ? 2 : 1);
+    }
+    if (blank.default_actions) {
+        blank.apl->clear();
+        blank.apl->append(ic_defaultapl());
+    }
+    return blank;
+}
+
+// prefix mean to minimize rounding error.
+template <typename T>
+T prefix_mean(const T* _data, size_t n) {
+    /* Make a copy of _data. */
+    std::vector<T> data(_data, _data + n);
+
+    /* Prefix-sum to minimize rounding errors for FP types. */
+    for (size_t k = 1; k < data.size(); k += k) {
+        for (size_t i = 0; i < data.size(); i += k) {
+            auto j = i + k;
+            if (j < data.size()) {
+                data[i] += data[j];
+                i = j;
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    return data[0] / static_cast<T>(n);
+}
+template <typename T>
+T prefix_stddev(const T* _data, size_t n, T mean) {
+    /* Make a copy of _data. */
+    std::vector<T> data(_data, _data + n);
+
+    for (size_t i = 0; i < data.size(); i++)
+        data[i] = (data[i] - mean) * (data[i] - mean);
+
+    /* Prefix-sum to minimize rounding errors for FP types. */
+    for (size_t k = 1; k < data.size(); k += k) {
+        for (size_t i = 0; i < data.size(); i += k) {
+            auto j = i + k;
+            if (j < data.size()) {
+                data[i] += data[j];
+                i = j;
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    return sqrt(data[0] / static_cast<T>(n));
+}
+
+// generate pre-definition to insert into kernel source.
+std::string generate_predef(config_t& blank) {
+    char buffer[256];
+    const char* race_str_kernel[] = {
+        "RACE_NONE",
+        "RACE_HUMAN",
+        "RACE_DWARF",
+        "RACE_GNOME",
+        "RACE_NIGHTELF_DAY",
+        "RACE_NIGHTELF_NIGHT",
+        "RACE_DRAENEI",
+        "RACE_WORGEN",
+        "RACE_ORC",
+        "RACE_TROLL",
+        "RACE_TAUREN",
+        "RACE_UNDEAD",
+        "RACE_BLOODELF",
+        "RACE_GOBLIN",
+        "RACE_PANDAREN",
+        NULL
+    };
+    const char* weapon_type_str[] = {
+        "WEAPON_2H",
+        "WEAPON_1H",
+        "WEAPON_DAGGER",
+    };
+    std::string predef = "";
+
+    predef.append("#define ENEMY_IS_DEMONIC ");
+    sprintf(buffer, "%d", blank.enemy_is_demonic);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define STRICT_GCD ");
+    sprintf(buffer, "%d", blank.strict_gcd);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define SYNC_MELEE ");
+    sprintf(buffer, "%d", blank.sync_melee);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define WBR_NEVER_EXPIRE ");
+    sprintf(buffer, "%d", blank.wbr_never_expire);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define AVATAR_LIKE_BLOODBATH ");
+    sprintf(buffer, "%d", blank.avatar_like_bloodbath);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define vary_combat_length ");
+    sprintf(buffer, "%ff", blank.vary_combat_length);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define max_length ");
+    sprintf(buffer, "%ff", blank.max_length);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define initial_health_percentage ");
+    sprintf(buffer, "%ff", blank.initial_health_percentage);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define death_pct ");
+    sprintf(buffer, "%ff", blank.death_pct);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define power_max ");
+    sprintf(buffer, "%ff", blank.power_max);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define num_enemies ");
+    sprintf(buffer, "%d", blank.num_enemies);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define GLYPH_OF_RAGINGWIND ");
+    sprintf(buffer, "%d", blank.glyph_of_ragingwind);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define PLATE_SPECIALIZATION ");
+    sprintf(buffer, "%d", blank.plate_specialization);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define SINGLE_MINDED ");
+    sprintf(buffer, "%d", blank.single_minded);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define BUFF_STR_AGI_INT ");
+    sprintf(buffer, "%d", blank.raidbuff.str);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define BUFF_AP ");
+    sprintf(buffer, "%d", blank.raidbuff.ap);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define BUFF_CRIT ");
+    sprintf(buffer, "%d", blank.raidbuff.crit);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define BUFF_HASTE ");
+    sprintf(buffer, "%d", blank.raidbuff.haste);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define BUFF_MASTERY ");
+    sprintf(buffer, "%d", blank.raidbuff.mastery);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define BUFF_MULT ");
+    sprintf(buffer, "%d", blank.raidbuff.mult);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define BUFF_VERS ");
+    sprintf(buffer, "%d", blank.raidbuff.vers);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define BUFF_SP ");
+    sprintf(buffer, "%d", blank.raidbuff.sp);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define BUFF_STA ");
+    sprintf(buffer, "%d", blank.raidbuff.sta);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define BUFF_POTION ");
+    sprintf(buffer, "%d", blank.raidbuff.potion);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define BUFF_BLOODLUST ");
+    sprintf(buffer, "%d", blank.raidbuff.bloodlust);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define RACE ");
+    predef.append(race_str_kernel[blank.race]); predef.append("\r\n");
+
+    predef.append("#define MH_LOW ");
+    sprintf(buffer, "%d", blank.mh_low);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define MH_HIGH ");
+    sprintf(buffer, "%d", blank.mh_high);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define OH_LOW ");
+    sprintf(buffer, "%d", blank.oh_low);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define OH_HIGH ");
+    sprintf(buffer, "%d", blank.oh_high);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define MH_SPEED ");
+    sprintf(buffer, "%ff", blank.mh_speed);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define OH_SPEED ");
+    sprintf(buffer, "%ff", blank.oh_speed);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define MH_TYPE ");
+    predef.append(weapon_type_str[blank.mh_type]); predef.append("\r\n");
+
+    predef.append("#define OH_TYPE ");
+    predef.append(weapon_type_str[blank.oh_type]); predef.append("\r\n");
+
+    predef.append("#define TALENT_TIER3 ");
+    sprintf(buffer, "%d", TALENT_TIER(3));
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define TALENT_TIER4 ");
+    sprintf(buffer, "%d", TALENT_TIER(4));
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define TALENT_TIER6 ");
+    sprintf(buffer, "%d", TALENT_TIER(6));
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define TALENT_TIER7 ");
+    sprintf(buffer, "%d", TALENT_TIER(7));
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define archmages_incandescence ");
+    sprintf(buffer, "%d", blank.archmages_incandescence);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define archmages_greater_incandescence ");
+    sprintf(buffer, "%d", blank.archmages_greater_incandescence);
+    predef.append(buffer); predef.append("\r\n");
+
+    if (blank.legendary_ring){
+        predef.append("#define legendary_ring ");
+        sprintf(buffer, "%d", (int)(2500.0 * pow(ilvlScaleCoeff, blank.legendary_ring - 735)));
+        predef.append(buffer); predef.append("\r\n");
+    }
+
+    predef.append("#define t17_2pc ");
+    sprintf(buffer, "%d", blank.t17_2pc);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define t17_4pc ");
+    sprintf(buffer, "%d", blank.t17_4pc);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define t18_2pc ");
+    sprintf(buffer, "%d", blank.t18_2pc);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define t18_4pc ");
+    sprintf(buffer, "%d", blank.t18_4pc);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define thunderlord_mh ");
+    sprintf(buffer, "%d", blank.thunderlord_mh);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define thunderlord_oh ");
+    sprintf(buffer, "%d", blank.thunderlord_oh);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define bleedinghollow_mh ");
+    sprintf(buffer, "%d", blank.bleeding_hollow_mh);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define bleedinghollow_oh ");
+    sprintf(buffer, "%d", blank.bleeding_hollow_oh);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define shatteredhand_mh ");
+    sprintf(buffer, "%d", blank.shattered_hand_mh);
+    predef.append(buffer); predef.append("\r\n");
+
+    predef.append("#define shatteredhand_oh ");
+    sprintf(buffer, "%d", blank.shattered_hand_oh);
+    predef.append(buffer); predef.append("\r\n");
+
+    if (blank.rng_engine == 127) predef.append("#define RNG_MT127\r\n");
+    else if (blank.rng_engine == 64) predef.append("#define RNG_MWC64X\r\n");
+
+    if (blank.trinket1) {
+        predef.append("#define trinket_");
+        predef.append(trinket_list[blank.trinket1]);
+        predef.append(" ");
+        sprintf(buffer, "%d", trinket_scaling(blank.trinket1, blank.trinket1_ilvl));
+        predef.append(buffer);
+        predef.append("\r\n");
+    }
+    if (blank.trinket2) {
+        predef.append("#define trinket_");
+        predef.append(trinket_list[blank.trinket2]);
+        predef.append(" ");
+        sprintf(buffer, "%d", trinket_scaling(blank.trinket2, blank.trinket2_ilvl));
+        predef.append(buffer);
+        predef.append("\r\n");
+    }
+
+    return predef;
+}
+
+// transpose table.
+std::unordered_map<std::string, cl_program>& clptt(void){
+    static std::unordered_map<std::string, cl_program> tt;
+    return tt;
+}
+int ttprobe(std::string hashkey, cl_program* p){
+    auto i = clptt().find(hashkey);
+    if (i != clptt().end()){
+        *p = i->second;
+        return 1;
+    }
+    else{
         return 0;
     }
 }
-
-// Vectorized DJBHash.
-unsigned strhash(const char* str){
-    __m128i xmm0 = _mm_setzero_si128();
-    __m128i xmm2 = _mm_set1_epi32(5381);
-    __m128i xmm3 = _mm_set1_epi32(0xff);
-    __m128i* p = (__m128i*)str;
-    __m128i mask;
-    int exitflag = 1;
-    __m128i xmm1;
-    while (exitflag){
-        xmm1 = _mm_loadu_si128(p++);
-        mask = _mm_cmpeq_epi8(xmm1, xmm0);
-        if (_mm_movemask_epi8(mask) & 0xffff){
-            mask = _mm_and_si128(mask, _mm_slli_si128(mask, 1));
-            mask = _mm_and_si128(mask, _mm_slli_si128(mask, 2));
-            mask = _mm_and_si128(mask, _mm_slli_si128(mask, 4));
-            mask = _mm_and_si128(mask, _mm_slli_si128(mask, 8));
-            xmm1 = _mm_andnot_si128(mask, xmm1);
-            exitflag = 0;
-        }
-        xmm2 = _mm_add_epi32(xmm2, _mm_slli_epi32(xmm2, 5));
-        xmm2 = _mm_add_epi32(xmm2, _mm_and_si128(_mm_srli_epi32(xmm1, 24), xmm3));
-        xmm2 = _mm_add_epi32(xmm2, _mm_slli_epi32(xmm2, 5));
-        xmm2 = _mm_add_epi32(xmm2, _mm_and_si128(_mm_srli_epi32(xmm1, 16), xmm3));
-        xmm2 = _mm_add_epi32(xmm2, _mm_slli_epi32(xmm2, 5));
-        xmm2 = _mm_add_epi32(xmm2, _mm_and_si128(_mm_srli_epi32(xmm1, 8), xmm3));
-        xmm2 = _mm_add_epi32(xmm2, _mm_slli_epi32(xmm2, 5));
-        xmm2 = _mm_add_epi32(xmm2, _mm_and_si128(xmm1, xmm3));
-    }
-    unsigned u[4];
-    _mm_storeu_si128((__m128i*)u, xmm2);
-    u[0] ^= u[1];
-    u[0] ^= u[2];
-    u[0] ^= u[3];
-    return u[0];
+void ttsave(std::string hashkey, cl_program p){
+    clptt()[hashkey] = p;
 }
 
+// API: start simulation.
+int ic_runsim(float* dps, float* dpsr, float* dpse){
+    static int last_device_id = 0xdeadbeef;
+    static cl_device_id device_used;
+    static cl_command_queue queue;
+
+    ic_init();
+    config_t blank = parameters_consistency();
+    std::string source(config().kernel_str);
+    std::string predef = generate_predef(blank);
+    if (config().developer_debug){
+        cbprintf("%s\n", predef.c_str());
+        if (dps) *dps = 0;
+        if (dpsr) *dpsr = 0;
+        if (dpse) *dpse = 0;
+        return 0;
+    }
+
+    if (last_device_id != blank.opencl_device_id){
+        if (queue) clReleaseCommandQueue(queue);
+
+        size_t dev_c;
+        clGetContextInfo(blank.context, CL_CONTEXT_DEVICES, 0, NULL, &dev_c);
+        std::vector<cl_device_id> devices(dev_c / sizeof(cl_device_id));
+        clGetContextInfo(blank.context, CL_CONTEXT_DEVICES, dev_c, &devices[0], 0);
+
+        device_used = devices[blank.device_list[blank.opencl_device_id].device_id];
+        cbprintf("Open Device %d: %s\n", blank.opencl_device_id, blank.device_list[blank.opencl_device_id].device_name);
+
+        queue = clCreateCommandQueue(blank.context, device_used, 0, 0);
+        if (queue == 0) {
+            cbprintf("Can't create command queue\n");
+            return -1;
+        }
+        cbprintf("OK!\n");
+    }
+
+    cl_program program;
+    cl_int err;
+    char buf[32];
+    std::string hashkey = predef + *blank.apl + "@" + _itoa(blank.opencl_device_id, buf, 10);
+    if (!ttprobe(hashkey, &program)){
+        // compile kernel
+        cbprintf("JIT ...\n");
+        source = predef + source;
+        source += "void scan_apl( rtinfo_t* rti ) {";
+        source += *blank.apl;
+        source += "}\n";
+        const char* cptr = source.c_str();
+        program = clCreateProgramWithSource(config().context, 1, &cptr, 0, 0);
+        if (program == 0) {
+            cbprintf("clCreateProgramWithSource failed.\n");
+            return -1;
+        }
+        if ((err = clBuildProgram(program, 1, &device_used, "-cl-single-precision-constant -cl-denorms-are-zero -cl-fast-relaxed-math", 0, 0)) != CL_SUCCESS) {
+            cbprintf("Can't build program\n");
+            size_t len;
+            char buffer[204800];
+            cl_build_status bldstatus;
+            cbprintf("\nError %d: Failed to build program executable\n", err);
+            err = clGetProgramBuildInfo(program, device_used, CL_PROGRAM_BUILD_STATUS, sizeof(bldstatus), (void*)&bldstatus, &len);
+            if (err != CL_SUCCESS)
+            {
+                cbprintf("Build Status error %d\n", err);
+                return -1;
+            }
+            if (bldstatus == CL_BUILD_SUCCESS) cbprintf("Build Status: CL_BUILD_SUCCESS\n");
+            if (bldstatus == CL_BUILD_NONE) cbprintf("Build Status: CL_BUILD_NONE\n");
+            if (bldstatus == CL_BUILD_ERROR) cbprintf("Build Status: CL_BUILD_ERROR\n");
+            if (bldstatus == CL_BUILD_IN_PROGRESS) cbprintf("Build Status: CL_BUILD_IN_PROGRESS\n");
+            err = clGetProgramBuildInfo(program, device_used, CL_PROGRAM_BUILD_OPTIONS, sizeof(buffer), buffer, &len);
+            if (err != CL_SUCCESS)
+            {
+                cbprintf("Build Options error %d\n", err);
+                return -1;
+            }
+            cbprintf("Build Options: %s\n", buffer);
+            err = clGetProgramBuildInfo(program, device_used, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+            if (err != CL_SUCCESS)
+            {
+                cbprintf("Build Log error %d\n", err);
+                return -1;
+            }
+            cbprintf("Build Log:\n%s\n", buffer);
+            return -1;
+        }
+        ttsave(hashkey, program);
+    }
+    else{
+        // already compiled
+
+    }
+
+    if (program == 0) {
+        cbprintf("Can't load or build program\n");
+        return -1;
+    }
+    cl_kernel sim_iterate = clCreateKernel(program, "sim_iterate", 0);
+    if (sim_iterate == 0) {
+        cbprintf("Can't load kernel\n");
+        return -1;
+    }
+    cl_mem cl_res = clCreateBuffer(blank.context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * blank.iterations, NULL, NULL);
+    if (cl_res == 0) {
+        cbprintf("Can't create OpenCL buffer\n");
+        return -1;
+    }
+    float* res = new float[blank.iterations];
+    auto t2 = std::chrono::high_resolution_clock::now();
+
+
+    cl_uint setseed = blank.seed ? blank.seed : rand();
+    clSetKernelArg(sim_iterate, 0, sizeof(cl_mem), &cl_res);
+    clSetKernelArg(sim_iterate, 1, sizeof(cl_uint), &setseed);
+    clSetKernelArg(sim_iterate, 2, sizeof(cl_uint), &blank.gear_str);
+    clSetKernelArg(sim_iterate, 3, sizeof(cl_uint), &blank.gear_crit);
+    clSetKernelArg(sim_iterate, 4, sizeof(cl_uint), &blank.gear_haste);
+    clSetKernelArg(sim_iterate, 5, sizeof(cl_uint), &blank.gear_mastery);
+    clSetKernelArg(sim_iterate, 6, sizeof(cl_uint), &blank.gear_mult);
+    clSetKernelArg(sim_iterate, 7, sizeof(cl_uint), &blank.gear_vers);
+
+    cbprintf("Sim ...\n");
+    size_t work_size = blank.iterations;
+    err = clEnqueueNDRangeKernel(queue, sim_iterate, 1, 0, &work_size, 0, 0, 0, 0);
+
+
+    float ret, dev;
+
+    if (err == CL_SUCCESS) {
+        err = clEnqueueReadBuffer(queue, cl_res, CL_TRUE, 0, sizeof(float) * blank.iterations, &res[0], 0, 0, 0);
+        if (err != CL_SUCCESS) {
+            cbprintf("Can't read back data %d\n", err);
+            ret = -1.0;
+        }
+        else {
+            ret = prefix_mean(res, blank.iterations);
+            dev = prefix_stddev(res, blank.iterations, ret);
+        }
+    }
+    else {
+        cbprintf("Can't run kernel %d\n", err);
+        ret = -1.0;
+    }
+    if (dps) *dps = ret;
+    if (dpsr) *dpsr = dev;
+    if (dpse) *dpse = 2.0 * dev / sqrt(blank.iterations);
+
+
+    cbprintf("DPS %f\n", ret);
+    cbprintf("DPS Range(stddev) %f\n", dev);
+    cbprintf("DPS Error(95% conf.) %f\n", 2.0 * dev / sqrt(blank.iterations));
+    delete[] res;
+    clReleaseKernel(sim_iterate);
+    clReleaseMemObject(cl_res);
+    if (ret < 0.0)
+        return -1;
+    return 0;
+}

@@ -24,8 +24,8 @@
 IC_API const char* ic_getversion(void);
 IC_API void ic_printbanner(void);
 
-typedef int (__cdecl* printcb_t)(const char * a, va_list b);
-IC_API void ic_setprintcallback(printcb_t cbf);
+typedef int (__cdecl* ic_printcb_t)(const char * format, va_list arglist);
+IC_API void ic_setprintcallback(ic_printcb_t cbf);
 
 IC_API void ic_init(void);
 
@@ -33,4 +33,10 @@ IC_API int ic_devicecount(void);
 IC_API int ic_deviceinfo(int id, const char** platform_name, const char** device_name);
 
 IC_API void ic_setparam(const char* key, const char* value);
+IC_API const char* ic_getparam(const char* key);
+IC_API void ic_resetparam(void);
+
+IC_API const char* ic_defaultapl(void);
+
+IC_API int ic_runsim(float* dps, float* dpsr, float* dpse);
 #endif

@@ -21,6 +21,8 @@
 #include <string>
 #include <chrono>
 #include <random>
+#include <unordered_map>
+#include <intrin.h>
 #include "util.h"
 #include "libic.h"
 
@@ -47,16 +49,6 @@ struct ic_computedevice_t{
     char* platform_name;
     char* device_name;
     ic_computedevice_t() : platform_name(0), device_name(0) {}
-    ~ic_computedevice_t(){
-        if(platform_name){
-            free(platform_name);
-            platform_name = 0;
-        }
-        if(device_name){
-            free(device_name);
-            device_name = 0;
-        }
-    }
 };
 
 
@@ -114,9 +106,10 @@ struct config_t{
     int enemy_is_demonic;
     int opencl_device_id;
     int developer_debug;
-    printcb_t printcb;
+    ic_printcb_t printcb;
     char* kernel_str;
     FILE* output_file;
+    cl_context context;
     std::vector<ic_computedevice_t> device_list;
     config_t() {
         memset(this, 0, sizeof *this);
@@ -139,12 +132,6 @@ struct config_t{
         oh_type = 2;
         printcb = &vprintf;
         device_list.clear();
-    }
-    ~config_t(){
-        if(apl) delete apl;
-        if(kernel_str) free(kernel_str);
-        apl = 0;
-        kernel_str = 0;
     }
 };
 
