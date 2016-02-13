@@ -11,8 +11,17 @@
 #define CLIC_H
 
 #include <cstdio>
+#include <iostream>
+#include <string>
+#include <vector>
 #include "libic.h"
 
 int clic_main(int argc, char *argv[]);
+
+typedef struct {
+    std::string key;
+    std::string value;
+} kvpair_t;
+
 
 #endif

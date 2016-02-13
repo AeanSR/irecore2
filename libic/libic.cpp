@@ -35,6 +35,7 @@ int cbprintf(const char* format, ...){
 // print into file.
 int vofprintf(const char* a, va_list b){
     int ret = vfprintf(config().output_file, a, b);
+    vprintf(a, b);
     fflush(config().output_file);
     return ret;
 }
@@ -1093,6 +1094,7 @@ int ic_runsim(float* dps, float* dpsr, float* dpse){
     static int last_device_id = 0xdeadbeef;
     static cl_device_id device_used;
     static cl_command_queue queue;
+    auto t1 = std::chrono::high_resolution_clock::now();
 
     ic_init();
     config_t blank = parameters_consistency();
@@ -1236,12 +1238,20 @@ int ic_runsim(float* dps, float* dpsr, float* dpse){
     if (dpse) *dpse = 2.0 * dev / sqrt(blank.iterations);
 
 
-    cbprintf("DPS %f\n", ret);
-    cbprintf("DPS Range(stddev) %f\n", dev);
-    cbprintf("DPS Error(95% conf.) %f\n", 2.0 * dev / sqrt(blank.iterations));
+    cbprintf("DPS %.3f\n", ret);
+    cbprintf("DPS Range(stddev) %.3f\n", dev);
+    cbprintf("DPS Error(95%% conf.) %.3f\n", 2.0 * dev / sqrt(blank.iterations));
     delete[] res;
     clReleaseKernel(sim_iterate);
     clReleaseMemObject(cl_res);
+
+    auto t3 = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> time_span1 = std::chrono::duration_cast<std::chrono::duration<double>>( t3 - t1 );
+    std::chrono::duration<double> time_span2 = std::chrono::duration_cast<std::chrono::duration<double>>( t3 - t2 );
+    cbprintf( "Total elapsed time %.3fs\n", time_span1.count() );
+    cbprintf( "Simulation time %.3fs\n", time_span2.count() );
+    cbprintf( "Speedup %dx\n", ( int )( blank.iterations * blank.max_length / time_span2.count() ));
+
     if (ret < 0.0)
         return -1;
     return 0;

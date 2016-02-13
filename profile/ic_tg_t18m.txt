@@ -29,8 +29,10 @@ gear_haste=1104
 gear_mastery=2027
 gear_mult=848
 gear_vers=0
-trinket1=empty_drinking_horn,ilvl=740
-trinket2=worldbreakers_resolve,ilvl=745
+trinket1=empty_drinking_horn
+trinket1_ilvl=740
+trinket2=worldbreakers_resolve
+trinket2_ilvl=745
 
 # Translated from "Warrior_Fury_2h_T18M.simc" by apltr.
 actions=if((0.000000f>5.000000f)){

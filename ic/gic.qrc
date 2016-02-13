@@ -1,4 +1,5 @@
 <RCC>
-    <qresource prefix="gic">
+    <qresource prefix="/gic">
+        <file>../lua/logo.gif</file>
     </qresource>
 </RCC>

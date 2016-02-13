@@ -29,8 +29,10 @@ gear_haste=751
 gear_mastery=1504
 gear_mult=478
 gear_vers=0
-trinket1=vial_of_convulsive_shadows,ilvl=700
-trinket2=horn_of_screaming_spirits,ilvl=700
+trinket1=vial_of_convulsive_shadows
+trinket1_ilvl=700
+trinket2=horn_of_screaming_spirits
+trinket2_ilvl=700
 
 # Translated from "Warrior_Fury_2h_T17M.simc" by apltr.
 actions+=if((0.000000f>5.000000f)){

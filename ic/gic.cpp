@@ -12,6 +12,7 @@
 gic::gic(QWidget *parent)
     : QMainWindow(parent)
 {
+    ic_init();
     ui.setupUi(this);
 }
 

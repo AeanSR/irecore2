@@ -13,7 +13,7 @@ mkdir release_nolib\profile
 xcopy profile release_nolib\profile /I
 copy irecore.exe release_nolib\irecore.exe
 copy kernel.c release_nolib\kernel.c
-copy gic_zh.qm release_nolib\gic_zh.qm
+copy ic\gic_zh.qm release_nolib\gic_zh.qm
 copy LICENSE release_nolib\LICENSE
 copy lua\lua53.dll release_nolib\lua53.dll
 copy %windir%\SYSWOW64\ssleay32.dll release_nolib\ssleay32.dll
@@ -23,7 +23,7 @@ copy %windir%\SYSWOW64\libeay32.dll release_nolib\libeay32.dll
 xcopy profile release\profile /I
 copy irecore.exe release\irecore.exe
 copy kernel.c release\kernel.c
-copy gic_zh.qm release\gic_zh.qm
+copy ic\gic_zh.qm release\gic_zh.qm
 copy LICENSE release\LICENSE
 copy %windir%\SYSWOW64\msvcr120.dll release\msvcr120.dll
 copy %windir%\SYSWOW64\msvcp120.dll release\msvcp120.dll
