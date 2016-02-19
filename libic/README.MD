@@ -125,7 +125,7 @@ e.g. set `gear_str` as `3000`, then set `gear_str+` with a value `200`, the gear
   <tr><td>raidbuff_mastery</td><td>integer</td><td>0</td><td>raid buff Mastery, 0 if down, non-zero if up</td></tr>
   <tr><td>raidbuff_haste</td><td>integer</td><td>0</td><td>raid buff Haste, 0 if down, non-zero if up</td></tr>
   <tr><td>raidbuff_mult</td><td>integer</td><td>0</td><td>raid buff Multistrike, 0 if down, non-zero if up</td></tr>
-  <tr><td>raidbuff_vers</td><td>integer</td><td>0</td><td>raid buff Versatility, 0 if down, non-zero if up</td></tr>
+  <tr><td>raidbuff_vers</td><td>integer</td><td>1</td><td>raid buff Versatility, 0 if down, non-zero if up</td></tr>
   <tr><td>raidbuff_sta</td><td>integer</td><td>0</td><td>raid buff Stamina, 0 if down, non-zero if up</td></tr>
   <tr><td>raidbuff_flask</td><td>integer</td><td>0</td><td>use flask(+250 str), 0 if down, non-zero if up</td></tr>
   <tr><td>raidbuff_food</td><td>integer</td><td>0</td><td>use food(+125 crit rate), 0 if down, non-zero if up</td></tr>
