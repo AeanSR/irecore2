@@ -176,9 +176,13 @@ it looks weired but that is the only way we could process the simc sub action li
   <tr><td>oh_enchant</td><td>string</td><td>none</td><td>off hand weapon enchantment, one of the listed:
   none,thunderlord,bleedinghollow,shatteredhand</td></tr>
   <tr><td>talent</td><td>integer(7digit)</td><td>0000000</td><td>a 7-digit number, each digit specifies a talent tier(tier 1 ~ 7 from left to right)
+  
   0: not selected
+  
   1: left
+  
   2: middle
+  
   3: right</td></tr>
   <tr><td>archmages_incandescence</td><td>integer</td><td>0</td><td>use 690 legendary ring or not</td></tr>
   <tr><td>archmages_greater_incandescence</td><td>integer</td><td>0</td><td>use 715 legendary ring or not</td></tr>
@@ -189,28 +193,49 @@ it looks weired but that is the only way we could process the simc sub action li
   <tr><td>t18_4pc</td><td>integer</td><td>0</td><td>tier 18 4-pieces special</td></tr>
   <tr><td>trinket1</td><td>string</td><td>none</td><td>first trinket, one of the listed:
 none
+
 vial_of_convulsive_shadows
+
 forgemasters_insignia
+
 horn_of_screaming_spirits
+
 scabbard_of_kyanos
+
 badge_of_victory
+
 insignia_of_victory
+
 tectus_beating_heart
+
 formidable_fang
+
 draenic_stone
+
 skull_of_war
+
 mote_of_the_mountain
+
 worldbreakers_resolve
+
 discordant_chorus
+
 empty_drinking_horn
+
 unending_hunger
+
 spores_of_alacrity
+
 bonemaws_big_toe
+
 emberscale_talisman
+
 gronntooth_war_horn</td></tr>
   <tr><td>rng_engine</td><td>string</td><td>lcg32</td><td>rng engine to use, one of the listed:
   mt127
+  
 mwc64x
+
 lcg32</td></tr>
   <tr><td>trinket2</td><td>string</td><td>none</td><td>second trinket, same options as `trinket1`</td></tr>
   <tr><td>trinket1_ilvl</td><td>integer</td><td>0</td><td>the itemlvl of first trinket</td></tr>
