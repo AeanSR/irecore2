@@ -290,6 +290,15 @@ void ic_setparam(const char* key, const char* value) {
     else if (0 == strcmp(key, "default_actions")) {
         config().default_actions = !!atoi(value);
     }
+    else if (0 == strcmp(key, "simc_actions")) {
+        config().simc_actions->clear();
+        config().simc_actions->append(value);
+        config().simc_actions->append("\n");
+    }
+    else if (0 == strcmp(key, "simc_actions+")) {
+        config().simc_actions->append(value);
+        config().simc_actions->append("\n");
+    }
     else if (0 == strcmp(key, "vary_combat_length")) {
         config().vary_combat_length = atof(value);
         if (config().vary_combat_length > 100.0f) config().vary_combat_length = 100.0f;
@@ -605,6 +614,15 @@ const char* ic_getparam(const char* key){
                 return exchbuf();
             }
         }
+        else if (0 == strcmp(key, "simc_actions")){
+            if (config().simc_actions){
+                return config().simc_actions->c_str();
+            }
+            else{
+                exchbuf()[0] = 0;
+                return exchbuf();
+            }
+        }
         else {
             cbprintf("Cannot parse parameter \"%s\".\n", key);
             return 0;
@@ -617,6 +635,8 @@ void ic_resetparam(void){
     blank.device_list = config().device_list;
     blank.kernel_str = config().kernel_str;
     blank.printcb = config().printcb;
+    blank.context = config().context;
+    blank.output_file = config().output_file;
     config() = blank;
 }
 
@@ -753,7 +773,7 @@ config_t parameters_consistency() {
         blank.num_enemies = 1;
     }
     if (blank.num_enemies > 20) {
-        cbprintf("Num Enemies greater than 20, reset to 20.");
+        cbprintf("Num Enemies greater than 20, reset to 20.\n");
         blank.num_enemies = 20;
     }
     if (blank.raidbuff.flask) {
@@ -761,6 +781,11 @@ config_t parameters_consistency() {
     }
     if (blank.raidbuff.food) {
         blank.gear_crit += 125 * (blank.race == 14 ? 2 : 1);
+    }
+    if (!blank.default_actions && !blank.simc_actions->empty()) {
+        cbprintf("SimC-style APL are set. Start APL translation.\n");
+        blank.apl->clear();
+        sapltr(*blank.simc_actions, *blank.apl);
     }
     if (blank.default_actions) {
         blank.apl->clear();
@@ -865,7 +890,7 @@ std::string generate_predef(config_t& blank) {
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define vary_combat_length ");
-    sprintf(buffer, "%ff", blank.vary_combat_length);
+    sprintf(buffer, "%ff", blank.vary_combat_length * 0.01 * blank.max_length );
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define max_length ");
@@ -1255,4 +1280,16 @@ int ic_runsim(float* dps, float* dpsr, float* dpse){
     if (ret < 0.0)
         return -1;
     return 0;
+}
+
+const char* ic_apltranslate_s(const char* simc_style){
+    std::string input(simc_style), output;
+    sapltr(input, output);
+    return output.c_str();
+}
+
+const char* ic_apltranslate_f(const char* filename){
+    std::string input(filename), output;
+    fapltr(input, output);
+    return output.c_str();
 }

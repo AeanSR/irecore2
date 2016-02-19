@@ -62,6 +62,7 @@ struct config_t{
     raidbuff_t raidbuff;
     cl_uint seed;
     std::string* apl;
+    std::string* simc_actions;
     int iterations;
     float vary_combat_length;
     float max_length;
@@ -120,6 +121,7 @@ struct config_t{
         sync_melee = 1;
         wbr_never_expire = 1;
         apl = new std::string("");
+        simc_actions = new std::string("");
         iterations = 50000;
         vary_combat_length = 20.0f;
         max_length = 450.0f;
@@ -135,4 +137,8 @@ struct config_t{
     }
 };
 
+int cbprintf(const char* format, ...);
+// apltr
+int fapltr( std::string& input_file, std::string& output );
+int sapltr( std::string& input, std::string& output );
 #endif

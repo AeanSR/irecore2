@@ -37,6 +37,8 @@ IC_API const char* ic_getparam(const char* key);
 IC_API void ic_resetparam(void);
 
 IC_API const char* ic_defaultapl(void);
+IC_API const char* ic_apltranslate_s(const char* simc_style);
+IC_API const char* ic_apltranslate_f(const char* filename);
 
 IC_API int ic_runsim(float* dps, float* dpsr, float* dpse);
 #endif

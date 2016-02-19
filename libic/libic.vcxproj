@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\util\util.cpp" />
+    <ClCompile Include="apltr.cpp" />
     <ClCompile Include="libic.cpp" />
   </ItemGroup>
   <ItemGroup>
