@@ -10,9 +10,9 @@
 #include "util.h"
 #include <cmath>
 
-const double ilvlScaleCoeff = 1.009357190938255;
+IC_LOCAL const double ilvlScaleCoeff = 1.009357190938255;
 
-const char* trinket_list[] = {
+IC_LOCAL const char* trinket_list[] = {
     "none",
     "vial_of_convulsive_shadows",
     "forgemasters_insignia",
@@ -36,7 +36,7 @@ const char* trinket_list[] = {
     0
 };
 
-const char* race_str_param[] = {
+IC_LOCAL const char* race_str_param[] = {
     "none",
     "human",
     "dwarf",
@@ -55,7 +55,7 @@ const char* race_str_param[] = {
     0
 };
 
-int trinket_scaling( int trinket, int itemlvl ) {
+IC_LOCAL int trinket_scaling( int trinket, int itemlvl ) {
     if ( trinket == 1 ) {
         switch ( itemlvl ) {
         case 670: return 1537;
@@ -258,7 +258,7 @@ int trinket_scaling( int trinket, int itemlvl ) {
     else return 0;
 }
 
-int trinket_from_id( int id ) {
+IC_LOCAL int trinket_from_id( int id ) {
     switch ( id ) {
     case 113969: return 1;
     case 113983: return 2;

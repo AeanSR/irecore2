@@ -12,10 +12,14 @@
 
 #include "VersionNo.h"
 
-extern const double ilvlScaleCoeff;
-extern const char* trinket_list[];
-extern const char* race_str_param[];
-int trinket_scaling( int trinket, int itemlvl );
-int trinket_from_id( int id );
+#ifndef IC_LOCAL
+#define IC_LOCAL
+#endif
+
+extern IC_LOCAL const double ilvlScaleCoeff;
+extern IC_LOCAL const char* trinket_list[];
+extern IC_LOCAL const char* race_str_param[];
+IC_LOCAL int trinket_scaling( int trinket, int itemlvl );
+IC_LOCAL int trinket_from_id( int id );
 
 #endif

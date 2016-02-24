@@ -12,18 +12,18 @@
 const int base10[] = { 1000000, 100000, 10000, 1000, 100, 10, 1 };
 #define TALENT_TIER(tier) ((config().talent / base10[tier - 1]) % 10)
 
-config_t& config(){
+IC_LOCAL config_t& config(){
     static config_t c;
     return c;
 }
 
-char* exchbuf(){
+IC_LOCAL char* exchbuf(){
     static char buf[1024];
     return buf;
 }
 
 // print info via callback function.
-int cbprintf(const char* format, ...){
+IC_LOCAL int cbprintf(const char* format, ...){
     va_list vl;
     int ret;
     va_start(vl, format);
@@ -33,7 +33,7 @@ int cbprintf(const char* format, ...){
 }
 
 // print into file.
-int vofprintf(const char* a, va_list b){
+IC_LOCAL int vofprintf(const char* a, va_list b){
     int ret = vfprintf(config().output_file, a, b);
     vprintf(a, b);
     fflush(config().output_file);
@@ -500,7 +500,7 @@ void ic_setparam(const char* key, const char* value) {
 }
 
 // real to string.
-char* ftoa(double val, char* dstbuf){
+IC_LOCAL char* ftoa(double val, char* dstbuf){
     sprintf(dstbuf, "%f", val);
     return dstbuf;
 }
@@ -741,7 +741,7 @@ const char* ic_defaultapl(void) {
 }
 
 // parameter validation.
-config_t parameters_consistency() {
+IC_LOCAL config_t parameters_consistency() {
     config_t blank(config());
     blank.single_minded = (blank.mh_type == 1 && blank.oh_type == 1);
     if (blank.trinket1 == blank.trinket2 && 0 != blank.trinket1) {
@@ -795,7 +795,7 @@ config_t parameters_consistency() {
 }
 
 // prefix mean to minimize rounding error.
-template <typename T>
+IC_LOCAL template <typename T>
 T prefix_mean(const T* _data, size_t n) {
     /* Make a copy of _data. */
     std::vector<T> data(_data, _data + n);
@@ -816,7 +816,7 @@ T prefix_mean(const T* _data, size_t n) {
 
     return data[0] / static_cast<T>(n);
 }
-template <typename T>
+IC_LOCAL template <typename T>
 T prefix_stddev(const T* _data, size_t n, T mean) {
     /* Make a copy of _data. */
     std::vector<T> data(_data, _data + n);
@@ -842,7 +842,7 @@ T prefix_stddev(const T* _data, size_t n, T mean) {
 }
 
 // generate pre-definition to insert into kernel source.
-std::string generate_predef(config_t& blank) {
+IC_LOCAL std::string generate_predef(config_t& blank) {
     char buffer[256];
     const char* race_str_kernel[] = {
         "RACE_NONE",
@@ -1096,11 +1096,11 @@ std::string generate_predef(config_t& blank) {
 }
 
 // transpose table.
-std::unordered_map<std::string, cl_program>& clptt(void){
+IC_LOCAL std::unordered_map<std::string, cl_program>& clptt(void){
     static std::unordered_map<std::string, cl_program> tt;
     return tt;
 }
-int ttprobe(std::string hashkey, cl_program* p){
+IC_LOCAL int ttprobe(std::string hashkey, cl_program* p){
     auto i = clptt().find(hashkey);
     if (i != clptt().end()){
         *p = i->second;
@@ -1110,7 +1110,7 @@ int ttprobe(std::string hashkey, cl_program* p){
         return 0;
     }
 }
-void ttsave(std::string hashkey, cl_program p){
+IC_LOCAL void ttsave(std::string hashkey, cl_program p){
     clptt()[hashkey] = p;
 }
 

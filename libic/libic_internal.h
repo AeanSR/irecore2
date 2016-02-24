@@ -10,6 +10,8 @@
 #ifndef LIBIC_INTL_H_INCLUDED
 #define LIBIC_INTL_H_INCLUDED
 
+#define IC_INTL
+
 #define _CRT_SECURE_NO_WARNINGS
 #ifdef __APPLE__
 #include <OpenCL/opencl.h>
@@ -137,8 +139,8 @@ struct config_t{
     }
 };
 
-int cbprintf(const char* format, ...);
+IC_LOCAL int cbprintf(const char* format, ...);
 // apltr
-int fapltr( std::string& input_file, std::string& output );
-int sapltr( std::string& input, std::string& output );
+IC_LOCAL int fapltr( std::string& input_file, std::string& output );
+IC_LOCAL int sapltr( std::string& input, std::string& output );
 #endif
