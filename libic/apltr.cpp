@@ -1298,8 +1298,22 @@ IC_LOCAL void parser()
     }
 }
 
+IC_LOCAL void reset_gv(){
+    apltr::errors = 0;
+    apltr::warnings = 0;
+    apltr::ic_apls.clear();
+    apltr::last = 0;
+    apltr::pos = 0;
+    while(!apltr::mark_stack.empty())
+        apltr::mark_stack.pop();
+    apltr::simc_apls.clear();
+    apltr::source.clear();
+    apltr::working = 0;
+}
+
 IC_LOCAL int fapltr(std::string& input_file, std::string& output)
 {
+    reset_gv();
     read_source(input_file.c_str());
     lexer();
     parser();
@@ -1327,6 +1341,7 @@ IC_LOCAL std::vector<std::string> split(const std::string &s, char delim) {
 
 IC_LOCAL int sapltr(std::string& input, std::string& output)
 {
+    reset_gv();
     split(input, '\n', source);
     lexer();
     parser();
