@@ -1028,7 +1028,7 @@ IC_LOCAL std::string generate_predef(config_t& blank) {
 
     if (blank.legendary_ring){
         predef.append("#define legendary_ring ");
-        sprintf(buffer, "%d", (int)(2500.0 * pow(ilvlScaleCoeff, blank.legendary_ring - 735)));
+        sprintf(buffer, "%d", (int)(2500.0 * approx_scale_coeff(735, blank.legendary_ring)));
         predef.append(buffer); predef.append("\r\n");
     }
 
