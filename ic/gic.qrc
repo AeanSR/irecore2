@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/gic">
         <file>../lua/logo.gif</file>
+        <file>splash.png</file>
     </qresource>
 </RCC>

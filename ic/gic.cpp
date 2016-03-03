@@ -8,12 +8,21 @@
 */
 
 #include "gic.h"
+#include <QBitmap>
+#include <QSplashScreen>
 
 gic::gic(QWidget *parent)
     : QMainWindow(parent)
 {
+    QPixmap pixmap(":/gic/splash.png");
+    QSplashScreen splash(pixmap);
+    splash.setMask(pixmap.mask());
+    splash.show();
+
     ic_init();
+
     ui.setupUi(this);
+    splash.finish(this);
 }
 
 gic::~gic()
