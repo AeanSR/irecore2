@@ -642,7 +642,7 @@ void ic_resetparam(void){
 
 // API: default apl.
 const char* ic_defaultapl(void) {
-    std::string apl = "if(!UP(enrage.expire)||(REMAIN(bloodthirst.cd)>FROM_SECONDS(3)&&rti->player.ragingblow.stack<2))SPELL(berserkerrage);\n";
+    static std::string apl = "if(!UP(enrage.expire)||(REMAIN(bloodthirst.cd)>FROM_SECONDS(3)&&rti->player.ragingblow.stack<2))SPELL(berserkerrage);\n";
     apl.append("if((((num_enemies>1.000000f)||!0)&&(((T63(1,0)&&(T63(TO_SECONDS(REMAIN(bladestorm.cd)),0)==0.000000f))||UP(recklessness.expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<25.000000f))))LEGENDARY(SPELL(thorasus_the_stone_heart_of_draenor),0);\n");
     apl.append("if((((enemy_health_percent(rti)<20.000000f)&&UP(recklessness.expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<=30.000000f)))POTION(SPELL(potion),0);\n");
 
@@ -1283,13 +1283,17 @@ int ic_runsim(float* dps, float* dpsr, float* dpse){
 }
 
 const char* ic_apltranslate_s(const char* simc_style){
-    std::string input(simc_style), output;
+    std::string input(simc_style);
+    static std::string output;
+    output.clear();
     sapltr(input, output);
     return output.c_str();
 }
 
 const char* ic_apltranslate_f(const char* filename){
-    std::string input(filename), output;
+    std::string input(filename);
+    static std::string output;
+    output.clear();
     fapltr(input, output);
     return output.c_str();
 }
