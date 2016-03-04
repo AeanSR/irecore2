@@ -12,6 +12,9 @@
 
 #include <QtWidgets/QMainWindow>
 #include <QTranslator>
+#include <QSettings>
+#include <QMessageBox>
+#include <QDateTime>
 #include "libic.h"
 #include "util.h"
 #include "ui_gic.h"
@@ -35,6 +38,8 @@ struct paperdoll_t{
     Ui::gicClass* ui;
     paperdoll_t(Ui::gicClass& ui);
     void slot_switched();
+    void gear_summary_calculate();
+    void clear();
 };
 
 class gic : public QMainWindow
@@ -45,6 +50,30 @@ public:
     paperdoll_t paperdoll;
     gic(QWidget *parent = 0);
     ~gic();
+
+public slots:
+    void slot_switched();
+    void gear_summary_calculate();
+    void mh_dps_calculate();
+    void oh_dps_calculate();
+    void set_parameters();
+    void usage_statistics();
+    //void on_btnRun_clicked();
+    void on_btnImport_clicked();
+    void on_btnResetBuild_clicked();
+    void on_btnGenerateDefaultAPL_clicked();
+    void on_listActions_itemDoubleClicked();
+    void on_listConditions_itemDoubleClicked();
+    //void on_btnSelectTrinkets_clicked();
+    //void on_btnSelectTrinketsBtns_accepted();
+    //void on_btnSelectTrinketsBtns_rejected();
+    //void on_btnSelectAllTrinkets_clicked();
+    //void on_btnSelectNoneTrinkets_clicked();
+    void on_comboIncandescence_currentIndexChanged( int );
+    void TxtBoxNotify( QString );
+    void on_radioDefaultActions_toggled();
+    void on_radioIreCoreActions_toggled();
+    void on_radioSimCActions_toggled();
 
 private:
     Ui::gicClass ui;

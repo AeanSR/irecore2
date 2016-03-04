@@ -25,6 +25,9 @@ int main(int argc, char *argv[])
 
         QFont font( "SimSun", 9 );
         a.setFont( font );
+        QCoreApplication::setOrganizationName("Aean");
+        QCoreApplication::setOrganizationDomain("aean.net");
+        QCoreApplication::setApplicationName("IreCore");
 
         gic w;
 

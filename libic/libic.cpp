@@ -42,7 +42,8 @@ IC_LOCAL int vofprintf(const char* a, va_list b){
 
 // API: show version.
 const char* ic_getversion(void){
-    std::string verstr = STRFILEVER;
+    static std::string verstr;
+    verstr = STRFILEVER;
     verstr += " ";
     verstr += __DATE__;
     return verstr.c_str();
@@ -127,7 +128,6 @@ void ic_init(void){
                 config().device_list.push_back(icd);
                 device_counter++;
             }
-            // clReleaseContext(config().context);
         }
     }
 }
