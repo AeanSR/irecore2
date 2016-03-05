@@ -10,6 +10,9 @@
 #include "gic.h"
 #include <QBitmap>
 #include <QSplashScreen>
+#include <QFileDialog>
+#include <QFile>
+#include <QTextStream>
 
 gic::gic(QWidget *parent)
     : QMainWindow(parent), paperdoll(ui)
@@ -28,6 +31,8 @@ gic::gic(QWidget *parent)
     qRegisterMetaType<QString>("QString");
     ui.tabWidget->setCurrentIndex(0);
     dlgTrinkets = 0;
+    static_ui = &ui;
+    ic_setprintcallback(&gic::vgicprintf);
     QSettings history;
 
     // show current version.
@@ -96,6 +101,19 @@ gic::gic(QWidget *parent)
     for (int i = 1; i <= 20; i++) {
         ui.comboNumEnemies->addItem(QString::number(i), i);
     }
+
+    // Enemy Class.
+    ui.comboEnemyClass->addItem(QApplication::translate("gicClass", "Aberration"), 0);
+    ui.comboEnemyClass->addItem(QApplication::translate("gicClass", "Beast"), 0);
+    ui.comboEnemyClass->addItem(QApplication::translate("gicClass", "Demon"), 1); // 6.x: only demon matters.
+    ui.comboEnemyClass->addItem(QApplication::translate("gicClass", "Dragonkin"), 0);
+    ui.comboEnemyClass->addItem(QApplication::translate("gicClass", "Elemental"), 0);
+    ui.comboEnemyClass->addItem(QApplication::translate("gicClass", "Giant"), 0);
+    ui.comboEnemyClass->addItem(QApplication::translate("gicClass", "Humanoid"), 0); // default to this.
+    ui.comboEnemyClass->addItem(QApplication::translate("gicClass", "Mechanical"), 0);
+    ui.comboEnemyClass->addItem(QApplication::translate("gicClass", "Undead"), 0);
+    ui.comboEnemyClass->addItem(QApplication::translate("gicClass", "Uncategorized"), 0);
+    ui.comboEnemyClass->setCurrentIndex(6);
 
     // Policy Action List.
     QStringList lists;
@@ -335,6 +353,10 @@ gic::gic(QWidget *parent)
     on_radioSimCActions_toggled();
     on_radioDefaultActions_toggled();
 
+    // setup task tab
+    ui.tabPresetTask->setCurrentIndex(0);
+    on_btnApplyPresetTask_clicked();
+
     // setup about tab.
     qulonglong startups = history.value("statistics/startups", 0).toULongLong();
     history.setValue("statistics/startups", ++startups);
@@ -440,82 +462,94 @@ void gic::slot_switched()
 }
 
 void gic::set_parameters() {
-    ic_setparam("iterations", ui.comboIterations->currentText().toStdString().c_str());
-    ic_setparam("rng_engine", ui.comboRNG->currentText().toStdString().c_str());
+    paperdoll.gear_summary_calculate();
+
+    ic_setparam("iterations", ui.comboIterations->currentText().toLocal8Bit());
+    ic_setparam("rng_engine", ui.comboRNG->currentText().toLocal8Bit());
     ic_setparam("seed", ui.checkDeterministic->isChecked() ? "4262" : "0");
-    /*ocl().opencl_device_id = ui.comboDevices->currentIndex();
-    strict_gcd = ui.checkStrictGCD->isChecked();
-    sync_melee = ui.checkSyncMelee->isChecked();
-    wbr_never_expire = ui.checkWBRNeverExpire->isChecked();
-    avatar_like_bloodbath = ui.checkAvatarLikeBloodbath->isChecked();
+    ic_setparam("opencl_device_id", QString().setNum(ui.comboDevices->currentIndex()).toLocal8Bit());
+    ic_setparam("strict_gcd", ui.checkStrictGCD->isChecked() ? "1" : "0" );
+    ic_setparam("sync_melee", ui.checkSyncMelee->isChecked() ? "1" : "0" );
+    ic_setparam("wbr_never_expire", ui.checkWBRNeverExpire->isChecked() ? "1" : "0");
+    ic_setparam("avatar_like_bloodbath", ui.checkAvatarLikeBloodbath->isChecked() ? "1" : "0");
+    ic_setparam("max_length", ui.comboCombatLength->currentData().toString().toLocal8Bit());
+    ic_setparam("vary_combat_length", ui.comboVaryCombatLength->currentData().toString().toLocal8Bit());
+    ic_setparam("initial_health_percentage", ui.comboInitialHealthPercentage->currentData().toString().toLocal8Bit());
+    ic_setparam("death_pct", ui.comboDeathPct->currentData().toString().toLocal8Bit());
+    ic_setparam("num_enemies", ui.comboNumEnemies->currentData().toString().toLocal8Bit());
+    ic_setparam("raidbuff_ap", ui.checkRaidBuffAP->isChecked() ? "1" : "0");
+    ic_setparam("raidbuff_bloodlust", ui.checkRaidBuffBloodlust->isChecked() ? "1" : "0");
+    ic_setparam("raidbuff_crit", ui.checkRaidBuffCrit->isChecked() ? "1" : "0");
+    ic_setparam("raidbuff_flask", ui.checkRaidBuffFlask->isChecked() ? "1" : "0");
+    ic_setparam("raidbuff_food", ui.checkRaidBuffFood->isChecked() ? "1" : "0");
+    ic_setparam("raidbuff_haste", ui.checkRaidBuffHaste->isChecked() ? "1" : "0");
+    ic_setparam("raidbuff_mastery", ui.checkRaidBuffMastery->isChecked() ? "1" : "0");
+    ic_setparam("raidbuff_mult", ui.checkRaidBuffMult->isChecked() ? "1" : "0");
+    ic_setparam("raidbuff_potion", ui.checkRaidBuffPotion->isChecked() ? "1" : "0");
+    ic_setparam("raidbuff_sp", ui.checkRaidBuffSP->isChecked() ? "1" : "0");
+    ic_setparam("raidbuff_sta", ui.checkRaidBuffSta->isChecked() ? "1" : "0");
+    ic_setparam("raidbuff_str", ui.checkRaidBuffStr->isChecked() ? "1" : "0");
+    ic_setparam("raidbuff_vers", ui.checkRaidBuffVers->isChecked() ? "1" : "0");
 
-    max_length = ui.comboCombatLength->currentData().toInt();
-    vary_combat_length = ui.comboVaryCombatLength->currentData().toFloat();
-    initial_health_percentage = ui.comboInitialHealthPercentage->currentData().toFloat();
-    death_pct = ui.comboDeathPct->currentData().toFloat();
-    num_enemies = ui.comboNumEnemies->currentData().toInt();
-    raidbuff.ap = ui.checkRaidBuffAP->isChecked();
-    raidbuff.bloodlust = ui.checkRaidBuffBloodlust->isChecked();
-    raidbuff.crit = ui.checkRaidBuffCrit->isChecked();
-    raidbuff.flask = ui.checkRaidBuffFlask->isChecked();
-    raidbuff.food = ui.checkRaidBuffFood->isChecked();
-    raidbuff.haste = ui.checkRaidBuffHaste->isChecked();
-    raidbuff.mastery = ui.checkRaidBuffMastery->isChecked();
-    raidbuff.mult = ui.checkRaidBuffMult->isChecked();
-    raidbuff.potion = ui.checkRaidBuffPotion->isChecked();
-    raidbuff.sp = ui.checkRaidBuffSP->isChecked();
-    raidbuff.sta = ui.checkRaidBuffSta->isChecked();
-    raidbuff.str = ui.checkRaidBuffStr->isChecked();
-    raidbuff.vers = ui.checkRaidBuffVers->isChecked();
+    QString talent;
+    talent += QString().setNum(ui.comboTalent1->currentIndex());
+    talent += QString().setNum(ui.comboTalent2->currentIndex());
+    talent += QString().setNum(ui.comboTalent3->currentIndex());
+    talent += QString().setNum(ui.comboTalent4->currentIndex());
+    talent += QString().setNum(ui.comboTalent5->currentIndex());
+    talent += QString().setNum(ui.comboTalent6->currentIndex());
+    ic_setparam("talent", talent.toLocal8Bit());
+    
+    ic_setparam("race", race_str_param[ui.comboRace->currentIndex()]);
+    ic_setparam("trinket1", trinket_list[ui.comboTrinketSpecial1->currentIndex()]);
+    ic_setparam("trinket2", trinket_list[ui.comboTrinketSpecial2->currentIndex()]);
+    ic_setparam("trinket1_ilvl", ui.txtTrinketValue1->text().toLocal8Bit());
+    ic_setparam("trinket2_ilvl", ui.txtTrinketValue2->text().toLocal8Bit());
+    ic_setparam("enemy_is_demonic", ui.comboEnemyClass->currentData().toString().toLocal8Bit());
+    ic_setparam("mh_high", ui.txtMHHigh->text().toLocal8Bit());
+    ic_setparam("oh_high", ui.txtOHHigh->text().toLocal8Bit());
+    ic_setparam("mh_low", ui.txtMHLow->text().toLocal8Bit());
+    ic_setparam("oh_low", ui.txtOHLow->text().toLocal8Bit());
+    ic_setparam("mh_speed", ui.txtMHSpeed->text().toLocal8Bit());
+    ic_setparam("oh_speed", ui.txtOHSpeed->text().toLocal8Bit());
 
-    talent = 0;
-    talent += ui.comboTalent7->currentIndex();
-    talent += ui.comboTalent6->currentIndex() * 10;
-    talent += ui.comboTalent5->currentIndex() * 100;
-    talent += ui.comboTalent4->currentIndex() * 1000;
-    talent += ui.comboTalent3->currentIndex() * 10000;
-    talent += ui.comboTalent2->currentIndex() * 100000;
-    talent += ui.comboTalent1->currentIndex() * 1000000;
-    race = ui.comboRace->currentIndex();
-    trinket1 = ui.comboTrinketSpecial1->currentIndex();
-    trinket2 = ui.comboTrinketSpecial2->currentIndex();
-    trinket1_ilvl = ui.txtTrinketValue1->text().toInt();
-    trinket2_ilvl = ui.txtTrinketValue2->text().toInt();
+    const char* weapon_type[] = {"2h", "1h", "dagger"};
+    ic_setparam("mh_type", weapon_type[paperdoll.gear_list[6].type]);
+    ic_setparam("mh_type", weapon_type[paperdoll.gear_list[7].type]);
 
-    enemy_is_demonic = ui.checkEnemyIsDemonic->isChecked();
+    if ( ui.comboRace->currentIndex() == 3 )
+        ic_setparam("rage_max", ui.checkGlyphOfUnendingRage->isChecked() ? "126" : "105");
+    else
+        ic_setparam("rage_max", ui.checkGlyphOfUnendingRage->isChecked() ? "120" : "100");
 
-    mh_high = ui.txtMHHigh->text().toInt();
-    oh_high = ui.txtOHHigh->text().toInt();
-    mh_low = ui.txtMHLow->text().toInt();
-    oh_low = ui.txtOHLow->text().toInt();
-    mh_speed = ui.txtMHSpeed->text().toFloat();
-    oh_speed = ui.txtOHSpeed->text().toFloat();
-    mh_type = gear_list[6].type;
-    oh_type = gear_list[7].type;
+    ic_setparam("glyph_of_ragingwind", ui.checkGlyphOfRagingWind->isChecked() ? "1" : "0");
+    ic_setparam("t17_2pc", ui.checkT172P->isChecked() ? "1" : "0");
+    ic_setparam("t17_4pc", ui.checkT174P->isChecked() ? "1" : "0");
+    ic_setparam("t18_2pc", ui.checkT182P->isChecked() ? "1" : "0");
+    ic_setparam("t18_4pc", ui.checkT184P->isChecked() ? "1" : "0");
+    ic_setparam("archmages_incandescence", ( ui.comboIncandescence->currentIndex() == 1 ) ? "1" : "0");
+    ic_setparam("archmages_greater_incandescence", ( ui.comboIncandescence->currentIndex() == 2 ) ? "1" : "0");
 
-    power_max = 100;
-    if ( ui.checkGlyphOfUnendingRage->isChecked() ) power_max += 20;
-    glyph_of_ragingwind = ui.checkGlyphOfRagingWind->isChecked();
-    if ( race == 3 ) power_max *= 1.05;
-    t17_2pc = ui.checkT172P->isChecked();
-    t17_4pc = ui.checkT174P->isChecked();
-    t18_2pc = ui.checkT182P->isChecked();
-    t18_4pc = ui.checkT184P->isChecked();
-    archmages_incandescence = ( ui.comboIncandescence->currentIndex() == 1 );
-    archmages_greater_incandescence = ( ui.comboIncandescence->currentIndex() == 2 );
     if ( ui.comboIncandescence->currentIndex() == 3 ) {
-    legendary_ring = ui.txtLegendaryRing->text().toInt();
+        ic_setparam("legendary_ring", ui.txtLegendaryRing->text().toLocal8Bit());
+    }else{
+        ic_setparam("legendary_ring", "0");
     }
-    else legendary_ring = 0;
-    thunderlord_mh = ( ui.comboMHEnchant->currentIndex() == 1 );
-    bleeding_hollow_mh = ( ui.comboMHEnchant->currentIndex() == 2 );
-    shattered_hand_mh = ( ui.comboMHEnchant->currentIndex() == 3 );
-    thunderlord_oh = ( ui.comboOHEnchant->currentIndex() == 1 );
-    bleeding_hollow_oh = ( ui.comboOHEnchant->currentIndex() == 2 );
-    shattered_hand_oh = ( ui.comboOHEnchant->currentIndex() == 3 );
 
-    apl = ui.txtAPL->toPlainText().toStdString();
-    default_actions = ui.checkDefaultActions->isChecked();*/
+    ic_setparam("thunderlord_mh", ( ui.comboMHEnchant->currentIndex() == 1 ) ? "1" : "0");
+    ic_setparam("bleeding_hollow_mh", ( ui.comboMHEnchant->currentIndex() == 2 ) ? "1" : "0");
+    ic_setparam("shattered_hand_mh", ( ui.comboMHEnchant->currentIndex() == 3 ) ? "1" : "0");
+    ic_setparam("thunderlord_oh", ( ui.comboOHEnchant->currentIndex() == 1 ) ? "1" : "0");
+    ic_setparam("bleeding_hollow_oh", ( ui.comboOHEnchant->currentIndex() == 2 ) ? "1" : "0");
+    ic_setparam("shattered_hand_oh", ( ui.comboOHEnchant->currentIndex() == 3 ) ? "1" : "0");
+    ic_setparam("actions", ui.txtAPL->toPlainText().toLocal8Bit());
+    ic_setparam("default_actions", ui.radioDefaultActions->isChecked() ? "1" : "0");
+
+    if(ui.radioSimCActions->isChecked()){
+        ic_setparam("simc_actions", ui.txtSimCAPL->toPlainText().toLocal8Bit());
+    }else{
+        ic_setparam("simc_actions", "");
+    }
 }
 
 void gic::on_listActions_itemDoubleClicked()
@@ -621,12 +655,41 @@ void gic::on_radioIreCoreActions_toggled(){
 void gic::on_radioSimCActions_toggled(){
     if(ui.radioSimCActions->isChecked()){
         ui.txtSimCAPL->show();
+        ui.btnLoadFromFile->show();
     }else{
         ui.txtSimCAPL->hide();
+        ui.btnLoadFromFile->hide();
     }
+}
+void gic::on_btnLoadFromFile_clicked(){
+    QSettings history;
+    QString filename = QFileDialog::getOpenFileName(this, tr("Load From SimC Profile"),
+                                                history.value("policy/loadfromsimc").toString(),
+                                                tr("SimC profile (*.simc);;All files (*.*)"));
+    if (filename.isNull()) return;
+    history.setValue("policy/loadfromsimc", filename);
+    QFile file(filename);
+
+    file.open(QFile::ReadOnly | QFile::Text);
+
+    QTextStream ReadFile(&file);
+    ui.txtSimCAPL->setPlainText(ReadFile.readAll());
+}
+
+void gic::on_btnApplyPresetTask_clicked(){
+    ic_printbanner();
 }
 
 void gic::TxtBoxNotify( QString value ) {
     ui.txtResult->moveCursor( QTextCursor::End );
     ui.txtResult->insertPlainText( value );
+}
+Ui::gicClass* gic::static_ui = 0;
+
+int gic::vgicprintf( const char* format, va_list vl ) {
+    QString text;
+    text.vsprintf(format, vl);
+    static_ui->txtResult->moveCursor( QTextCursor::End );
+    static_ui->txtResult->insertPlainText( text );
+    return text.length();
 }

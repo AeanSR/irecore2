@@ -50,6 +50,7 @@ public:
     paperdoll_t paperdoll;
     gic(QWidget *parent = 0);
     ~gic();
+    static int vgicprintf(const char* format, va_list vl);
 
 public slots:
     void slot_switched();
@@ -59,11 +60,13 @@ public slots:
     void set_parameters();
     void usage_statistics();
     //void on_btnRun_clicked();
+    void on_btnLoadFromFile_clicked();
     void on_btnImport_clicked();
     void on_btnResetBuild_clicked();
     void on_btnGenerateDefaultAPL_clicked();
     void on_listActions_itemDoubleClicked();
     void on_listConditions_itemDoubleClicked();
+    void on_btnApplyPresetTask_clicked();
     //void on_btnSelectTrinkets_clicked();
     //void on_btnSelectTrinketsBtns_accepted();
     //void on_btnSelectTrinketsBtns_rejected();
@@ -78,6 +81,7 @@ public slots:
 private:
     Ui::gicClass ui;
     QDialog* dlgTrinkets;
+    static Ui::gicClass* static_ui;
 };
 
 #endif // GIC_H
