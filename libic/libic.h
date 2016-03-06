@@ -70,5 +70,5 @@ IC_API const char* ic_defaultapl(void);
 IC_API const char* ic_apltranslate_s(const char* simc_style);
 IC_API const char* ic_apltranslate_f(const char* filename);
 
-IC_API int ic_runsim(float* dps, float* dpsr, float* dpse);
+IC_API int ic_runsim(float* dps, float* dpsr, float* dpse, float* sim_time);
 #endif

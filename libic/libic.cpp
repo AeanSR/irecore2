@@ -1115,7 +1115,7 @@ IC_LOCAL void ttsave(std::string hashkey, cl_program p){
 }
 
 // API: start simulation.
-int ic_runsim(float* dps, float* dpsr, float* dpse){
+int ic_runsim(float* dps, float* dpsr, float* dpse, float* sim_time){
     static int last_device_id = 0xdeadbeef;
     static cl_device_id device_used;
     static cl_command_queue queue;
@@ -1130,6 +1130,7 @@ int ic_runsim(float* dps, float* dpsr, float* dpse){
         if (dps) *dps = 0;
         if (dpsr) *dpsr = 0;
         if (dpse) *dpse = 0;
+        if (sim_time) *sim_time = 0;
         return 0;
     }
 
@@ -1271,10 +1272,11 @@ int ic_runsim(float* dps, float* dpsr, float* dpse){
     clReleaseMemObject(cl_res);
 
     auto t3 = std::chrono::high_resolution_clock::now();
+    float dummy;
     std::chrono::duration<double> time_span1 = std::chrono::duration_cast<std::chrono::duration<double>>( t3 - t1 );
     std::chrono::duration<double> time_span2 = std::chrono::duration_cast<std::chrono::duration<double>>( t3 - t2 );
     cbprintf( "Total elapsed time %.3fs\n", time_span1.count() );
-    cbprintf( "Simulation time %.3fs\n", time_span2.count() );
+    cbprintf( "Simulation time %.3fs\n", ((sim_time?*sim_time:dummy)=time_span2.count()) );
     cbprintf( "Speedup %dx\n", ( int )( blank.iterations * blank.max_length / time_span2.count() ));
 
     if (ret < 0.0)

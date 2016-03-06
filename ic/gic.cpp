@@ -13,6 +13,8 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QTextStream>
+#include <QtConcurrent/QtConcurrent>
+#include <ctime>
 
 gic::gic(QWidget *parent)
     : QMainWindow(parent), paperdoll(ui)
@@ -31,13 +33,13 @@ gic::gic(QWidget *parent)
     qRegisterMetaType<QString>("QString");
     ui.tabWidget->setCurrentIndex(0);
     dlgTrinkets = 0;
-    static_ui = &ui;
+    static_this = this;
     ic_setprintcallback(&gic::vgicprintf);
     QSettings history;
 
     // show current version.
     QString ver_str(QApplication::translate("gicClass", "  Current Version: ", 0));
-    ver_str.append( ic_getversion() );
+    ver_str.append(ic_getversion());
     ui.lblVersion->setText(ver_str);
 
     // Add compute devices.
@@ -348,6 +350,13 @@ gic::gic(QWidget *parent)
     connect(ui.checkRaidBuffFlask, SIGNAL(stateChanged(int)), this, SLOT(gear_summary_calculate()));
     connect(ui.checkRaidBuffFood, SIGNAL(stateChanged(int)), this, SLOT(gear_summary_calculate()));
 
+    connect(ui.txtMHHigh, SIGNAL(textEdited(const QString&)), this, SLOT(mh_dps_calculate()));
+    connect(ui.txtMHLow, SIGNAL(textEdited(const QString&)), this, SLOT(mh_dps_calculate()));
+    connect(ui.txtMHSpeed, SIGNAL(textEdited(const QString&)), this, SLOT(mh_dps_calculate()));
+    connect(ui.txtOHHigh, SIGNAL(textEdited(const QString&)), this, SLOT(oh_dps_calculate()));
+    connect(ui.txtOHLow, SIGNAL(textEdited(const QString&)), this, SLOT(oh_dps_calculate()));
+    connect(ui.txtOHSpeed, SIGNAL(textEdited(const QString&)), this, SLOT(oh_dps_calculate()));
+
     // setup policy tab
     on_radioIreCoreActions_toggled();
     on_radioSimCActions_toggled();
@@ -360,7 +369,7 @@ gic::gic(QWidget *parent)
     // setup about tab.
     qulonglong startups = history.value("statistics/startups", 0).toULongLong();
     history.setValue("statistics/startups", ++startups);
-    if(history.value("statistics/first/version").isNull()){
+    if (history.value("statistics/first/version").isNull()){
         history.setValue("statistics/first/version", ic_getversion());
         history.setValue("statistics/first/date", QDateTime::currentDateTime());
     }
@@ -388,44 +397,41 @@ void gic::usage_statistics()
 
     ui.lblStatisticFrom->setText(QApplication::translate("gicClass", "Statistics From ") + first_date.toString(Qt::DateFormat::SystemLocaleDate) + " (ver. " + first_version + ")");
     ui.lblStatisticDays->setText(QApplication::translate("gicClass", "Days Elapsed: ") + QString().setNum(days));
-    ui.lblStatisticStartups->setText(QApplication::translate("gicClass", "IreCore Startups: ") + QString().setNum(startups));
+    ui.lblStatisticStartups->setText(QApplication::translate("gicClass", "GUI Startups: ") + QString().setNum(startups));
     ui.lblStatisticTasks->setText(QApplication::translate("gicClass", "Total Tasks: ") + QString().setNum(tasks));
     ui.lblStatisticIterations->setText(QApplication::translate("gicClass", "Total Iterations: ") + QString().setNum(iterations));
 
     QString text;
-    const quint32 rates[] = {1000, 60, 60, 24};
-    const QString units[] = {"ms", "s", "m", "h", "d"};
-    if(cputime < 1000){
+    const quint32 rates[] = { 1000, 60, 60, 24 };
+    const QString units[] = { "ms", "s", "m", "h", "d" };
+    if (cputime < 1000){
         text = QString().setNum(cputime) + "ms";
-    }else{
-        for(int i = 0; i < 4; i++){
+    }
+    else{
+        for (int i = 0; i < 4; i++){
             text = units[i] + " " + text;
             text = QString().setNum(cputime % rates[i]) + text;
             cputime = cputime / rates[i];
-            if(cputime == 0) break;
+            if (cputime == 0) break;
         }
-        if(cputime > 0){
+        if (cputime > 0){
             text = units[4] + " " + text;
             text = QString().setNum(cputime) + text;
         }
     }
 
-    ui.lblStatisticCPUTime->setText(QApplication::translate("gicClass", "Total CPU Time: ") + text);
+    ui.lblStatisticCPUTime->setText(QApplication::translate("gicClass", "Total Processor Time: ") + text);
 
     text.clear();
-    if(combatlength < 1000){
-        text = QString().setNum(cputime) + "ms";
-    }else{
-        for(int i = 0; i < 4; i++){
-            text = units[i] + " " + text;
-            text = QString().setNum(combatlength % rates[i]) + text;
-            combatlength = combatlength / rates[i];
-            if(combatlength == 0) break;
-        }
-        if(combatlength > 0){
-            text = units[4] + " " + text;
-            text = QString().setNum(combatlength) + text;
-        }
+    for (int i = 1; i < 4; i++){
+        text = units[i] + " " + text;
+        text = QString().setNum(combatlength % rates[i]) + text;
+        combatlength = combatlength / rates[i];
+        if (combatlength == 0) break;
+    }
+    if (combatlength > 0){
+        text = units[4] + " " + text;
+        text = QString().setNum(combatlength) + text;
     }
 
     ui.lblStatisticCombatLength->setText(QApplication::translate("gicClass", "Total Combat Length: ") + text);
@@ -464,12 +470,12 @@ void gic::slot_switched()
 void gic::set_parameters() {
     paperdoll.gear_summary_calculate();
 
-    ic_setparam("iterations", ui.comboIterations->currentText().toLocal8Bit());
-    ic_setparam("rng_engine", ui.comboRNG->currentText().toLocal8Bit());
-    ic_setparam("seed", ui.checkDeterministic->isChecked() ? "4262" : "0");
+    ic_setparam("iterations", ui.comboIterations->currentData().toString().toLocal8Bit());
+    ic_setparam("rng_engine", ui.comboRNG->currentText().toLower().toLocal8Bit());
+    ic_setparam("deterministic_seed", ui.checkDeterministic->isChecked() ? "4262" : "0");
     ic_setparam("opencl_device_id", QString().setNum(ui.comboDevices->currentIndex()).toLocal8Bit());
-    ic_setparam("strict_gcd", ui.checkStrictGCD->isChecked() ? "1" : "0" );
-    ic_setparam("sync_melee", ui.checkSyncMelee->isChecked() ? "1" : "0" );
+    ic_setparam("strict_gcd", ui.checkStrictGCD->isChecked() ? "1" : "0");
+    ic_setparam("sync_melee", ui.checkSyncMelee->isChecked() ? "1" : "0");
     ic_setparam("wbr_never_expire", ui.checkWBRNeverExpire->isChecked() ? "1" : "0");
     ic_setparam("avatar_like_bloodbath", ui.checkAvatarLikeBloodbath->isChecked() ? "1" : "0");
     ic_setparam("max_length", ui.comboCombatLength->currentData().toString().toLocal8Bit());
@@ -498,8 +504,9 @@ void gic::set_parameters() {
     talent += QString().setNum(ui.comboTalent4->currentIndex());
     talent += QString().setNum(ui.comboTalent5->currentIndex());
     talent += QString().setNum(ui.comboTalent6->currentIndex());
+    talent += QString().setNum(ui.comboTalent7->currentIndex());
     ic_setparam("talent", talent.toLocal8Bit());
-    
+
     ic_setparam("race", race_str_param[ui.comboRace->currentIndex()]);
     ic_setparam("trinket1", trinket_list[ui.comboTrinketSpecial1->currentIndex()]);
     ic_setparam("trinket2", trinket_list[ui.comboTrinketSpecial2->currentIndex()]);
@@ -513,11 +520,11 @@ void gic::set_parameters() {
     ic_setparam("mh_speed", ui.txtMHSpeed->text().toLocal8Bit());
     ic_setparam("oh_speed", ui.txtOHSpeed->text().toLocal8Bit());
 
-    const char* weapon_type[] = {"2h", "1h", "dagger"};
+    const char* weapon_type[] = { "2h", "1h", "dagger" };
     ic_setparam("mh_type", weapon_type[paperdoll.gear_list[6].type]);
-    ic_setparam("mh_type", weapon_type[paperdoll.gear_list[7].type]);
+    ic_setparam("oh_type", weapon_type[paperdoll.gear_list[7].type]);
 
-    if ( ui.comboRace->currentIndex() == 3 )
+    if (ui.comboRace->currentIndex() == 3)
         ic_setparam("rage_max", ui.checkGlyphOfUnendingRage->isChecked() ? "126" : "105");
     else
         ic_setparam("rage_max", ui.checkGlyphOfUnendingRage->isChecked() ? "120" : "100");
@@ -527,27 +534,30 @@ void gic::set_parameters() {
     ic_setparam("t17_4pc", ui.checkT174P->isChecked() ? "1" : "0");
     ic_setparam("t18_2pc", ui.checkT182P->isChecked() ? "1" : "0");
     ic_setparam("t18_4pc", ui.checkT184P->isChecked() ? "1" : "0");
-    ic_setparam("archmages_incandescence", ( ui.comboIncandescence->currentIndex() == 1 ) ? "1" : "0");
-    ic_setparam("archmages_greater_incandescence", ( ui.comboIncandescence->currentIndex() == 2 ) ? "1" : "0");
+    ic_setparam("archmages_incandescence", (ui.comboIncandescence->currentIndex() == 1) ? "1" : "0");
+    ic_setparam("archmages_greater_incandescence", (ui.comboIncandescence->currentIndex() == 2) ? "1" : "0");
 
-    if ( ui.comboIncandescence->currentIndex() == 3 ) {
+    if (ui.comboIncandescence->currentIndex() == 3) {
         ic_setparam("legendary_ring", ui.txtLegendaryRing->text().toLocal8Bit());
-    }else{
+    }
+    else{
         ic_setparam("legendary_ring", "0");
     }
-
-    ic_setparam("thunderlord_mh", ( ui.comboMHEnchant->currentIndex() == 1 ) ? "1" : "0");
-    ic_setparam("bleeding_hollow_mh", ( ui.comboMHEnchant->currentIndex() == 2 ) ? "1" : "0");
-    ic_setparam("shattered_hand_mh", ( ui.comboMHEnchant->currentIndex() == 3 ) ? "1" : "0");
-    ic_setparam("thunderlord_oh", ( ui.comboOHEnchant->currentIndex() == 1 ) ? "1" : "0");
-    ic_setparam("bleeding_hollow_oh", ( ui.comboOHEnchant->currentIndex() == 2 ) ? "1" : "0");
-    ic_setparam("shattered_hand_oh", ( ui.comboOHEnchant->currentIndex() == 3 ) ? "1" : "0");
+    if (ui.comboMHEnchant->currentIndex() == 0) ic_setparam("mh_enchant", "none");
+    if (ui.comboMHEnchant->currentIndex() == 1) ic_setparam("mh_enchant", "thunderlord");
+    if (ui.comboMHEnchant->currentIndex() == 2) ic_setparam("mh_enchant", "bleedinghollow");
+    if (ui.comboMHEnchant->currentIndex() == 3) ic_setparam("mh_enchant", "shatteredhand");
+    if (ui.comboOHEnchant->currentIndex() == 0) ic_setparam("oh_enchant", "none");
+    if (ui.comboOHEnchant->currentIndex() == 1) ic_setparam("oh_enchant", "thunderlord");
+    if (ui.comboOHEnchant->currentIndex() == 2) ic_setparam("oh_enchant", "bleedinghollow");
+    if (ui.comboOHEnchant->currentIndex() == 3) ic_setparam("oh_enchant", "shatteredhand");
     ic_setparam("actions", ui.txtAPL->toPlainText().toLocal8Bit());
     ic_setparam("default_actions", ui.radioDefaultActions->isChecked() ? "1" : "0");
 
-    if(ui.radioSimCActions->isChecked()){
+    if (ui.radioSimCActions->isChecked()){
         ic_setparam("simc_actions", ui.txtSimCAPL->toPlainText().toLocal8Bit());
-    }else{
+    }
+    else{
         ic_setparam("simc_actions", "");
     }
 }
@@ -584,7 +594,7 @@ void gic::on_btnImport_clicked()
 void gic::on_btnGenerateDefaultAPL_clicked()
 {
     if (QMessageBox::question(this, QApplication::translate("gicClass", "Generate Default APL"),
-        QApplication::translate("gicClass", "This will overwrite texts of the APL editor. Are you sure?"),
+        QApplication::translate("gicClass", "This will overwrite texts of the editor. Are you sure?"),
         QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok){
         ui.radioIreCoreActions->setChecked(true);
         set_parameters();
@@ -635,17 +645,18 @@ void gic::on_btnResetBuild_clicked() {
 }
 
 void gic::on_radioDefaultActions_toggled(){
-    if(ui.radioDefaultActions->isChecked()){
-        
+    if (ui.radioDefaultActions->isChecked()){
+
     }
 }
 void gic::on_radioIreCoreActions_toggled(){
-    if(ui.radioIreCoreActions->isChecked()){
+    if (ui.radioIreCoreActions->isChecked()){
         ui.txtAPL->show();
         ui.listActions->show();
         ui.listConditions->show();
         ui.btnGenerateDefaultAPL->setDisabled(false);
-    }else{
+    }
+    else{
         ui.txtAPL->hide();
         ui.listActions->hide();
         ui.listConditions->hide();
@@ -653,10 +664,11 @@ void gic::on_radioIreCoreActions_toggled(){
     }
 }
 void gic::on_radioSimCActions_toggled(){
-    if(ui.radioSimCActions->isChecked()){
+    if (ui.radioSimCActions->isChecked()){
         ui.txtSimCAPL->show();
         ui.btnLoadFromFile->show();
-    }else{
+    }
+    else{
         ui.txtSimCAPL->hide();
         ui.btnLoadFromFile->hide();
     }
@@ -664,8 +676,8 @@ void gic::on_radioSimCActions_toggled(){
 void gic::on_btnLoadFromFile_clicked(){
     QSettings history;
     QString filename = QFileDialog::getOpenFileName(this, tr("Load From SimC Profile"),
-                                                history.value("policy/loadfromsimc").toString(),
-                                                tr("SimC profile (*.simc);;All files (*.*)"));
+        history.value("policy/loadfromsimc").toString(),
+        tr("SimC profile (*.simc);;All files (*.*)"));
     if (filename.isNull()) return;
     history.setValue("policy/loadfromsimc", filename);
     QFile file(filename);
@@ -677,19 +689,58 @@ void gic::on_btnLoadFromFile_clicked(){
 }
 
 void gic::on_btnApplyPresetTask_clicked(){
-    ic_printbanner();
+    if (!ui.txtScript->toPlainText().isEmpty())
+        if (QMessageBox::question(this, QApplication::translate("gicClass", "Apply Preset Task"),
+            QApplication::translate("gicClass", "This will overwrite texts of the editor. Are you sure?"),
+            QMessageBox::Ok | QMessageBox::Cancel) != QMessageBox::Ok){
+            return;
+        }
+    QString script;
+    script += QString("-- ") + QApplication::translate("script", "This script is generated by IreCore.") + "\n";
+    script += QString("-- ") + "API usage: dps, dpsr, dpse = Run()" + "\n";
+    script += QString("-- ") + QApplication::translate("script", "If we don't set silence mode, IreCore will output to the result tab.") + "\n";
+    script += QString("-- ") + QApplication::translate("script", "Just run.") + "\n";
+    script += "Run()\n";
+    ui.txtScript->setPlainText(script);
 }
 
-void gic::TxtBoxNotify( QString value ) {
-    ui.txtResult->moveCursor( QTextCursor::End );
-    ui.txtResult->insertPlainText( value );
+void gic::TxtBoxNotify(QString value) {
+    ui.txtResult->moveCursor(QTextCursor::End);
+    ui.txtResult->insertPlainText(value);
 }
-Ui::gicClass* gic::static_ui = 0;
+gic* gic::static_this = 0;
 
-int gic::vgicprintf( const char* format, va_list vl ) {
+int gic::vgicprintf(const char* format, va_list vl) {
     QString text;
     text.vsprintf(format, vl);
-    static_ui->txtResult->moveCursor( QTextCursor::End );
-    static_ui->txtResult->insertPlainText( text );
+    QMetaObject::invokeMethod(static_this, "TxtBoxNotify", Q_ARG(QString, text));
     return text.length();
+}
+int gic::printf(const char* format, ...){
+    va_list vl;
+    int ret;
+    va_start(vl, format);
+    ret = vgicprintf(format, vl);
+    va_end(vl);
+    return ret;
+}
+int gic::printq(QString text){
+    QMetaObject::invokeMethod(static_this, "TxtBoxNotify", Q_ARG(QString, text));
+    return text.length();
+}
+
+void gic::on_btnRun_clicked(){
+    char header[80];
+    time_t rawtime;
+    time(&rawtime);
+    struct tm* ts = localtime(&rawtime);
+    strftime(header, 80, "============================== %H:%M:%S ==============================", ts);
+    gic::printf("%s\n", header);
+    ui.tabWidget->setCurrentWidget(ui.tabResult);
+    ui.btnRun->setDisabled(true);
+    QtConcurrent::run(this, &gic::run_scripts);
+    QSettings history;
+    qulonglong tasks = history.value("statistics/tasks", 0).toULongLong();
+    tasks++;
+    history.setValue("statistics/tasks", tasks);
 }

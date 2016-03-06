@@ -307,15 +307,16 @@ the input file should have the same format as simc text configuration file. a si
 
 ### ic_runsim
 
-    IC_API int ic_runsim(float* dps, float* dpsr, float* dpse)
+    IC_API int ic_runsim(float* dps, float* dpsr, float* dpse, float* sim_time)
 
 param: three pointers to float, to recieve statistic result.
 
   * `dps` - mean dps
   * `dpsr` - dps standard variation
   * `dpse` - dps error (95% confident level)
+  * `sim_time` - simulation time (sec)
 
 return: `-1` if error occured, `0` if successed.
 
-if any of `dps` `dpsr` `dpse` is not required, just give null pointer and it will be ignored.
+if any of `dps` `dpsr` `dpse` `sim_time` is not required, just give null pointer and it will be ignored.
 

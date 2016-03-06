@@ -28,6 +28,8 @@ int main(int argc, char *argv[])
         QCoreApplication::setOrganizationName("Aean");
         QCoreApplication::setOrganizationDomain("aean.net");
         QCoreApplication::setApplicationName("IreCore");
+        //QSettings history;
+        //history.clear();
 
         gic w;
 

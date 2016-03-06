@@ -51,6 +51,9 @@ public:
     gic(QWidget *parent = 0);
     ~gic();
     static int vgicprintf(const char* format, va_list vl);
+    static int printf(const char* format, ...);
+    static int printq(QString text);
+    void run_scripts();
 
 public slots:
     void slot_switched();
@@ -59,7 +62,7 @@ public slots:
     void oh_dps_calculate();
     void set_parameters();
     void usage_statistics();
-    //void on_btnRun_clicked();
+    void on_btnRun_clicked();
     void on_btnLoadFromFile_clicked();
     void on_btnImport_clicked();
     void on_btnResetBuild_clicked();
@@ -81,7 +84,7 @@ public slots:
 private:
     Ui::gicClass ui;
     QDialog* dlgTrinkets;
-    static Ui::gicClass* static_ui;
+    static gic* static_this;
 };
 
 #endif // GIC_H

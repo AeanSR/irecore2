@@ -85,6 +85,6 @@ int clic_main(int argc, char *argv[])
     for(auto i = arglist.begin(); i != arglist.end(); i++){
         ic_setparam(i->key.c_str(), i->value.c_str());
     }
-    ic_runsim(0, 0, 0);
+    ic_runsim(0, 0, 0, 0);
     return 0;
 }
