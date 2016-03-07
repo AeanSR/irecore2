@@ -63,8 +63,8 @@ struct config_t{
     cl_uint gear_vers;
     raidbuff_t raidbuff;
     cl_uint seed;
-    std::string* apl;
-    std::string* simc_actions;
+    std::string apl;
+    std::string simc_actions;
     int iterations;
     float vary_combat_length;
     float max_length;
@@ -122,8 +122,8 @@ struct config_t{
         strict_gcd = 1;
         sync_melee = 1;
         wbr_never_expire = 1;
-        apl = new std::string("");
-        simc_actions = new std::string("");
+        apl = "";
+        simc_actions = "";
         iterations = 50000;
         vary_combat_length = 20.0f;
         max_length = 450.0f;

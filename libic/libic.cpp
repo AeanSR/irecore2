@@ -279,25 +279,27 @@ void ic_setparam(const char* key, const char* value) {
         config().raidbuff.vers = 1; /* This cannot be cancelled ingame. */
     }
     else if (0 == strcmp(key, "actions")) {
-        config().apl->clear();
-        config().apl->append(value);
-        config().apl->append("\n");
+        config().apl.clear();
+        config().apl=value;
+        config().apl.append("\n");
     }
     else if (0 == strcmp(key, "actions+")) {
-        config().apl->append(value);
-        config().apl->append("\n");
+        config().apl.append(value);
+        config().apl.append("\n");
     }
     else if (0 == strcmp(key, "default_actions")) {
         config().default_actions = !!atoi(value);
     }
     else if (0 == strcmp(key, "simc_actions")) {
-        config().simc_actions->clear();
-        config().simc_actions->append(value);
-        config().simc_actions->append("\n");
+        config().simc_actions.clear();
+        config().simc_actions=value;
+        if(!config().simc_actions.empty())
+            config().simc_actions.append("\n");
     }
     else if (0 == strcmp(key, "simc_actions+")) {
-        config().simc_actions->append(value);
-        config().simc_actions->append("\n");
+        config().simc_actions.append(value);
+        if(!config().simc_actions.empty())
+            config().simc_actions.append("\n");
     }
     else if (0 == strcmp(key, "vary_combat_length")) {
         config().vary_combat_length = atof(value);
@@ -606,22 +608,10 @@ const char* ic_getparam(const char* key){
             }
         }
         else if (0 == strcmp(key, "actions")){
-            if (config().apl){
-                return config().apl->c_str();
-            }
-            else{
-                exchbuf()[0] = 0;
-                return exchbuf();
-            }
+            return config().apl.c_str();
         }
         else if (0 == strcmp(key, "simc_actions")){
-            if (config().simc_actions){
-                return config().simc_actions->c_str();
-            }
-            else{
-                exchbuf()[0] = 0;
-                return exchbuf();
-            }
+            return config().simc_actions.c_str();
         }
         else {
             cbprintf("Cannot parse parameter \"%s\".\n", key);
@@ -642,7 +632,8 @@ void ic_resetparam(void){
 
 // API: default apl.
 const char* ic_defaultapl(void) {
-    static std::string apl = "if(!UP(enrage.expire)||(REMAIN(bloodthirst.cd)>FROM_SECONDS(3)&&rti->player.ragingblow.stack<2))SPELL(berserkerrage);\n";
+    static std::string apl;
+    apl = "if(!UP(enrage.expire)||(REMAIN(bloodthirst.cd)>FROM_SECONDS(3)&&rti->player.ragingblow.stack<2))SPELL(berserkerrage);\n";
     apl.append("if((((num_enemies>1.000000f)||!0)&&(((T63(1,0)&&(T63(TO_SECONDS(REMAIN(bladestorm.cd)),0)==0.000000f))||UP(recklessness.expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<25.000000f))))LEGENDARY(SPELL(thorasus_the_stone_heart_of_draenor),0);\n");
     apl.append("if((((enemy_health_percent(rti)<20.000000f)&&UP(recklessness.expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<=30.000000f)))POTION(SPELL(potion),0);\n");
 
@@ -782,14 +773,14 @@ IC_LOCAL config_t parameters_consistency() {
     if (blank.raidbuff.food) {
         blank.gear_crit += 125 * (blank.race == 14 ? 2 : 1);
     }
-    if (!blank.default_actions && !blank.simc_actions->empty()) {
+    if (!blank.default_actions && !blank.simc_actions.empty()) {
         cbprintf("SimC-style APL are set. Start APL translation.\n");
-        blank.apl->clear();
-        sapltr(*blank.simc_actions, *blank.apl);
+        blank.apl.clear();
+        sapltr(blank.simc_actions, blank.apl);
     }
     if (blank.default_actions) {
-        blank.apl->clear();
-        blank.apl->append(ic_defaultapl());
+        blank.apl.clear();
+        blank.apl=ic_defaultapl();
     }
     return blank;
 }
@@ -1156,13 +1147,13 @@ int ic_runsim(float* dps, float* dpsr, float* dpse, float* sim_time){
     cl_program program;
     cl_int err;
     char buf[32];
-    std::string hashkey = predef + *blank.apl + "@" + _itoa(blank.opencl_device_id, buf, 10);
+    std::string hashkey = predef + blank.apl + "@" + _itoa(blank.opencl_device_id, buf, 10);
     if (!ttprobe(hashkey, &program)){
         // compile kernel
         cbprintf("JIT ...\n");
         source = predef + source;
         source += "void scan_apl( rtinfo_t* rti ) {";
-        source += *blank.apl;
+        source += blank.apl;
         source += "}\n";
         const char* cptr = source.c_str();
         program = clCreateProgramWithSource(config().context, 1, &cptr, 0, 0);

@@ -87,4 +87,12 @@ private:
     static gic* static_this;
 };
 
+QString script_plain();
+QString script_scale_factor(
+    int scale_delta,
+    bool center_scale_delta,
+    int scale_stat_mask,
+    bool scale_mh,
+    bool scale_oh
+);
 #endif // GIC_H

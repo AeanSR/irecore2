@@ -100,7 +100,13 @@ extern "C" int GetParam(lua_State *L) {
     }
     const char* key = lua_tostring(L, 1);
     const char* value = ic_getparam(key);
-    lua_pushstring(L, value); // lua will do the casting / nil filling.
+    lua_pushstring(L, value);
+    int isnum;
+    lua_Number num = lua_tonumberx(L, -1, &isnum);
+    if (isnum){
+        lua_pop(L, 1);
+        lua_pushnumber(L, num);
+    }
     return 1;
 }
 
@@ -171,7 +177,7 @@ void gic::run_scripts(){
         return;
     }
     gic::set_parameters();
-    luaL_loadstring(L, script.toLocal8Bit());
+    luaL_loadstring(L, script.toUtf8());
     lua_call(L, 0, 0);
     lua_close(L);
     ic_setprintcallback(&gic::vgicprintf);

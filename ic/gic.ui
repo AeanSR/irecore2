@@ -50,7 +50,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tabCompute">
         <attribute name="title">
@@ -2777,6 +2777,25 @@ Greater limit gives better result but takes more time.</string>
             </layout>
            </widget>
           </widget>
+         </widget>
+         <widget class="QLabel" name="label_52">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>170</y>
+            <width>591</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Select a task then press Apply.</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
          </widget>
         </widget>
        </widget>
