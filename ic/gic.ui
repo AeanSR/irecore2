@@ -50,7 +50,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>4</number>
        </property>
        <widget class="QWidget" name="tabCompute">
         <attribute name="title">
@@ -2068,7 +2068,7 @@ You can also choose to use SimC-style APL instead, IreCore will attempt to trans
            </rect>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>3</number>
           </property>
           <widget class="QWidget" name="tab">
            <attribute name="title">
@@ -2339,6 +2339,7 @@ Typically takes several seconds to minutes.</string>
             <property name="text">
              <string>Trinket Ladder evaluates a list of trinkets and give DPS improvement as score.
 The automatic generated logic will exclude trinket permanent stats according to the paperdoll of Build Tab. If you changed the paperdoll you should click Apply button again before start simulation.
+It's strongly recommended to use default actions, otherwise on-use trinkets may not work.
 Typically takes several minutes.</string>
             </property>
             <property name="alignment">

@@ -19,6 +19,7 @@
 #include "util.h"
 #include "ui_gic.h"
 #include "ui_select_trinkets.h"
+#include "ui_charts.h"
 
 struct item_t {
     std::string name;

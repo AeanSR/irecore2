@@ -39,15 +39,15 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)</OutDir>
-    <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\lua;$(SolutionDir)\libic;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\qcplib;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)\ic\$(Configuration)\</IntDir>
     <TargetName>irecore</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)</OutDir>
-    <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\lua;$(SolutionDir)\libic;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\qcplib;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)\ic\$(Configuration)\</IntDir>
     <TargetName>irecore</TargetName>
   </PropertyGroup>
@@ -65,7 +65,7 @@
       <OutputFile>$(OutDir)\irecore.exe</OutputFile>
       <AdditionalLibraryDirectories>$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lua53.lib;libic.lib;qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5Networkd.lib;Qt5Widgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>qcustomplot1.lib;lua53.lib;libic.lib;qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5Networkd.lib;Qt5Widgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>cd $(SolutionDir)\
@@ -85,7 +85,7 @@ pack_release.bat</Command>
       <OutputFile>$(OutDir)\irecore.exe</OutputFile>
       <AdditionalLibraryDirectories>$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalDependencies>lua53.lib;libic.lib;qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5Network.lib;Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>qcustomplot1.lib;lua53.lib;libic.lib;qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5Network.lib;Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>cd $(SolutionDir)\
@@ -94,6 +94,7 @@ pack_release.bat</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\util\util.cpp" />
+    <ClCompile Include="charts.cpp" />
     <ClCompile Include="clic.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_gic.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -141,6 +142,7 @@ pack_release.bat</Command>
   <ItemGroup>
     <ClInclude Include="..\libic\libic.h" />
     <ClInclude Include="..\util\util.h" />
+    <ClInclude Include="GeneratedFiles\ui_charts.h" />
     <ClInclude Include="GeneratedFiles\ui_gic.h" />
     <ClInclude Include="clic.h" />
     <ClInclude Include="GeneratedFiles\ui_select_trinkets.h" />
@@ -161,6 +163,16 @@ pack_release.bat</Command>
     <ResourceCompile Include="gic.rc" />
   </ItemGroup>
   <ItemGroup>
+    <CustomBuild Include="charts.ui">
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Uic%27ing %(Identity)...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\GeneratedFiles\ui_%(Filename).h;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(QTDIR)\bin\uic.exe" -o ".\GeneratedFiles\ui_%(Filename).h" "%(FullPath)"</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Uic%27ing %(Identity)...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\ui_%(Filename).h;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\uic.exe" -o ".\GeneratedFiles\ui_%(Filename).h" "%(FullPath)"</Command>
+    </CustomBuild>
     <None Include="gic_zh.ts" />
     <CustomBuild Include="select_trinkets.ui">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
