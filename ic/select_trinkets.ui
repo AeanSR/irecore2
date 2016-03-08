@@ -57,7 +57,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="btnSelectAllTrinkets">
+  <widget class="QPushButton" name="btnToggleAllTrinkets">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -67,10 +67,10 @@
     </rect>
    </property>
    <property name="text">
-    <string>Select All</string>
+    <string>Toggle All</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="btnSelectNoneTrinkets">
+  <widget class="QPushButton" name="btnToggleUpgradedTrinkets">
    <property name="geometry">
     <rect>
      <x>110</x>
@@ -80,7 +80,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Select None</string>
+    <string>Toggle Upgrade</string>
    </property>
   </widget>
  </widget>

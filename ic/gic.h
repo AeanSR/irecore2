@@ -70,11 +70,11 @@ public slots:
     void on_listActions_itemDoubleClicked();
     void on_listConditions_itemDoubleClicked();
     void on_btnApplyPresetTask_clicked();
-    //void on_btnSelectTrinkets_clicked();
-    //void on_btnSelectTrinketsBtns_accepted();
-    //void on_btnSelectTrinketsBtns_rejected();
-    //void on_btnSelectAllTrinkets_clicked();
-    //void on_btnSelectNoneTrinkets_clicked();
+    void on_btnSelectTrinkets_clicked();
+    void on_btnSelectTrinketsBtns_accepted();
+    void on_btnSelectTrinketsBtns_rejected();
+    void on_btnToggleAllTrinkets_clicked();
+    void on_btnToggleUpgradedTrinkets_clicked();
     void on_comboIncandescence_currentIndexChanged( int );
     void TxtBoxNotify( QString );
     void on_radioDefaultActions_toggled();
@@ -83,9 +83,33 @@ public slots:
 
 private:
     Ui::gicClass ui;
+    Ui::dlgTrinkets uiTrinkets;
     QDialog* dlgTrinkets;
     static gic* static_this;
 };
+
+struct trinket_profile_t {
+    QString name;
+    int itemid;
+    int itemlvl;
+    int str;
+    int crit;
+    int haste;
+    int mastery;
+    int mult;
+    int vers;
+    int demonic;
+    int upgrade;
+    int not_selected;
+    trinket_profile_t( QString name, int itemid, int itemlvl, int str, int crit, int haste, int mastery, int mult, int vers, int upgrade = 0, int demonic = -1 ) :
+        name( name ), itemid( itemid ), itemlvl( itemlvl ), str( str ), crit( crit ), haste( haste ), mastery( mastery ), mult( mult ), vers( vers ), upgrade(upgrade), demonic( demonic ), not_selected( 0 )
+    {};
+};
+struct trinket_ladder_t {
+    std::vector<trinket_profile_t> list;
+    trinket_ladder_t();
+};
+std::vector<trinket_profile_t>& trinket_ladder();
 
 QString script_plain();
 QString script_scale_factor(
@@ -94,5 +118,13 @@ QString script_scale_factor(
     int scale_stat_mask,
     bool scale_mh,
     bool scale_oh
+);
+QString script_trinket_ladder(
+    int trinket_slot_str,
+    int trinket_slot_crit,
+    int trinket_slot_haste,
+    int trinket_slot_mastery,
+    int trinket_slot_mult,
+    int trinket_slot_vers
 );
 #endif // GIC_H

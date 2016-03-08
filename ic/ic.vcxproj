@@ -112,6 +112,7 @@ pack_release.bat</Command>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="paperdoll.cpp" />
     <ClCompile Include="scripts.cpp" />
+    <ClCompile Include="trinkets.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="gic.h">

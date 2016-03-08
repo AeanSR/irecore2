@@ -165,7 +165,8 @@ IC_LOCAL int trinket_scaling(int trinket, int itemlvl) {
         }
     }
     else if (trinket == 12) {
-        switch (itemlvl - 15) { /** Due to blizzard's bug! */
+        itemlvl -= 15; /** Due to blizzard's bug! */
+        switch (itemlvl) { 
         case 705: return 220;
         case 711: return 232;
         case 720: return 253;
@@ -330,12 +331,12 @@ IC_LOCAL double combat_ratings_mult(int itemlvl){
     return tbl_combat_ratings_mult[itemlvl - 800];
 }
 
-IC_LOCAL double approx_scale_coeff(unsigned current_itemlvl, unsigned new_itemlvl)
+IC_LOCAL double approx_scale_coeff(int current_itemlvl, int new_itemlvl)
 {
     return pow(1.15, (new_itemlvl - current_itemlvl) / 15.0);
 }
 
-IC_LOCAL double approx_scale_coeff_cr(unsigned current_itemlvl, unsigned new_itemlvl)
+IC_LOCAL double approx_scale_coeff_cr(int current_itemlvl, int new_itemlvl)
 {
-    return approx_scale_coeff(current_itemlvl, new_itemlvl) * combat_ratings_mult(new_itemlvl);
+    return approx_scale_coeff(current_itemlvl, new_itemlvl) * combat_ratings_mult(new_itemlvl) / combat_ratings_mult(current_itemlvl);
 }

@@ -715,9 +715,72 @@ void gic::on_btnApplyPresetTask_clicked(){
             ui.checkScaleFactorWOHDPS->isChecked()
             );
     }
+    if (ui.tabPresetTask->currentIndex() == 2){
+        gear_summary_calculate();
+        script = script_trinket_ladder(
+            paperdoll.gear_list[14].str + paperdoll.gear_list[15].str,
+            paperdoll.gear_list[14].crit + paperdoll.gear_list[15].crit,
+            paperdoll.gear_list[14].haste + paperdoll.gear_list[15].haste,
+            paperdoll.gear_list[14].mastery + paperdoll.gear_list[15].mastery,
+            paperdoll.gear_list[14].mult + paperdoll.gear_list[15].mult,
+            paperdoll.gear_list[14].vers + paperdoll.gear_list[15].vers
+            );
+    }
     ui.txtScript->setPlainText(script);
 }
+void gic::on_btnSelectTrinkets_clicked()
+{
+    if(!dlgTrinkets){
+        dlgTrinkets = new QDialog();
+        uiTrinkets.setupUi(dlgTrinkets);
+        connect( uiTrinkets.btnToggleAllTrinkets, SIGNAL( clicked( void ) ), this, SLOT( on_btnToggleAllTrinkets_clicked() ) );
+        connect( uiTrinkets.btnToggleUpgradedTrinkets, SIGNAL( clicked( void ) ), this, SLOT( on_btnToggleUpgradedTrinkets_clicked() ) );
+        connect( uiTrinkets.btnSelectTrinketsBtns, SIGNAL( accepted( void ) ), this, SLOT( on_btnSelectTrinketsBtns_accepted() ) );
+        connect( uiTrinkets.btnSelectTrinketsBtns, SIGNAL( rejected( void ) ), this, SLOT( on_btnSelectTrinketsBtns_rejected() ) );
+        uiTrinkets.btnSelectTrinketsBtns->button(QDialogButtonBox::Ok)->setText(tr("Ok"));
+        uiTrinkets.btnSelectTrinketsBtns->button(QDialogButtonBox::Cancel)->setText(tr("Cancel"));
+    }
+    uiTrinkets.listTrinketList->clear();
+    for ( auto i = trinket_ladder().begin(); i != trinket_ladder().end(); i++ ) {
+        QListWidgetItem* aitem = new QListWidgetItem(QString("[") + QString::number(i->itemlvl) + QString("]") + i->name);
+        aitem->setFlags(aitem->flags() | Qt::ItemIsUserCheckable);
+        aitem->setCheckState(i->not_selected ? Qt::Unchecked : Qt::Checked);
+        uiTrinkets.listTrinketList->addItem(aitem);
+    }
+    dlgTrinkets->show();
+}
 
+void gic::on_btnSelectTrinketsBtns_accepted()
+{
+    for( int i = 0; i < trinket_ladder().size(); i++ ) {
+        trinket_ladder()[i].not_selected = uiTrinkets.listTrinketList->item(i)->checkState() != Qt::Checked;
+    }
+    dlgTrinkets->hide();
+}
+
+void gic::on_btnSelectTrinketsBtns_rejected()
+{
+    dlgTrinkets->hide();
+}
+
+void gic::on_btnToggleAllTrinkets_clicked()
+{
+    static int toggle = 0;
+    for( int i = 0; i < uiTrinkets.listTrinketList->count(); i++ ){
+        uiTrinkets.listTrinketList->item(i)->setCheckState(toggle ? Qt::Checked : Qt::Unchecked);
+    }
+    toggle = ! toggle;
+}
+
+void gic::on_btnToggleUpgradedTrinkets_clicked()
+{
+    static int toggle = 0;
+    for( int i = 0; i < uiTrinkets.listTrinketList->count(); i++ ){
+        if(trinket_ladder()[i].upgrade)
+            uiTrinkets.listTrinketList->item(i)->setCheckState(toggle ? Qt::Checked : Qt::Unchecked);
+    }
+    toggle = ! toggle;
+}
 void gic::TxtBoxNotify(QString value) {
     ui.txtResult->moveCursor(QTextCursor::End);
     ui.txtResult->insertPlainText(value);
