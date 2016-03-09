@@ -43,12 +43,34 @@ struct paperdoll_t{
     void clear();
 };
 
+class QChartDialog : public QDialog{
+    QCustomPlot* qcp;
+    virtual void resizeEvent(QResizeEvent* e);
+public:
+    void setQCP(QCustomPlot* pqcp);
+};
+struct bar_data_t{
+    QString name;
+    double value;
+    double error;
+    bar_data_t(QString name, double value, double error) : name(name), value(value), error(error){}
+    bool operator<(const bar_data_t& rhs){ return value < rhs.value; }
+};
+struct contour_data_t{
+    int x;
+    int y;
+    double value;
+    contour_data_t(int x, int y, double value) : x(x), y(y), value(value){}
+    bool operator<(const contour_data_t& rhs){ return value < rhs.value; }
+};
+
 class gic : public QMainWindow
 {
     Q_OBJECT
 
 public:
     paperdoll_t paperdoll;
+    static gic* static_this;
     gic(QWidget *parent = 0);
     ~gic();
     static int vgicprintf(const char* format, va_list vl);
@@ -81,12 +103,20 @@ public slots:
     void on_radioDefaultActions_toggled();
     void on_radioIreCoreActions_toggled();
     void on_radioSimCActions_toggled();
+    void new_bar_chart();
+    void add_bar(QString name, double value, double error);
+    void finish_bar();
+    void new_contour_chart(QString xlbl, QString ylbl);
+    void add_contour(int x, int y, double value);
+    void finish_contour();
 
 private:
     Ui::gicClass ui;
     Ui::dlgTrinkets uiTrinkets;
+    Ui::dlgCharts uiCharts;
     QDialog* dlgTrinkets;
-    static gic* static_this;
+    QChartDialog* dlgCharts;
+
 };
 
 struct trinket_profile_t {

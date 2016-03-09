@@ -18,6 +18,7 @@ copy LICENSE release_nolib\LICENSE
 copy lua\lua53.dll release_nolib\lua53.dll
 copy %windir%\SYSWOW64\ssleay32.dll release_nolib\ssleay32.dll
 copy %windir%\SYSWOW64\libeay32.dll release_nolib\libeay32.dll
+copy qcplib\qcustomplot1.dll release_nolib\qcustomplot1.dll
 
 :: Normal release.
 xcopy profile release\profile /I
@@ -31,10 +32,12 @@ copy %qt_dir%\bin\Qt5Core.dll release\Qt5Core.dll
 copy %qt_dir%\bin\Qt5GUI.dll release\Qt5GUI.dll
 copy %qt_dir%\bin\Qt5Widgets.dll release\Qt5Widgets.dll
 copy %qt_dir%\bin\Qt5Network.dll release\Qt5Network.dll
+copy %qt_dir%\bin\Qt5PrintSupport.dll release\Qt5PrintSupport.dll
 copy %qt_dir%\plugins\platforms\qwindows.dll release\platforms\qwindows.dll
 copy lua\lua53.dll release\lua53.dll
 copy %windir%\SYSWOW64\ssleay32.dll release\ssleay32.dll
 copy %windir%\SYSWOW64\libeay32.dll release\libeay32.dll
+copy qcplib\qcustomplot1.dll release\qcustomplot1.dll
 :: ICU is no longer needed since irecore-620-50?
 :: copy %qt_dir%\bin\icuin53.dll release\icuin53.dll
 :: copy %qt_dir%\bin\icuuc53.dll release\icuuc53.dll

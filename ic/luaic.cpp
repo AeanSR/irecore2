@@ -71,7 +71,8 @@ extern "C" int SetParam(lua_State* L) {
     int n = lua_gettop(L);
     if (n != 2){
         std::string emsg = "wrong number arguments, expected 2, given ";
-        emsg += n;
+        char buf[32];
+        emsg += _itoa(n, buf, 10);
         lua_pushlstring(L, emsg.c_str(), emsg.length());
         lua_error(L);
     }
@@ -90,7 +91,8 @@ extern "C" int GetParam(lua_State *L) {
     int n = lua_gettop(L);
     if (n != 1){
         std::string emsg = "wrong number arguments, expected 1, given ";
-        emsg += n;
+        char buf[32];
+        emsg += _itoa(n, buf, 10);
         lua_pushlstring(L, emsg.c_str(), emsg.length());
         lua_error(L);
     }
@@ -123,6 +125,90 @@ extern "C" int TranslateAPL(lua_State *L) {
     std::string apl = ic_apltranslate_s(lua_tostring(L, 1));
     lua_pushlstring(L, apl.c_str(), apl.length());
     return 1;
+}
+
+// Create a bar chart.
+extern "C" int CreateBarChart(lua_State *L) {
+    QMetaObject::invokeMethod(gic::static_this, "new_bar_chart");
+    return 0;
+}
+
+// Add data to bar chart.
+extern "C" int AddBarData(lua_State *L) {
+    int n = lua_gettop(L);
+    if (n < 3){
+        std::string emsg = "wrong number arguments, expected 3, given ";
+        char buf[32];
+        emsg += _itoa(n, buf, 10);
+        lua_pushlstring(L, emsg.c_str(), emsg.length());
+        lua_error(L);
+    }
+    if (!lua_isstring(L, 1)){
+        lua_pushliteral(L, "expected string on arg#1");
+        lua_error(L);
+    }
+    if (!lua_isnumber(L, 2)){
+        lua_pushliteral(L, "expected number on arg#2");
+        lua_error(L);
+    }
+    if (!lua_isnumber(L, 3)){
+        lua_pushliteral(L, "expected number on arg#3");
+        lua_error(L);
+    }
+    QString name = QString::fromUtf8( lua_tostring(L, 1) );
+    double value = lua_tonumber(L, 2);
+    double error = lua_tonumber(L, 3);
+    QMetaObject::invokeMethod(gic::static_this, "add_bar", Q_ARG(QString, name), Q_ARG(double, value), Q_ARG(double, error));
+    return 0;
+}
+
+// Finish and show bar chart.
+extern "C" int FinishBarChart(lua_State *L) {
+    QMetaObject::invokeMethod(gic::static_this, "finish_bar");
+    return 0;
+}
+
+// Create a contour chart.
+extern "C" int CreateContourChart(lua_State *L) {
+    QString xname = QString::fromUtf8( lua_tostring(L, 1) );
+    QString yname = QString::fromUtf8( lua_tostring(L, 2) );
+    QMetaObject::invokeMethod(gic::static_this, "new_contour_chart", Q_ARG(QString, xname), Q_ARG(QString, yname));
+    return 0;
+}
+
+// Add data to contour chart.
+extern "C" int AddContourData(lua_State *L) {
+    int n = lua_gettop(L);
+    if (n < 3){
+        std::string emsg = "wrong number arguments, expected 3, given ";
+        char buf[32];
+        emsg += _itoa(n, buf, 10);
+        lua_pushlstring(L, emsg.c_str(), emsg.length());
+        lua_error(L);
+    }
+    if (!lua_isnumber(L, 1)){
+        lua_pushliteral(L, "expected number on arg#1");
+        lua_error(L);
+    }
+    if (!lua_isnumber(L, 2)){
+        lua_pushliteral(L, "expected number on arg#2");
+        lua_error(L);
+    }
+    if (!lua_isnumber(L, 3)){
+        lua_pushliteral(L, "expected number on arg#3");
+        lua_error(L);
+    }
+    int x = lua_tonumber(L, 1);
+    int y = lua_tonumber(L, 2);
+    double value = lua_tonumber(L, 3);
+    QMetaObject::invokeMethod(gic::static_this, "add_contour", Q_ARG(int, x), Q_ARG(int, y), Q_ARG(double, value));
+    return 0;
+}
+
+// Finish and show contour chart.
+extern "C" int FinishContourChart(lua_State *L) {
+    QMetaObject::invokeMethod(gic::static_this, "finish_contour");
+    return 0;
 }
 
 // Start a sim.
@@ -163,6 +249,13 @@ void gic::run_scripts(){
     lua_nregister(L, GetDefaultAPL);
     lua_nregister(L, TranslateAPL);
     lua_nregister(L, Run);
+
+    lua_nregister(L, CreateBarChart);
+    lua_nregister(L, CreateContourChart);
+    lua_nregister(L, AddBarData);
+    lua_nregister(L, AddContourData);
+    lua_nregister(L, FinishBarChart);
+    lua_nregister(L, FinishContourChart);
 
     lua_getglobal(L, "_G");
     luaL_setfuncs(L, printlib, 0);

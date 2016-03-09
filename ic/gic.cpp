@@ -33,6 +33,7 @@ gic::gic(QWidget *parent)
     qRegisterMetaType<QString>("QString");
     ui.tabWidget->setCurrentIndex(0);
     dlgTrinkets = 0;
+    dlgCharts = 0;
     static_this = this;
     ic_setprintcallback(&gic::vgicprintf);
     QSettings history;
@@ -374,6 +375,11 @@ gic::gic(QWidget *parent)
         history.setValue("statistics/first/date", QDateTime::currentDateTime());
     }
     usage_statistics();
+
+    // setup chart window.
+    dlgCharts = new QChartDialog();
+    uiCharts.setupUi(dlgCharts);
+    dlgCharts->setQCP(uiCharts.customPlot);
 
     // show main window.
     splash.finish(this);
