@@ -1,9 +1,5 @@
 <RCC>
   <qresource prefix="/gic">
-    <file>logo/qt.png</file>
-    <file>logo/opencl.png</file>
-    <file>logo/rapidjson.png</file>
-    <file>../lua/logo.gif</file>
     <file>logo/splash.png</file>
   </qresource>
 </RCC>

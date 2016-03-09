@@ -732,22 +732,50 @@ void gic::on_btnApplyPresetTask_clicked(){
             paperdoll.gear_list[14].vers + paperdoll.gear_list[15].vers
             );
     }
+    if (ui.tabPresetTask->currentIndex() == 4){
+        int stat[5] = { 0 };
+        int i = 0;
+        if (ui.checkPlotCrit->isChecked()) stat[i++] = 0;
+        if (ui.checkPlotHaste->isChecked()) stat[i++] = 1;
+        if (ui.checkPlotMastery->isChecked()) stat[i++] = 2;
+        if (ui.checkPlotMult->isChecked()) stat[i++] = 3;
+        if (ui.checkPlotVers->isChecked()) stat[i++] = 4;
+        if (i != 3){
+            QMessageBox::information(this, QApplication::translate("gicClass", "Apply Preset Task"),
+                QApplication::translate("gicClass", "Contour Plot stats not set properly. Exact 3 stats should be checked.\nReset to Crit-Haste-Mastery.\n"),
+                QMessageBox::Ok);
+            stat[0] = 0;
+            stat[1] = 1;
+            stat[2] = 2;
+            ui.checkPlotCrit->setChecked(true);
+            ui.checkPlotHaste->setChecked(true);
+            ui.checkPlotMastery->setChecked(true);
+            ui.checkPlotMult->setChecked(false);
+            ui.checkPlotVers->setChecked(false);
+        }
+        script = script_contour_plot(
+            ui.txtPlotInterval->text().toInt(),
+            ui.txtPlotErrorTolerance->text().toDouble(),
+            ui.txtPlotMaxIterationLimit->text().toInt(),
+            stat[0], stat[1], stat[2]
+            );
+    }
     ui.txtScript->setPlainText(script);
 }
 void gic::on_btnSelectTrinkets_clicked()
 {
-    if(!dlgTrinkets){
+    if (!dlgTrinkets){
         dlgTrinkets = new QDialog();
         uiTrinkets.setupUi(dlgTrinkets);
-        connect( uiTrinkets.btnToggleAllTrinkets, SIGNAL( clicked( void ) ), this, SLOT( on_btnToggleAllTrinkets_clicked() ) );
-        connect( uiTrinkets.btnToggleUpgradedTrinkets, SIGNAL( clicked( void ) ), this, SLOT( on_btnToggleUpgradedTrinkets_clicked() ) );
-        connect( uiTrinkets.btnSelectTrinketsBtns, SIGNAL( accepted( void ) ), this, SLOT( on_btnSelectTrinketsBtns_accepted() ) );
-        connect( uiTrinkets.btnSelectTrinketsBtns, SIGNAL( rejected( void ) ), this, SLOT( on_btnSelectTrinketsBtns_rejected() ) );
+        connect(uiTrinkets.btnToggleAllTrinkets, SIGNAL(clicked(void)), this, SLOT(on_btnToggleAllTrinkets_clicked()));
+        connect(uiTrinkets.btnToggleUpgradedTrinkets, SIGNAL(clicked(void)), this, SLOT(on_btnToggleUpgradedTrinkets_clicked()));
+        connect(uiTrinkets.btnSelectTrinketsBtns, SIGNAL(accepted(void)), this, SLOT(on_btnSelectTrinketsBtns_accepted()));
+        connect(uiTrinkets.btnSelectTrinketsBtns, SIGNAL(rejected(void)), this, SLOT(on_btnSelectTrinketsBtns_rejected()));
         uiTrinkets.btnSelectTrinketsBtns->button(QDialogButtonBox::Ok)->setText(tr("Ok"));
         uiTrinkets.btnSelectTrinketsBtns->button(QDialogButtonBox::Cancel)->setText(tr("Cancel"));
     }
     uiTrinkets.listTrinketList->clear();
-    for ( auto i = trinket_ladder().begin(); i != trinket_ladder().end(); i++ ) {
+    for (auto i = trinket_ladder().begin(); i != trinket_ladder().end(); i++) {
         QListWidgetItem* aitem = new QListWidgetItem(QString("[") + QString::number(i->itemlvl) + QString("]") + i->name);
         aitem->setFlags(aitem->flags() | Qt::ItemIsUserCheckable);
         aitem->setCheckState(i->not_selected ? Qt::Unchecked : Qt::Checked);
@@ -758,7 +786,7 @@ void gic::on_btnSelectTrinkets_clicked()
 
 void gic::on_btnSelectTrinketsBtns_accepted()
 {
-    for( int i = 0; i < trinket_ladder().size(); i++ ) {
+    for (int i = 0; i < trinket_ladder().size(); i++) {
         trinket_ladder()[i].not_selected = uiTrinkets.listTrinketList->item(i)->checkState() != Qt::Checked;
     }
     dlgTrinkets->hide();
@@ -772,20 +800,20 @@ void gic::on_btnSelectTrinketsBtns_rejected()
 void gic::on_btnToggleAllTrinkets_clicked()
 {
     static int toggle = 0;
-    for( int i = 0; i < uiTrinkets.listTrinketList->count(); i++ ){
+    for (int i = 0; i < uiTrinkets.listTrinketList->count(); i++){
         uiTrinkets.listTrinketList->item(i)->setCheckState(toggle ? Qt::Checked : Qt::Unchecked);
     }
-    toggle = ! toggle;
+    toggle = !toggle;
 }
 
 void gic::on_btnToggleUpgradedTrinkets_clicked()
 {
     static int toggle = 0;
-    for( int i = 0; i < uiTrinkets.listTrinketList->count(); i++ ){
-        if(trinket_ladder()[i].upgrade)
+    for (int i = 0; i < uiTrinkets.listTrinketList->count(); i++){
+        if (trinket_ladder()[i].upgrade)
             uiTrinkets.listTrinketList->item(i)->setCheckState(toggle ? Qt::Checked : Qt::Unchecked);
     }
-    toggle = ! toggle;
+    toggle = !toggle;
 }
 void gic::TxtBoxNotify(QString value) {
     ui.txtResult->moveCursor(QTextCursor::End);

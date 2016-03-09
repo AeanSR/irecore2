@@ -2,6 +2,7 @@ IreCore is distributed under the terms of The MIT License.
 Copyright (C) 2015 Aean(a.k.a. fhsvengetta)
 All rights reserved.
 
+NOTICE: some part of this project is licensed under different terms.
 
 The MIT License (MIT)
 
@@ -52,7 +53,7 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Open Source Software Licensed Under LGPLv3:
+Open Source Software Licensed Under GPL/LGPLv3:
 --------------------------------------------------------------------
 
 The Qt Toolkit
@@ -61,6 +62,15 @@ The Qt Toolkit is Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 Contact: http://www.qt.io/licensing
 
 You may use, distribute and copy the Qt GUI Toolkit under the terms of GNU Lesser General Public License version 3, which supplements GNU General Public License Version 3. Both of the licenses are displayed below.
+
+QCustomPlot, an easy to use, modern plotting widget for Qt
+Copyright (C) 2011-2015 Emanuel Eichhammer
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program.  If not, see http://www.gnu.org/licenses/.
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007

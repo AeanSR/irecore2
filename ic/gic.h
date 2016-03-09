@@ -106,7 +106,7 @@ public slots:
     void new_bar_chart();
     void add_bar(QString name, double value, double error);
     void finish_bar();
-    void new_contour_chart(QString xlbl, QString ylbl);
+    void new_contour_chart(QString xlbl, QString ylbl, QString zlbl);
     void add_contour(int x, int y, double value);
     void finish_contour();
 
@@ -157,5 +157,13 @@ QString script_trinket_ladder(
     int trinket_slot_mastery,
     int trinket_slot_mult,
     int trinket_slot_vers
+);
+QString script_contour_plot(
+    int delta,
+    float tolerance,
+    int max_iteration,
+    int stat1,
+    int stat2,
+    int stat3
 );
 #endif // GIC_H

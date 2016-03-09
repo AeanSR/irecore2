@@ -19,6 +19,10 @@ std::vector<contour_data_t>& contour_data(){
     static std::vector<contour_data_t> vec;
     return vec;
 }
+QString& contour_zlbl(){
+    static QString zlbl;
+    return zlbl;
+}
 
 void QChartDialog::setQCP(QCustomPlot* pqcp){
     qcp = pqcp;
@@ -102,7 +106,7 @@ void gic::finish_bar(){
     dlgCharts->show();
 }
 
-void gic::new_contour_chart(QString xlbl, QString ylbl){
+void gic::new_contour_chart(QString xlbl, QString ylbl, QString zlbl){
     delete uiCharts.customPlot;
     delete dlgCharts;
     dlgCharts = new QChartDialog();
@@ -113,6 +117,7 @@ void gic::new_contour_chart(QString xlbl, QString ylbl){
     uiCharts.customPlot->axisRect()->setupFullAxesBox(true);
     uiCharts.customPlot->xAxis->setLabel(xlbl);
     uiCharts.customPlot->yAxis->setLabel(ylbl);
+    contour_zlbl() = zlbl;
 }
 
 void gic::add_contour(int x, int y, double value){
@@ -154,7 +159,7 @@ void gic::finish_contour(){
     customPlot->plotLayout()->addElement(0, 1, colorScale);
     colorScale->setType(QCPAxis::atRight);
     map->setColorScale(colorScale);
-    colorScale->axis()->setLabel("DPS");
+    colorScale->axis()->setLabel(contour_zlbl());
     QCPColorGradient grad ( QCPColorGradient::gpNight );
     grad.setColorStopAt(1.0/350.0, grad.color(0,QCPRange(0,1)));
     grad.setColorStopAt(1.0, grad.color(0.9,QCPRange(0,1)));

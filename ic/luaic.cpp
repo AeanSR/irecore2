@@ -172,7 +172,8 @@ extern "C" int FinishBarChart(lua_State *L) {
 extern "C" int CreateContourChart(lua_State *L) {
     QString xname = QString::fromUtf8( lua_tostring(L, 1) );
     QString yname = QString::fromUtf8( lua_tostring(L, 2) );
-    QMetaObject::invokeMethod(gic::static_this, "new_contour_chart", Q_ARG(QString, xname), Q_ARG(QString, yname));
+    QString zname = QString::fromUtf8( lua_tostring(L, 3) );
+    QMetaObject::invokeMethod(gic::static_this, "new_contour_chart", Q_ARG(QString, xname), Q_ARG(QString, yname), Q_ARG(QString, zname));
     return 0;
 }
 
