@@ -732,6 +732,21 @@ void gic::on_btnApplyPresetTask_clicked(){
             paperdoll.gear_list[14].vers + paperdoll.gear_list[15].vers
             );
     }
+    if (ui.tabPresetTask->currentIndex() == 3){
+        double confidence = ui.txtDescentConfidenceLevel->text().toDouble() * 0.01;
+        if (confidence >= 1.0 || confidence <= 0.5) {
+            QMessageBox::information(this, QApplication::translate("gicClass", "Apply Preset Task"),
+                QApplication::translate("gicClass", "Confidence level should be in (50%, 100%). Set as 95%.\n"),
+                QMessageBox::Ok);
+            confidence = 0.95;
+        }
+        script = script_stat_maxima(
+            confidence,
+            ui.txtDescentInitInterval->text().toInt(),
+            ui.txtDescentMinInterval->text().toInt(),
+            ui.txtDescentIterationLimit->text().toInt()
+            );
+    }
     if (ui.tabPresetTask->currentIndex() == 4){
         int stat[5] = { 0 };
         int i = 0;

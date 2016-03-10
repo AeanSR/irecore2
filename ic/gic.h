@@ -158,6 +158,12 @@ QString script_trinket_ladder(
     int trinket_slot_mult,
     int trinket_slot_vers
 );
+QString script_stat_maxima(
+    float confidence,
+    int delta,
+    int min_delta,
+    int max_iteration
+);
 QString script_contour_plot(
     int delta,
     float tolerance,

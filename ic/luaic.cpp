@@ -212,6 +212,42 @@ extern "C" int FinishContourChart(lua_State *L) {
     return 0;
 }
 
+// DPS Compare Confidence.
+extern "C" int DPSCompareConfidence(lua_State *L) {
+    int n = lua_gettop(L);
+    if (n < 4){
+        std::string emsg = "wrong number arguments, expected 4, given ";
+        char buf[32];
+        emsg += _itoa(n, buf, 10);
+        lua_pushlstring(L, emsg.c_str(), emsg.length());
+        lua_error(L);
+    }
+    if (!lua_isnumber(L, 1)){
+        lua_pushliteral(L, "expected number on arg#1");
+        lua_error(L);
+    }
+    if (!lua_isnumber(L, 2)){
+        lua_pushliteral(L, "expected number on arg#2");
+        lua_error(L);
+    }
+    if (!lua_isnumber(L, 3)){
+        lua_pushliteral(L, "expected number on arg#3");
+        lua_error(L);
+    }
+    if (!lua_isnumber(L, 4)){
+        lua_pushliteral(L, "expected number on arg#4");
+        lua_error(L);
+    }
+    double m1 = lua_tonumber(L, 1);
+    double e1 = lua_tonumber(L, 2);
+    double m2 = lua_tonumber(L, 3);
+    double e2 = lua_tonumber(L, 4);
+    double sigma = sqrt(e1 * e1 + e2 * e2) * 0.5;
+    double c = 0.5 + 0.5 * erf( sqrt(0.5) * abs(m1 - m2) / sigma );
+    lua_pushnumber(L, c);
+    return 1;
+}
+
 // Start a sim.
 extern "C" int Run(lua_State *L){
     float dps, dpsr, dpse, sim_time;
@@ -257,6 +293,8 @@ void gic::run_scripts(){
     lua_nregister(L, AddContourData);
     lua_nregister(L, FinishBarChart);
     lua_nregister(L, FinishContourChart);
+
+    lua_nregister(L, DPSCompareConfidence);
 
     lua_getglobal(L, "_G");
     luaL_setfuncs(L, printlib, 0);
