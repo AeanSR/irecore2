@@ -2876,6 +2876,9 @@ Greater limit gives better result but takes more time.</string>
          <property name="alignment">
           <set>Qt::AlignHCenter|Qt::AlignTop</set>
          </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
+         </property>
         </widget>
         <widget class="QGroupBox" name="groupBox_11">
          <property name="geometry">
