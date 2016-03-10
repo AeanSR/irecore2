@@ -39,14 +39,14 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)</OutDir>
-    <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(IncludePath)</IncludePath>
+    <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(SolutionDir)\rapidjson;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\qcplib;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)\ic\$(Configuration)\</IntDir>
     <TargetName>irecore</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)</OutDir>
-    <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(IncludePath)</IncludePath>
+    <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(SolutionDir)\rapidjson;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\qcplib;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)\ic\$(Configuration)\</IntDir>
     <TargetName>irecore</TargetName>
@@ -94,8 +94,10 @@ pack_release.bat</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\util\util.cpp" />
+    <ClCompile Include="battlenet.cpp" />
     <ClCompile Include="charts.cpp" />
     <ClCompile Include="clic.cpp" />
+    <ClCompile Include="dbc.c" />
     <ClCompile Include="GeneratedFiles\Debug\moc_gic.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>

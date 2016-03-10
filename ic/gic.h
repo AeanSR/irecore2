@@ -76,6 +76,7 @@ public:
     static int vgicprintf(const char* format, va_list vl);
     static int printf(const char* format, ...);
     static int printq(QString text);
+    int import_player( std::string& realm, std::string& name, std::string& region, int silence = 0 );
     void run_scripts();
 
 public slots:
@@ -172,4 +173,18 @@ QString script_contour_plot(
     int stat2,
     int stat3
 );
+
+typedef struct {
+    int id;
+    int stat;
+    int value;
+} enchant_t;
+typedef struct {
+    int id;
+    int subclass;
+} item_subclass_t;
+extern "C" enchant_t enchant_list[];
+extern "C" enchant_t gem_list[];
+extern "C" int plate_list[];
+extern "C" item_subclass_t weapon_type_list[];
 #endif // GIC_H

@@ -593,7 +593,7 @@ void gic::on_btnImport_clicked()
     region = ui.comboRegion->currentText().toStdString();
     realm = ui.txtRealm->text().toStdString();
     name = ui.txtCharacter->text().toStdString();
-    //import_player( realm, name, region );
+    import_player( realm, name, region );
     ui.btnImport->setDisabled(false);
 }
 
