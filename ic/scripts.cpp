@@ -492,7 +492,7 @@ QString script_contour_plot(
     script += QString("io.write(\"ylabel(\\\"") + stat_name[stat2] + "\\\");\\n\")\n";
     script += "io.write(\"axc=gca();\\n\")\n";
     script += "io.write(\"axc.auto_ticks=\\\"on\\\";\\n\")\n";
-    script += QString("print(\"") + QApplication::translate("gicClass", "Contour Plot Finished. You could run \\\"contour_plot.sci\\\" with SciLab (http://scilab.org/) to draw a figure.") + "\")\n";
+    script += QString("print(\"") + QApplication::translate("script", "Contour Plot Finished. You could run \\\"contour_plot.sci\\\" with SciLab (http://scilab.org/) to draw a figure.") + "\")\n";
     script += "FinishContourChart()\n";
 
     return script;

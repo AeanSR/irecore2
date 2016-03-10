@@ -1909,7 +1909,8 @@ DECL_EVENT( wildstrike_execute ) {
     float d = weapon_dmg( rti, 3.75f, 1, 1 );
 
 #if (t18_2pc)
-    if ( deal_damage( rti, target_id, d, DMGTYPE_ABILITY, UP( bloodsurge.expire ) ? 1.0 : 0, UP( bloodsurge.expire ) ? 0.12 : 0, 0 ) ) {
+    if ( deal_damage( rti, target_id, d, DMGTYPE_ABILITY, UP( bloodsurge.expire ) ? 1.0 : 0, UP( bloodsurge.expire ) ? 0 /*0.12*/ : 0, 0 ) ) {
+    // due to blizzard's bug http://bbs.ngacn.cc/read.php?tid=8925045
 #else
     if ( deal_damage( rti, target_id, d, DMGTYPE_ABILITY, 0, 0, 0 ) ) {
 #endif
