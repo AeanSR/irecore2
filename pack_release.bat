@@ -3,11 +3,16 @@ set qt_dir=E:\Qt\5.5\msvc2013
 
 rd /S /Q release
 rd /S /Q release_nolib
+rd /S /Q release_libic
 mkdir release
 mkdir release\profile
 mkdir release\platforms
 mkdir release_nolib
 mkdir release_nolib\profile
+mkdir release_libic
+mkdir release_libic\Win32
+mkdir release_libic\kernel
+mkdir release_libic\include
 
 :: Nolib release.
 xcopy profile release_nolib\profile /I
@@ -15,10 +20,6 @@ copy irecore.exe release_nolib\irecore.exe
 copy kernel.c release_nolib\kernel.c
 copy ic\gic_zh.qm release_nolib\gic_zh.qm
 copy LICENSE release_nolib\LICENSE
-copy lua\lua53.dll release_nolib\lua53.dll
-copy %windir%\SYSWOW64\ssleay32.dll release_nolib\ssleay32.dll
-copy %windir%\SYSWOW64\libeay32.dll release_nolib\libeay32.dll
-copy qcplib\qcustomplot1.dll release_nolib\qcustomplot1.dll
 
 :: Normal release.
 xcopy profile release\profile /I
@@ -38,7 +39,10 @@ copy lua\lua53.dll release\lua53.dll
 copy %windir%\SYSWOW64\ssleay32.dll release\ssleay32.dll
 copy %windir%\SYSWOW64\libeay32.dll release\libeay32.dll
 copy qcplib\qcustomplot1.dll release\qcustomplot1.dll
-:: ICU is no longer needed since irecore-620-50?
-:: copy %qt_dir%\bin\icuin53.dll release\icuin53.dll
-:: copy %qt_dir%\bin\icuuc53.dll release\icuuc53.dll
-:: copy icudt53_min.dll release\icudt53.dll
+
+:: libic release
+copy libic\README.MD release_libic\README.MD
+copy libic\LICENSE release_libic\LICENSE
+copy libic\libic.h release_libic\include\libic.h
+copy kernel.c release_libic\kernel\kernel.c
+copy libic\libic.lib release_libic\Win32\libic.lib
