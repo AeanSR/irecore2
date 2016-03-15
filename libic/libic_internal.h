@@ -46,11 +46,12 @@ struct raidbuff_t {
 
 struct ic_computedevice_t{
     int id;
-    int platform_id;
-    int device_id;
+    cl_device_id device_id;
+    cl_context context;
+    cl_command_queue queue;
     char* platform_name;
     char* device_name;
-    ic_computedevice_t() : platform_name(0), device_name(0) {}
+    ic_computedevice_t() : platform_name(0), device_name(0), context(0), queue(0) {}
 };
 
 
@@ -112,7 +113,6 @@ struct config_t{
     ic_printcb_t printcb;
     char* kernel_str;
     FILE* output_file;
-    cl_context context;
     std::vector<ic_computedevice_t> device_list;
     config_t() {
         memset(this, 0, sizeof *this);

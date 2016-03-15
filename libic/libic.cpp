@@ -81,7 +81,7 @@ void ic_init(void){
         fclose(f);
     }
     // Lookup available devices.
-    if (!config().context){
+    if (config().device_list.empty()){
         config().device_list.clear();
         cl_int err;
         cl_uint num;
@@ -106,23 +106,23 @@ void ic_init(void){
             clGetPlatformInfo(platforms[platform_id], CL_PLATFORM_NAME, info_c, &platname[0], 0);
 
             cl_context_properties prop[] = { CL_CONTEXT_PLATFORM, reinterpret_cast<cl_context_properties>(platforms[platform_id]), 0 };
-            config().context = clCreateContextFromType(prop, CL_DEVICE_TYPE_ALL, NULL, NULL, NULL);
-            if (config().context == 0) {
+            cl_context context = clCreateContextFromType(prop, CL_DEVICE_TYPE_ALL, NULL, NULL, NULL);
+            if (context == 0) {
                 cbprintf("Can't create OpenCL context\n");
                 abort();
             }
-            clGetContextInfo(config().context, CL_CONTEXT_DEVICES, 0, NULL, &dev_c);
+            clGetContextInfo(context, CL_CONTEXT_DEVICES, 0, NULL, &dev_c);
             std::vector<cl_device_id> devices(dev_c / sizeof(cl_device_id));
-            clGetContextInfo(config().context, CL_CONTEXT_DEVICES, dev_c, &devices[0], 0);
+            clGetContextInfo(context, CL_CONTEXT_DEVICES, dev_c, &devices[0], 0);
             for (auto i = devices.begin(); i != devices.end(); i++) {
                 clGetDeviceInfo(*i, CL_DEVICE_NAME, 0, NULL, &info_c);
                 std::string devname;
                 devname.resize(info_c);
                 clGetDeviceInfo(*i, CL_DEVICE_NAME, info_c, &devname[0], 0);
                 ic_computedevice_t icd;
-                icd.device_id = i - devices.begin();
+                icd.device_id = *i;
+                icd.context = context;
                 icd.device_name = _strdup(devname.c_str());
-                icd.platform_id = platform_id;
                 icd.platform_name = _strdup(platname.c_str());
                 icd.id = device_counter;
                 config().device_list.push_back(icd);
@@ -625,7 +625,6 @@ void ic_resetparam(void){
     blank.device_list = config().device_list;
     blank.kernel_str = config().kernel_str;
     blank.printcb = config().printcb;
-    blank.context = config().context;
     blank.output_file = config().output_file;
     config() = blank;
 }
@@ -1107,11 +1106,8 @@ IC_LOCAL void ttsave(std::string hashkey, cl_program p){
 
 // API: start simulation.
 int ic_runsim(float* dps, float* dpsr, float* dpse, float* sim_time){
-    static int last_device_id = 0xdeadbeef;
-    static cl_device_id device_used;
-    static cl_command_queue queue;
     auto t1 = std::chrono::high_resolution_clock::now();
-
+    
     ic_init();
     config_t blank = parameters_consistency();
     std::string source(config().kernel_str);
@@ -1124,23 +1120,21 @@ int ic_runsim(float* dps, float* dpsr, float* dpse, float* sim_time){
         if (sim_time) *sim_time = 0;
         return 0;
     }
+    cl_device_id device_used = blank.device_list[blank.opencl_device_id].device_id;
+    cl_context context = blank.device_list[blank.opencl_device_id].context;
+    cl_command_queue queue = blank.device_list[blank.opencl_device_id].queue;
 
-    if (last_device_id != blank.opencl_device_id){
-        if (queue) clReleaseCommandQueue(queue);
+    if (!queue){
+        cl_int err;
 
-        size_t dev_c;
-        clGetContextInfo(blank.context, CL_CONTEXT_DEVICES, 0, NULL, &dev_c);
-        std::vector<cl_device_id> devices(dev_c / sizeof(cl_device_id));
-        clGetContextInfo(blank.context, CL_CONTEXT_DEVICES, dev_c, &devices[0], 0);
-
-        device_used = devices[blank.device_list[blank.opencl_device_id].device_id];
         cbprintf("Open Device %d: %s\n", blank.opencl_device_id, blank.device_list[blank.opencl_device_id].device_name);
 
-        queue = clCreateCommandQueue(blank.context, device_used, 0, 0);
+        queue = blank.device_list[blank.opencl_device_id].queue = clCreateCommandQueue(blank.device_list[blank.opencl_device_id].context, device_used, 0, &err);
         if (queue == 0) {
-            cbprintf("Can't create command queue\n");
+            cbprintf("Can't create command queue %d\n", err);
             return -1;
         }
+
         cbprintf("OK!\n");
     }
 
@@ -1156,7 +1150,7 @@ int ic_runsim(float* dps, float* dpsr, float* dpse, float* sim_time){
         source += blank.apl;
         source += "}\n";
         const char* cptr = source.c_str();
-        program = clCreateProgramWithSource(config().context, 1, &cptr, 0, 0);
+        program = clCreateProgramWithSource(context, 1, &cptr, 0, 0);
         if (program == 0) {
             cbprintf("clCreateProgramWithSource failed.\n");
             return -1;
@@ -1209,7 +1203,7 @@ int ic_runsim(float* dps, float* dpsr, float* dpse, float* sim_time){
         cbprintf("Can't load kernel\n");
         return -1;
     }
-    cl_mem cl_res = clCreateBuffer(blank.context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * blank.iterations, NULL, NULL);
+    cl_mem cl_res = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * blank.iterations, NULL, NULL);
     if (cl_res == 0) {
         cbprintf("Can't create OpenCL buffer\n");
         return -1;

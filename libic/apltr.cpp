@@ -57,7 +57,7 @@ IC_LOCAL token_t token(int line, int pos, std::string apl = "", std::string valu
 IC_LOCAL void veprintf(token_t tok, int type, const char* message, va_list vl)
 {
     char* p;
-    char buffer[1024] = { 0 };
+    char buffer[4096] = { 0 };
     int pos = tok.pos;
     static const char* typestr[] =
     {
@@ -78,26 +78,26 @@ IC_LOCAL void veprintf(token_t tok, int type, const char* message, va_list vl)
         ^   <-- a mark pointing to where error occurred.
         */
 
-    vsnprintf(buffer, 1024, message, vl);
+    vsnprintf(buffer, 4096, message, vl);
     cbprintf("\n%s:%d:%u: %s: %s\n",
         tok.apl.c_str(),
         1 + tok.line,
         1U + tok.pos,
         typestr[type],
         buffer);
-    strncpy(buffer, source.at(tok.line).c_str(), 1023);
+    strncpy(buffer, source.at(tok.line).c_str(), 4095);
     p = buffer;
     if (source.at(tok.line).length() >= 80)
     {
         int tail = std::min(tok.pos + 36, (int)source.at(tok.line).length());
         int head = std::max(tok.pos - 36, 0);
-        head = std::min(head, 1023);
+        head = std::min(head, 4095);
         pos = tok.pos - head;
         p = &buffer[head];
 
         if (tail < source.at(tok.line).length() - 3) {
-            p[73] = 0;
-            strcat(p, "...");
+            p[72] = 0;
+            strcat(p, "...\n");
         }
         else {
             tail = source.at(tok.line).length();
@@ -792,7 +792,7 @@ IC_LOCAL void lexer()
                 }
                 else
                 {
-                    simc_apls[this_apl].push_back(token(lno, pos, this_apl, memory));
+                    simc_apls[this_apl].push_back(token(lno, pos - 1, this_apl, memory));
                     pos--;
                     state = S_BREAK;
                 }
@@ -804,7 +804,7 @@ IC_LOCAL void lexer()
                 }
                 else
                 {
-                    simc_apls[this_apl].push_back(token(lno, pos, this_apl, "", read_const(memory)));
+                    simc_apls[this_apl].push_back(token(lno, pos - 1, this_apl, "", read_const(memory)));
                     pos--;
                     state = S_BREAK;
                 }
