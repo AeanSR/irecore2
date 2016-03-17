@@ -72,12 +72,30 @@ void ic_setprintcallback(ic_printcb_t cbf){
 void ic_init(void){
     // Load kernel source
     if (!config().kernel_str){
-        FILE* f = fopen("kernel.c", "rb");
+        FILE* f = fopen("kernel\kernel.c", "rb");
         fseek(f, 0, SEEK_END);
         size_t tell = ftell(f);
         rewind(f);
         config().kernel_str = (char*)calloc(tell + 1, 1);
         fread(config().kernel_str, tell, 1, f);
+        fclose(f);
+    }
+    if (!config().kernel_arms_str){
+        FILE* f = fopen("kernel\arms.c", "rb");
+        fseek(f, 0, SEEK_END);
+        size_t tell = ftell(f);
+        rewind(f);
+        config().kernel_arms_str = (char*)calloc(tell + 1, 1);
+        fread(config().kernel_arms_str, tell, 1, f);
+        fclose(f);
+    }
+    if (!config().kernel_fury_str){
+        FILE* f = fopen("kernel\fury.c", "rb");
+        fseek(f, 0, SEEK_END);
+        size_t tell = ftell(f);
+        rewind(f);
+        config().kernel_fury_str = (char*)calloc(tell + 1, 1);
+        fread(config().kernel_fury_str, tell, 1, f);
         fclose(f);
     }
     // Lookup available devices.
@@ -860,23 +878,23 @@ IC_LOCAL std::string generate_predef(config_t& blank) {
     std::string predef = "";
 
     predef.append("#define ENEMY_IS_DEMONIC ");
-    sprintf(buffer, "%d", blank.enemy_is_demonic);
+    sprintf(buffer, "%d", !!blank.enemy_is_demonic);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define STRICT_GCD ");
-    sprintf(buffer, "%d", blank.strict_gcd);
+    sprintf(buffer, "%d", !!blank.strict_gcd);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define SYNC_MELEE ");
-    sprintf(buffer, "%d", blank.sync_melee);
+    sprintf(buffer, "%d", !!blank.sync_melee);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define WBR_NEVER_EXPIRE ");
-    sprintf(buffer, "%d", blank.wbr_never_expire);
+    sprintf(buffer, "%d", !!blank.wbr_never_expire);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define AVATAR_LIKE_BLOODBATH ");
-    sprintf(buffer, "%d", blank.avatar_like_bloodbath);
+    sprintf(buffer, "%d", !!blank.avatar_like_bloodbath);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define vary_combat_length ");
@@ -904,59 +922,59 @@ IC_LOCAL std::string generate_predef(config_t& blank) {
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define GLYPH_OF_RAGINGWIND ");
-    sprintf(buffer, "%d", blank.glyph_of_ragingwind);
+    sprintf(buffer, "%d", !!blank.glyph_of_ragingwind);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define PLATE_SPECIALIZATION ");
-    sprintf(buffer, "%d", blank.plate_specialization);
+    sprintf(buffer, "%d", !!blank.plate_specialization);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define SINGLE_MINDED ");
-    sprintf(buffer, "%d", blank.single_minded);
+    sprintf(buffer, "%d", !!blank.single_minded);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define BUFF_STR_AGI_INT ");
-    sprintf(buffer, "%d", blank.raidbuff.str);
+    sprintf(buffer, "%d", !!blank.raidbuff.str);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define BUFF_AP ");
-    sprintf(buffer, "%d", blank.raidbuff.ap);
+    sprintf(buffer, "%d", !!blank.raidbuff.ap);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define BUFF_CRIT ");
-    sprintf(buffer, "%d", blank.raidbuff.crit);
+    sprintf(buffer, "%d", !!blank.raidbuff.crit);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define BUFF_HASTE ");
-    sprintf(buffer, "%d", blank.raidbuff.haste);
+    sprintf(buffer, "%d", !!blank.raidbuff.haste);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define BUFF_MASTERY ");
-    sprintf(buffer, "%d", blank.raidbuff.mastery);
+    sprintf(buffer, "%d", !!blank.raidbuff.mastery);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define BUFF_MULT ");
-    sprintf(buffer, "%d", blank.raidbuff.mult);
+    sprintf(buffer, "%d", !!blank.raidbuff.mult);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define BUFF_VERS ");
-    sprintf(buffer, "%d", blank.raidbuff.vers);
+    sprintf(buffer, "%d", !!blank.raidbuff.vers);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define BUFF_SP ");
-    sprintf(buffer, "%d", blank.raidbuff.sp);
+    sprintf(buffer, "%d", !!blank.raidbuff.sp);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define BUFF_STA ");
-    sprintf(buffer, "%d", blank.raidbuff.sta);
+    sprintf(buffer, "%d", !!blank.raidbuff.sta);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define BUFF_POTION ");
-    sprintf(buffer, "%d", blank.raidbuff.potion);
+    sprintf(buffer, "%d", !!blank.raidbuff.potion);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define BUFF_BLOODLUST ");
-    sprintf(buffer, "%d", blank.raidbuff.bloodlust);
+    sprintf(buffer, "%d", !!blank.raidbuff.bloodlust);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define RACE ");
@@ -1009,11 +1027,11 @@ IC_LOCAL std::string generate_predef(config_t& blank) {
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define archmages_incandescence ");
-    sprintf(buffer, "%d", blank.archmages_incandescence);
+    sprintf(buffer, "%d", !!blank.archmages_incandescence);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define archmages_greater_incandescence ");
-    sprintf(buffer, "%d", blank.archmages_greater_incandescence);
+    sprintf(buffer, "%d", !!blank.archmages_greater_incandescence);
     predef.append(buffer); predef.append("\r\n");
 
     if (blank.legendary_ring){
@@ -1023,43 +1041,43 @@ IC_LOCAL std::string generate_predef(config_t& blank) {
     }
 
     predef.append("#define t17_2pc ");
-    sprintf(buffer, "%d", blank.t17_2pc);
+    sprintf(buffer, "%d", !!blank.t17_2pc);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define t17_4pc ");
-    sprintf(buffer, "%d", blank.t17_4pc);
+    sprintf(buffer, "%d", !!blank.t17_4pc);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define t18_2pc ");
-    sprintf(buffer, "%d", blank.t18_2pc);
+    sprintf(buffer, "%d", !!blank.t18_2pc);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define t18_4pc ");
-    sprintf(buffer, "%d", blank.t18_4pc);
+    sprintf(buffer, "%d", !!blank.t18_4pc);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define thunderlord_mh ");
-    sprintf(buffer, "%d", blank.thunderlord_mh);
+    sprintf(buffer, "%d", !!blank.thunderlord_mh);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define thunderlord_oh ");
-    sprintf(buffer, "%d", blank.thunderlord_oh);
+    sprintf(buffer, "%d", !!blank.thunderlord_oh);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define bleedinghollow_mh ");
-    sprintf(buffer, "%d", blank.bleeding_hollow_mh);
+    sprintf(buffer, "%d", !!blank.bleeding_hollow_mh);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define bleedinghollow_oh ");
-    sprintf(buffer, "%d", blank.bleeding_hollow_oh);
+    sprintf(buffer, "%d", !!blank.bleeding_hollow_oh);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define shatteredhand_mh ");
-    sprintf(buffer, "%d", blank.shattered_hand_mh);
+    sprintf(buffer, "%d", !!blank.shattered_hand_mh);
     predef.append(buffer); predef.append("\r\n");
 
     predef.append("#define shatteredhand_oh ");
-    sprintf(buffer, "%d", blank.shattered_hand_oh);
+    sprintf(buffer, "%d", !!blank.shattered_hand_oh);
     predef.append(buffer); predef.append("\r\n");
 
     if (blank.rng_engine == 127) predef.append("#define RNG_MT127\r\n");
@@ -1145,6 +1163,7 @@ int ic_runsim(float* dps, float* dpsr, float* dpse, float* sim_time){
     if (!ttprobe(hashkey, &program)){
         // compile kernel
         cbprintf("JIT ...\n");
+        source += config().kernel_arms_str; // todo: select kernel source by spec.
         source = predef + source;
         source += "void scan_apl( rtinfo_t* rti ) {";
         source += blank.apl;

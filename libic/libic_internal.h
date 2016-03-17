@@ -112,6 +112,8 @@ struct config_t{
     int developer_debug;
     ic_printcb_t printcb;
     char* kernel_str;
+    char* kernel_arms_str;
+    char* kernel_fury_str;
     FILE* output_file;
     std::vector<ic_computedevice_t> device_list;
     config_t() {
