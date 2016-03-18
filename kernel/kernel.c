@@ -323,7 +323,7 @@ void routine_entries( rtinfo_t* rti, _event_t e );
 /*
     Class modules may need an initializer, link it here.
 */
-void module_init( rtinfo_t* rti );
+void class_module_init( rtinfo_t* rti );
 
 /* Initialize RNG */
 #if defined(RNG_MT127)
@@ -584,7 +584,7 @@ void sim_init( rtinfo_t* rti, k32u seed ) {
     }
 
     /* Class module initializer. */
-    module_init( rti );
+    class_module_init( rti );
 
     eq_enqueue( rti, rti->expected_combat_length, EVENT_END_SIMULATION, 0 );
 }

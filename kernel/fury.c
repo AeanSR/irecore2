@@ -32,15 +32,15 @@ struct spec_debuff_t{
 
 };
 
-float spec_mastery_coefficient(){
+float spec_mastery_coefficient( rtinfo_t* rti ){
     return 1.4f;
 }
 
-float spec_mastery_increament(){
+float spec_mastery_increament( rtinfo_t* rti ){
     return 0.0f;
 }
 
-float spec_haste_coefficient(){
+float spec_haste_coefficient( rtinfo_t* rti ){
     float coeff = 1.0f;
 #if defined(trinket_worldbreakers_resolve)
     coeff *= 1.0f + ( trinket_worldbreakers_resolve * worldbreakers_resolve_stack ) * 0.0001;
@@ -117,7 +117,48 @@ enum{
     routnum_worldbreakers_resolve_expire,
     routnum_worldbreakers_resolve_trigger,
 #endif
+    START_OF_WILD_ROUTNUM,
 };
+
+// === Auto-attack ============================================================
+DECL_EVENT( auto_attack_mh ) {
+    float d = weapon_dmg( rti, 1.0f, 0, 0 );
+
+    k32u dice = round_table_dice( rti, rti->player.target, ATYPE_WHITE_MELEE, 0 );
+    deal_damage( rti, rti->player.target, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    if ( dice == DICE_MISS ) {
+        /* Miss */
+        lprintf( ( "mh miss" ) );
+    } else {
+        power_gain( rti, 1.4f * weapon[0].speed );
+        lprintf( ( "mh hit" ) );
+    }
+
+    float aspeed = 1.0f + rti->player.stat.haste;
+#if (t17_4pc)
+    aspeed *= 1.0f + 0.06f * rti->player.rampage.stack;
+#endif
+    eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( weapon[0].speed / aspeed ) ), routnum_auto_attack_mh, rti->player.target );
+}
+
+DECL_EVENT( auto_attack_oh ) {
+    float d = weapon_dmg( rti, 1.0f, 0, 1 );
+    k32u dice = round_table_dice( rti, rti->player.target, ATYPE_WHITE_MELEE, 0 );
+    deal_damage( rti, rti->player.target, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    if ( dice == DICE_MISS ) {
+        /* Miss */
+        lprintf( ( "oh miss" ) );
+    } else {
+        power_gain( rti, 1.4f * weapon[1].speed * 0.5f );
+        lprintf( ( "oh hit" ) );
+    }
+
+    float aspeed = 1.0f + rti->player.stat.haste;
+#if (t17_4pc)
+    aspeed *= 1.0f + 0.06f * rti->player.rampage.stack;
+#endif
+    eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( weapon[1].speed / aspeed ) ), routnum_auto_attack_oh, rti->player.target );
+}
 
 
 #if defined(trinket_worldbreakers_resolve)
@@ -150,11 +191,14 @@ DECL_EVENT( worldbreakers_resolve_trigger ) {
 
 void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
     switch( e.routine ) {
+        HOOK_EVENT( auto_attack_mh );
+        HOOK_EVENT( auto_attack_oh );
 #if defined(trinket_worldbreakers_resolve)
         HOOK_EVENT( worldbreakers_resolve_trigger );
         HOOK_EVENT( worldbreakers_resolve_expire );
 #endif
     default:
+        lprintf( ( "wild spec routine entry %d, last defined routnum %d", e.routine, START_OF_WILD_ROUTNUM - 1 ) );
         assert( 0 );
     }
 }

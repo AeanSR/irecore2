@@ -332,8 +332,8 @@ void refresh_ap( rtinfo_t* rti ) {
     rti->player.stat.ap = ap;
 }
 
-float spec_mastery_coefficient();
-float spec_mastery_increament();
+float spec_mastery_coefficient( rtinfo_t* rti );
+float spec_mastery_increament( rtinfo_t* rti );
 
 void refresh_mastery( rtinfo_t* rti ) {
     float mastery = ( float )rti->player.stat.gear_mastery;
@@ -343,7 +343,7 @@ void refresh_mastery( rtinfo_t* rti ) {
 #if (bleedinghollow_oh)
     if ( UP( rti->player.class->enchant_oh.expire ) ) mastery += 500.0f;
 #endif
-    mastery = spec_mastery_coefficient() * ( 0.08f + mastery / 11000 ) + spec_mastery_increament();
+    mastery = spec_mastery_coefficient( rti ) * ( 0.08f + mastery / 11000 ) + spec_mastery_increament( rti );
     rti->player.stat.mastery = mastery;
 }
 
@@ -367,7 +367,7 @@ void refresh_crit( rtinfo_t* rti ) {
     rti->player.stat.crit = crit;
 }
 
-float spec_haste_coefficient();
+float spec_haste_coefficient( rtinfo_t* rti );
 
 void refresh_haste( rtinfo_t* rti ) {
     float haste = ( float )rti->player.stat.gear_haste;
@@ -378,7 +378,7 @@ void refresh_haste( rtinfo_t* rti ) {
     if ( UP( berserking_expire ) ) haste *= 1.15f;
 #endif
     if ( BUFF_BLOODLUST hostonly( && rti->timestamp ) ) if ( ( rti->timestamp % FROM_SECONDS( 600 ) ) < FROM_SECONDS( 30 ) ) haste *= 1.3f;
-    haste *= spec_haste_coefficient();
+    haste *= spec_haste_coefficient( rti );
     rti->player.stat.haste = haste - 1.0f;
 }
 
@@ -1372,19 +1372,23 @@ void routine_entries( rtinfo_t* rti, _event_t e ) {
         HOOK_EVENT( gronntooth_war_horn_expire );
 #endif
     default:
+        lprintf( ( "wild class routine entry %d", e.routine ) );
         assert( 0 );
     }
 }
 
+#define initialize_rppm( proc ) safemacro(proc.lasttimeattemps = ( time_t ) - ( k32s )FROM_SECONDS( 10 ))
+
 void spec_module_init( rtinfo_t* rti );
 
-void module_init( rtinfo_t* rti ) {
+void class_module_init( rtinfo_t* rti ) {
     static struct class_state_t class_state;
     static struct class_debuff_t class_debuff[num_enemies];
     rti->player.class = &class_state;
     for(int i = 0; i < num_enemies; i++){
         rti->enemy[i].class = &class_debuff[i];
     }
+    spec_module_init( rti );
 
     rti->player.power = 0.0f;
 
@@ -1409,7 +1413,45 @@ void module_init( rtinfo_t* rti ) {
     spell_potion( rti );
 #endif
 
-    spec_module_init( rti );
+#if (thunderlord_mh || bleedinghollow_mh)
+    initialize_rppm( rti->player.class->enchant_mh.proc );
+#endif
+#if (shatteredhand_mh)
+    initialize_rppm( rti->player.class->enchant_mh );
+#endif
+#if (thunderlord_oh || bleedinghollow_oh)
+    initialize_rppm( rti->player.class->enchant_oh.proc );
+#endif
+#if (shatteredhand_oh)
+    initialize_rppm( rti->player.class->enchant_mh );
+#endif
+#if defined(trinket_forgemasters_insignia)
+    initialize_rppm( rti->player.class->forgemasters_insignia.proc );
+#endif // defined
+#if defined(trinket_horn_of_screaming_spirits)
+    initialize_rppm( rti->player.class->horn_of_screaming_spirits.proc );
+#endif // defined
+#if defined(trinket_tectus_beating_heart)
+    initialize_rppm( rti->player.class->tectus_beating_heart.proc );
+#endif // defined
+#if defined(trinket_formidable_fang)
+    initialize_rppm( rti->player.class->formidable_fang.proc );
+#endif // defined
+#if defined(trinket_mote_of_the_mountain)
+    initialize_rppm( rti->player.class->mote_of_the_mountain.proc );
+#endif // defined
+#if defined(trinket_discordant_chorus)
+    initialize_rppm( rti->player.class->discordant_chorus );
+#endif // defined
+#if defined(trinket_unending_hunger)
+    initialize_rppm( rti->player.class->unending_hunger.proc );
+#endif // defined
+#if defined(trinket_spores_of_alacrity)
+    initialize_rppm( rti->player.class->spores_of_alacrity.proc );
+#endif // defined
+#if defined(trinket_gronntooth_war_horn)
+    initialize_rppm( rti->player.class->gronntooth_war_horn.proc );
+#endif // defined
 }
 
 void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u target_id );
@@ -1418,81 +1460,83 @@ void special_procs( rtinfo_t* rti, k32u attacktype, k32u target_id ) {
 #if (RACE == RACE_UNDEAD)
     proc_ICD( rti, &rti->player.class->touch_of_the_grave, 0.2f, FROM_SECONDS( 15 ), routnum_touch_of_the_grave_trigger, target_id );
 #endif
+    if ( ATYPE_WHITE_MELEE == attacktype || ATYPE_YELLOW_MELEE == attacktype ){
 #if (archmages_incandescence || archmages_greater_incandescence)
-    if ( !UP( incandescence_expire ) ) {
-        proc_RPPM( rti, &rti->player.class->incandescence.proc, 0.92f, routnum_incandescence_trigger, target_id );
-    }
+        if ( !UP( incandescence_expire ) ) {
+            proc_RPPM( rti, &rti->player.class->incandescence.proc, 0.92f, routnum_incandescence_trigger, target_id );
+        }
 #endif
 #if (thunderlord_mh)
-    proc_RPPM( rti, &rti->player.class->enchant_mh.proc, 2.5f, routnum_enchant_mh_trigger, target_id );
+        proc_RPPM( rti, &rti->player.class->enchant_mh.proc, 2.5f, routnum_enchant_mh_trigger, target_id );
 #elif (bleedinghollow_mh)
-    proc_RPPM( rti, &rti->player.class->enchant_mh.proc, 2.3f, routnum_enchant_mh_trigger, target_id );
+        proc_RPPM( rti, &rti->player.class->enchant_mh.proc, 2.3f, routnum_enchant_mh_trigger, target_id );
 #elif (shatteredhand_mh)
-    proc_RPPM( rti, &rti->player.class->enchant_mh, 3.5f * ( 1.0f + rti->player.stat.haste ), routnum_enchant_mh_trigger, target_id );
+        proc_RPPM( rti, &rti->player.class->enchant_mh, 3.5f * ( 1.0f + rti->player.stat.haste ), routnum_enchant_mh_trigger, target_id );
 #endif
 #if (thunderlord_oh)
-    proc_RPPM( rti, &rti->player.class->enchant_oh.proc, 2.5f, routnum_enchant_oh_trigger, target_id );
+        proc_RPPM( rti, &rti->player.class->enchant_oh.proc, 2.5f, routnum_enchant_oh_trigger, target_id );
 #elif (bleedinghollow_oh)
-    proc_RPPM( rti, &rti->player.class->enchant_oh.proc, 2.3f, routnum_enchant_oh_trigger, target_id );
+        proc_RPPM( rti, &rti->player.class->enchant_oh.proc, 2.3f, routnum_enchant_oh_trigger, target_id );
 #elif (shatteredhand_oh)
-    proc_RPPM( rti, &rti->player.class->enchant_oh, 3.5f * ( 1.0f + rti->player.stat.haste ), routnum_enchant_oh_trigger, target_id );
+        proc_RPPM( rti, &rti->player.class->enchant_oh, 3.5f * ( 1.0f + rti->player.stat.haste ), routnum_enchant_oh_trigger, target_id );
 #endif
 #if defined(trinket_forgemasters_insignia)
-    if ( !UP( forgemasters_insignia_expire ) ) {
-        proc_RPPM( rti, &rti->player.class->forgemasters_insignia.proc, 0.92f, routnum_forgemasters_insignia_tick, target_id );
-    }
+        if ( !UP( forgemasters_insignia_expire ) ) {
+            proc_RPPM( rti, &rti->player.class->forgemasters_insignia.proc, 0.92f, routnum_forgemasters_insignia_tick, target_id );
+        }
 #endif
 #if defined(trinket_horn_of_screaming_spirits)
-    if ( !UP( horn_of_screaming_spirits_expire ) ) {
-        proc_RPPM( rti, &rti->player.class->horn_of_screaming_spirits.proc, 0.92f, routnum_horn_of_screaming_spirits_trigger, target_id );
-    }
+        if ( !UP( horn_of_screaming_spirits_expire ) ) {
+            proc_RPPM( rti, &rti->player.class->horn_of_screaming_spirits.proc, 0.92f, routnum_horn_of_screaming_spirits_trigger, target_id );
+        }
 #endif
 #if defined(trinket_insignia_of_victory)
-    proc_ICD( rti, &rti->player.class->insignia_of_victory.proc, 0.15f, FROM_SECONDS( 55 ), routnum_insignia_of_victory_trigger, target_id );
+        proc_ICD( rti, &rti->player.class->insignia_of_victory.proc, 0.15f, FROM_SECONDS( 55 ), routnum_insignia_of_victory_trigger, target_id );
 #endif
 #if defined(trinket_tectus_beating_heart)
-    if ( !UP( tectus_beating_heart_expire ) ) {
-        proc_RPPM( rti, &rti->player.class->tectus_beating_heart.proc, 0.92f, routnum_tectus_beating_heart_trigger, target_id );
-    }
+        if ( !UP( tectus_beating_heart_expire ) ) {
+            proc_RPPM( rti, &rti->player.class->tectus_beating_heart.proc, 0.92f, routnum_tectus_beating_heart_trigger, target_id );
+        }
 #endif
 #if defined(trinket_formidable_fang)
-    if ( !UP( formidable_fang_expire ) ) {
-        proc_RPPM( rti, &rti->player.class->formidable_fang.proc, 0.92f, routnum_formidable_fang_trigger, target_id );
-    }
+        if ( !UP( formidable_fang_expire ) ) {
+            proc_RPPM( rti, &rti->player.class->formidable_fang.proc, 0.92f, routnum_formidable_fang_trigger, target_id );
+        }
 #endif
 #if defined(trinket_draenic_stone)
-    proc_ICD( rti, &rti->player.class->draenic_stone.proc, 0.35f, FROM_SECONDS( 55 ), routnum_draenic_stone_trigger, target_id );
+        proc_ICD( rti, &rti->player.class->draenic_stone.proc, 0.35f, FROM_SECONDS( 55 ), routnum_draenic_stone_trigger, target_id );
 #endif
 #if defined(trinket_skull_of_war)
-    proc_ICD( rti, &rti->player.class->skull_of_war.proc, 0.15f, FROM_SECONDS( 115 ), routnum_skull_of_war_trigger, target_id );
+        proc_ICD( rti, &rti->player.class->skull_of_war.proc, 0.15f, FROM_SECONDS( 115 ), routnum_skull_of_war_trigger, target_id );
 #endif
 #if defined(trinket_mote_of_the_mountain)
-    if ( !UP( mote_of_the_mountain_expire ) ) {
-        proc_RPPM( rti, &rti->player.class->mote_of_the_mountain.proc, 0.92f, routnum_mote_of_the_mountain_trigger, target_id );
-    }
+        if ( !UP( mote_of_the_mountain_expire ) ) {
+            proc_RPPM( rti, &rti->player.class->mote_of_the_mountain.proc, 0.92f, routnum_mote_of_the_mountain_trigger, target_id );
+        }
 #endif
 #if defined(trinket_discordant_chorus)
-    proc_RPPM( rti, &rti->player.class->discordant_chorus, 6.0f * ( 1.0f + rti->player.stat.haste ), routnum_discordant_chorus_trigger, target_id );
+        proc_RPPM( rti, &rti->player.class->discordant_chorus, 6.0f * ( 1.0f + rti->player.stat.haste ), routnum_discordant_chorus_trigger, target_id );
 #endif
 #if defined(trinket_empty_drinking_horn)
-    eq_enqueue( rti, rti->timestamp, routnum_empty_drinking_horn_trigger, target_id );
+        eq_enqueue( rti, rti->timestamp, routnum_empty_drinking_horn_trigger, target_id );
 #endif
 #if defined(trinket_unending_hunger)
-    proc_RPPM( rti, &rti->player.class->unending_hunger.proc, 1.0f, routnum_unending_hunger_trigger, target_id );
-    if( UP( unending_hunger_expire ) && unending_hunger_stack < 20 ) {
-        unending_hunger_stack++;
-        rti->player.stat.gear_str += trinket_unending_hunger;
-        refresh_str( rti );
-        refresh_ap( rti );
-    }
+        proc_RPPM( rti, &rti->player.class->unending_hunger.proc, 1.0f, routnum_unending_hunger_trigger, target_id );
+        if( UP( unending_hunger_expire ) && unending_hunger_stack < 20 ) {
+            unending_hunger_stack++;
+            rti->player.stat.gear_str += trinket_unending_hunger;
+            refresh_str( rti );
+            refresh_ap( rti );
+        }
 #endif
 #if defined(trinket_spores_of_alacrity)
-    if ( !UP( spores_of_alacrity_expire ) ) {
-        proc_RPPM( rti, &rti->player.class->spores_of_alacrity.proc, 0.92f, routnum_spores_of_alacrity_trigger, target_id );
-    }
+        if ( !UP( spores_of_alacrity_expire ) ) {
+            proc_RPPM( rti, &rti->player.class->spores_of_alacrity.proc, 0.92f, routnum_spores_of_alacrity_trigger, target_id );
+        }
 #endif
 #if defined(trinket_gronntooth_war_horn)
-    proc_RPPM( rti, &rti->player.class->gronntooth_war_horn.proc, 1.5f, routnum_gronntooth_war_horn_trigger, target_id );
+        proc_RPPM( rti, &rti->player.class->gronntooth_war_horn.proc, 1.5f, routnum_gronntooth_war_horn_trigger, target_id );
 #endif
+    }
     spec_special_procs( rti, attacktype, target_id );
 }
