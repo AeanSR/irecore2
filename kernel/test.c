@@ -2,6 +2,8 @@
     kernel compile test
 */
 
+#define CLASS_WARRIOR
+#define SPEC_FURY
 #define STRICT_GCD 1
 #define WBR_NEVER_EXPIRE 1
 #define AVATAR_LIKE_BLOODBATH 0
@@ -13,7 +15,7 @@
 #define death_pct 0.0f
 #define iterations 1
 #define power_max 120.0f
-#define num_enemies 20
+#define num_enemies 1
 #define GLYPH_OF_RAGINGWIND 1
 #define PLATE_SPECIALIZATION 1
 #define BUFF_POTION 1
@@ -61,12 +63,23 @@
 #define trinket_gronntooth_war_horn 1152
 #define ENEMY_IS_DEMONIC 1
 
+#define TALENT_TIER1 2
+#define TALENT_TIER2 2
+#define TALENT_TIER3 3
+#define TALENT_TIER4 2
+#define TALENT_TIER5 2
+#define TALENT_TIER6 2
+#define TALENT_TIER7 2
+
 #include "kernel.c"
 #include "warrior.c"
 #include "fury.c"
 
 void scan_apl( rtinfo_t* rti ) {
-
+    SPELL( avatar );
+    SPELL( battle_cry );
+    SPELL( heroic_leap );
+    SPELL( storm_bolt );
 }
 
 int main(){

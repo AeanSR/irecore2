@@ -457,30 +457,6 @@ _event_t* eq_enqueue( rtinfo_t* rti, time_t trigger, k32u routine, k32u target_i
     return 0;
 }
 
-/* Power gain. */
-void power_gain( rtinfo_t* rti, float power ) {
-    rti->player.power = min( power_max, rti->player.power + power );
-}
-
-/* Power check. */
-kbool power_check( rtinfo_t* rti, float cost ) {
-    if ( cost <= rti->player.power ) return 1;
-    return 0;
-}
-
-#if (TALENT_TIER7 == 1) /** TODO: where is anger management? */
-void anger_management_count( rtinfo_t* rti, float rage );
-#endif
-
-/* Power consume. */
-void power_consume( rtinfo_t* rti, float cost ) {
-    assert( power_check( rti, cost ) ); /* Power should suffice. */
-    rti->player.power -= cost;
-#if (TALENT_TIER7 == 1)
-    anger_management_count( rti, cost );
-#endif
-}
-
 /* Execute the top priority. */
 int eq_execute( rtinfo_t* rti ) {
     k32u i, child;

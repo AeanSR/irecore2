@@ -15,6 +15,18 @@
 
 /* spec state infos. */
 struct spec_state_t{
+    struct {
+        time_t expire;
+    } enrage;
+    #define enrage_expire (rti->player.class->spec->enrage.expire)
+#if (TALENT_FROTHING_BERSERKER) /** TODO: where is frothing berserker? */
+    struct {
+        time_t expire;
+    } frothing_berserker;
+    #define frothing_berserker_expire (rti->player.class->spec->frothing_berserker.expire)
+#else
+    #define frothing_berserker_expire (0)
+#endif
 #if defined(trinket_worldbreakers_resolve)
     struct {
         time_t expire;
@@ -43,15 +55,14 @@ float spec_mastery_increament( rtinfo_t* rti ){
 float spec_haste_coefficient( rtinfo_t* rti ){
     float coeff = 1.0f;
 #if defined(trinket_worldbreakers_resolve)
-    coeff *= 1.0f + ( trinket_worldbreakers_resolve * worldbreakers_resolve_stack ) * 0.0001;
+    coeff *= 1.0f + ( trinket_worldbreakers_resolve * worldbreakers_resolve_stack ) * 0.0001f;
 #endif
     return coeff;
 }
 
-k32u round_table_dice( rtinfo_t* rti, k32u target_id, k32u attacktype, float extra_crit_rate ) {
+k32u round_table_dice2( rtinfo_t* rti, k32u target_id, k32u attacktype, float extra_crit_rate ) {
     float c = uni_rng( rti );
     float cr = rti->player.stat.crit - 0.03f + extra_crit_rate;
-    special_procs( rti, attacktype, target_id );
     if (ATYPE_WHITE_MELEE == attacktype){
         cr += 0.19f;
         cr += 0.24f;
@@ -59,43 +70,38 @@ k32u round_table_dice( rtinfo_t* rti, k32u target_id, k32u attacktype, float ext
         if ( c < 0.19f + 0.24f ) return DICE_GLANCE; // TODO: does legion melee glance?
     }
     if (ATYPE_YELLOW_MELEE == attacktype){
-        // TODO: battle shout
+        if ( UP( battle_cry_expire ) ) cr += 1.0f;
     }
     if ( c < cr ){
-#if (thunderlord_mh)
-        if ( UP( rti->player.class->enchant_mh.expire ) && rti->player.class->enchant_mh.extend ) {
-            rti->player.class->enchant_mh.extend --;
-            rti->player.class->enchant_mh.expire += FROM_SECONDS( 2 );
-            eq_enqueue( rti, rti->player.class->enchant_mh.expire, routnum_enchant_mh_expire, target_id );
-        }
-#endif
-#if (thunderlord_oh)
-        if ( UP( rti->player.class->enchant_oh.expire ) && rti->player.enchant_oh.extend ) {
-            rti->player.class->enchant_oh.extend --;
-            rti->player.class->enchant_oh.expire += FROM_SECONDS( 2 );
-            eq_enqueue( rti, rti->player.class->enchant_oh.expire, routnum_enchant_oh_expire, target_id );
-        }
-#endif
         return DICE_CRIT;
     }
     return DICE_HIT;
 }
 
+k32u round_table_dice( rtinfo_t* rti, k32u target_id, k32u attacktype, float extra_crit_rate ) {
+    k32u dice = round_table_dice2( rti, target_id, attacktype, extra_crit_rate );
+    special_procs( rti, attacktype, dice, target_id );
+    return dice;
+}
+
 float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u dice, float extra_crit_bonus, kbool ignore_armor ) {
-    if (DTYPE_DIRECT == dmgtype){
+    if ( DICE_MISS == dice ) return .0f;
+    if ( DTYPE_DIRECT == dmgtype ){
         lprintf( ( "damage %.0f", dmg ) );
         rti->damage_collected += dmg;
         return dmg;
     }
-    float cdb = ( 1.0f + extra_crit_bonus ) * ( ( RACE == RACE_DWARF || RACE == RACE_TAUREN ) ? 2.04f : 2.0f );
+    float cdb = ( 1.0f + extra_crit_bonus ) * 2.0f;
                                                                     dmg *= 1.0f + rti->player.stat.vers;
-    //  if ( UP( enrage_expire ) )                                  dmg *= 1.0f + rti->player.stat.mastery;
-    //  if ( UP( avatar_expire ) )                                  dmg *= 1.2f;
+        if ( UP( enrage_expire ) )                                  dmg *= 1.0f + rti->player.stat.mastery;
+        if ( UP( avatar_expire ) )                                  dmg *= 1.2f;
+        if ( UP( frothing_berserker_expire ) )                      dmg *= 1.1f;
         if ( UP( thorasus_the_stone_heart_of_draenor_expire ) )     dmg *= 1.0f + legendary_ring * 0.0001f;
         if ( ENEMY_IS_DEMONIC && UP(gronntooth_war_horn_expire ) )  dmg *= 1.1f;
-    //  if ( SOME_ARTIFACT_TRAITS && UP( battleshout_expire ) )     cdb *= 1.1f * SOME_ARTIFACT_TRAITS;
+    //  if ( SOME_ARTIFACT_TRAITS && UP( battle_cry_expire ) )      cdb *= 1.0f + 0.1f * SOME_ARTIFACT_TRAITS;
+        if ( RACE == RACE_DWARF || RACE == RACE_TAUREN )            cdb *= 1.02f;
     if (DTYPE_PHYSICAL == dmgtype){
-        if ( !ignore_armor )                                        dmg *= 0.650684f; // 0.680228 @110lvl
+        if ( !ignore_armor )                                        dmg *= 0.650684f; // 0.680228f @110lvl
     }
         if ( DICE_GLANCE == dice )                                  dmg *= 0.75f; // TODO: if glancing exists, what the coeff is?
         if ( DICE_CRIT   == dice )                                  dmg *= cdb;
@@ -113,6 +119,12 @@ enum{
     END_OF_CLASS_ROUTNUM = START_OF_SPEC_ROUTNUM - 1,
     routnum_auto_attack_mh,
     routnum_auto_attack_oh,
+    routnum_enrage_trigger,
+    routnum_enrage_expire,
+#if (TALENT_FROTHING_BERSERKER)
+    routnum_frothing_berserker_trigger,
+    routnum_frothing_berserker_expire,
+#endif
 #if defined(trinket_worldbreakers_resolve)
     routnum_worldbreakers_resolve_expire,
     routnum_worldbreakers_resolve_trigger,
@@ -135,6 +147,7 @@ DECL_EVENT( auto_attack_mh ) {
     }
 
     float aspeed = 1.0f + rti->player.stat.haste;
+    if ( UP( enrage_expire ) ) aspeed *= 2.0f;
 #if (t17_4pc)
     aspeed *= 1.0f + 0.06f * rti->player.rampage.stack;
 #endif
@@ -154,13 +167,58 @@ DECL_EVENT( auto_attack_oh ) {
     }
 
     float aspeed = 1.0f + rti->player.stat.haste;
+    if ( UP( enrage_expire ) ) aspeed *= 2.0f;
 #if (t17_4pc)
     aspeed *= 1.0f + 0.06f * rti->player.rampage.stack;
 #endif
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( weapon[1].speed / aspeed ) ), routnum_auto_attack_oh, rti->player.target );
 }
 
+// === Enrage =================================================================
+DECL_EVENT( enrage_expire ) {
+    if ( enrage_expire == rti->timestamp ) {
+        lprintf( ( "enrage expire" ) );
+    }
+}
+DECL_EVENT( enrage_trigger ) {
+    enrage_expire = TIME_OFFSET( FROM_SECONDS( 4 ) ); // TODO: does haste decrease enrage duration?
+    eq_enqueue( rti, enrage_expire, routnum_enrage_expire, 0 );
+    lprintf( ( "enrage trigger" ) );
+}
 
+// === Frothing berserker =====================================================
+#if (TALENT_FROTHING_BERSERKER)
+DECL_EVENT( frothing_berserker_expire ) {
+    if ( frothing_berserker_expire == rti->timestamp ) {
+        lprintf( ( "frothing_berserker expire" ) );
+    }
+}
+DECL_EVENT( frothing_berserker_trigger ) {
+    frothing_berserker_expire = TIME_OFFSET( FROM_SECONDS( 6 ) );
+    eq_enqueue( rti, frothing_berserker_expire, routnum_frothing_berserker_expire, 0 );
+    lprintf( ( "frothing_berserker trigger" ) );
+}
+void frothing_berserker_trigger( rtinfo_t* rti ) {
+    eq_enqueue( rti, rti->timestamp, routnum_frothing_berserker_trigger, 0 );
+}
+#endif
+
+// === bladestorm =============================================================
+#if (TALENT_BLADESTORM)
+void spec_bladestorm_tick( rtinfo_t* rti ) {
+    for( int i = 0; i < num_enemies; i++ ) {
+        float d = weapon_dmg( rti, 2.88f, 1, 0 );
+        k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
+        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        d = weapon_dmg( rti, 2.88f, 1, 1 );
+        k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
+        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        lprintf( ( "bladestorm tick @tar%d", i ) );
+    }
+}
+#endif
+
+// === Spec trinket ===========================================================
 #if defined(trinket_worldbreakers_resolve)
 DECL_EVENT( worldbreakers_resolve_expire ) {
     if ( rti->timestamp == worldbreakers_resolve_expire ) {
@@ -193,6 +251,12 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
     switch( e.routine ) {
         HOOK_EVENT( auto_attack_mh );
         HOOK_EVENT( auto_attack_oh );
+        HOOK_EVENT( enrage_trigger );
+        HOOK_EVENT( enrage_expire );
+#if (TALENT_FROTHING_BERSERKER)
+        HOOK_EVENT( frothing_berserker_trigger );
+        HOOK_EVENT( frothing_berserker_expire );
+#endif
 #if defined(trinket_worldbreakers_resolve)
         HOOK_EVENT( worldbreakers_resolve_trigger );
         HOOK_EVENT( worldbreakers_resolve_expire );
@@ -215,7 +279,7 @@ void spec_module_init( rtinfo_t* rti ) {
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( SYNC_MELEE ? 0 : 0.5 ) ), routnum_auto_attack_oh, 0 );
 }
 
-void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u target_id ) {
+void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id ) {
 #if defined(trinket_worldbreakers_resolve)
     if ( ATYPE_WHITE_MELEE == attacktype ){
         eq_enqueue( rti, rti->timestamp, routnum_worldbreakers_resolve_trigger, target_id );
