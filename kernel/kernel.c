@@ -281,7 +281,6 @@ typedef struct {
 } player_t;
 
 typedef struct {
-    k32u id;
     struct class_debuff_t* class;
 } enemy_t;
 
@@ -553,11 +552,6 @@ void sim_init( rtinfo_t* rti, k32u seed ) {
     assert( vary_combat_length < max_length ); /* Vary can't be greater than max. */
     assert( vary_combat_length + max_length < 2147483.647f );
     rti->expected_combat_length = FROM_SECONDS( max_length + vary_combat_length * clamp( stdnor_rng( rti ) * ( 1.0f / 3.0f ), -1.0f, 1.0f ) );
-
-    /* Construct Enemies. */
-    for ( int i = 0; i != num_enemies; i++ ) {
-        rti->enemy[i].id = i;
-    }
 
     /* Class module initializer. */
     class_module_init( rti );

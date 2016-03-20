@@ -42,32 +42,32 @@
 #define bleedinghollow_oh 0
 #define shatteredhand_mh 1
 #define shatteredhand_oh 1
-#define trinket_vial_of_convulsive_shadows 2033
-#define trinket_forgemasters_insignia 181
-#define trinket_horn_of_screaming_spirits 2652
-#define trinket_scabbard_of_kyanos 2200
-#define trinket_badge_of_victory 1456
-#define trinket_insignia_of_victory 867
-#define trinket_tectus_beating_heart 2304
-#define trinket_formidable_fang 1743
-#define trinket_draenic_stone 1414
-#define trinket_skull_of_war 2120
-#define trinket_mote_of_the_mountain 1517
+//#define trinket_vial_of_convulsive_shadows 2033
+//#define trinket_forgemasters_insignia 181
+//#define trinket_horn_of_screaming_spirits 2652
+//#define trinket_scabbard_of_kyanos 2200
+//#define trinket_badge_of_victory 1456
+//#define trinket_insignia_of_victory 867
+//#define trinket_tectus_beating_heart 2304
+//#define trinket_formidable_fang 1743
+//#define trinket_draenic_stone 1414
+//#define trinket_skull_of_war 2120
+//#define trinket_mote_of_the_mountain 1517
 #define trinket_worldbreakers_resolve 220
-#define trinket_discordant_chorus 20564
+//#define trinket_discordant_chorus 20564
 #define trinket_empty_drinking_horn 259
-#define trinket_unending_hunger 54
-#define trinket_spores_of_alacrity 2304
-#define trinket_bonemaws_big_toe 1767
-#define trinket_emberscale_talisman 1767
-#define trinket_gronntooth_war_horn 1152
+//#define trinket_unending_hunger 54
+//#define trinket_spores_of_alacrity 2304
+//#define trinket_bonemaws_big_toe 1767
+//#define trinket_emberscale_talisman 1767
+//#define trinket_gronntooth_war_horn 1152
 #define ENEMY_IS_DEMONIC 1
 
 #define TALENT_TIER1 2
 #define TALENT_TIER2 2
 #define TALENT_TIER3 3
 #define TALENT_TIER4 2
-#define TALENT_TIER5 2
+#define TALENT_TIER5 3
 #define TALENT_TIER6 2
 #define TALENT_TIER7 2
 
@@ -79,7 +79,9 @@ void scan_apl( rtinfo_t* rti ) {
     SPELL( avatar );
     SPELL( battle_cry );
     SPELL( heroic_leap );
+    SPELL( bloodthirst );
     SPELL( storm_bolt );
+    SPELL( bladestorm );
 }
 
 int main(){

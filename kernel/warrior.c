@@ -92,6 +92,10 @@ struct class_state_t {
     #define battle_cry_cd     (rti->player.class->battle_cry.cd)
     struct {
         time_t cd;
+    } berserker_rage;
+    #define berserker_rage_cd (rti->player.class->berserker_rage.cd)
+    struct {
+        time_t cd;
     } heroic_leap;
     #define heroic_leap_cd (rti->player.class->heroic_leap.cd)
 #if (BUFF_POTION == 1)
@@ -571,6 +575,7 @@ enum {
     routnum_battle_cry_start,
     routnum_battle_cry_expire,
     routnum_battle_cry_cd,
+    routnum_berserker_rage_cd,
     routnum_heroic_leap_cast,
     routnum_heroic_leap_cd,
 #if (BUFF_BLOODLUST == 1)
@@ -738,6 +743,8 @@ DECL_EVENT( battle_cry_expire ) {
 DECL_EVENT( battle_cry_start ) {
     battle_cry_expire = TIME_OFFSET( FROM_SECONDS( 5 ) );
     eq_enqueue( rti, battle_cry_expire, routnum_battle_cry_expire, target_id );
+    if ( TALENT_RECKLESS_ABANDON )
+        power_gain( rti, 100.0f );
     lprintf( ( "battle_cry start" ) );
 }
 DECL_SPELL( battle_cry ) {
@@ -746,6 +753,21 @@ DECL_SPELL( battle_cry ) {
     eq_enqueue( rti, rti->timestamp, routnum_battle_cry_start, 0 );
     battle_cry_cd = TIME_OFFSET( FROM_SECONDS( 60 ) ); // TODO: some traits would decrease cd?
     eq_enqueue( rti, battle_cry_cd, routnum_battle_cry_cd, 0 );
+    return 1;
+}
+
+// === berserker rage =========================================================
+DECL_EVENT( berserker_rage_cd ) {
+    lprintf( ( "berserker_rage cd" ) );
+}
+void spec_berserker_rage_cast( rtinfo_t* rti );
+DECL_SPELL( berserker_rage ) {
+    if ( berserker_rage_cd > rti->timestamp ) return 0;
+    if ( UP( bladestorm_expire ) ) return 0;
+    spec_berserker_rage_cast( rti );
+    berserker_rage_cd = TIME_OFFSET( FROM_SECONDS( (TALENT_OUTBURST) ? 90 : 60 ) );
+    eq_enqueue( rti, berserker_rage_cd, routnum_berserker_rage_cd, 0 );
+    lprintf( ( "cast berserker_rage" ) );
     return 1;
 }
 
@@ -765,7 +787,7 @@ DECL_SPELL( heroic_leap ) {
     if ( heroic_leap_cd > rti->timestamp ) return 0;
     if ( UP( bladestorm_expire ) ) return 0;
     eq_enqueue( rti, rti->timestamp, routnum_heroic_leap_cast, 0 );
-    heroic_leap_cd = TIME_OFFSET( FROM_SECONDS( (TALENT_BOUNDING_STRIDE) ? 45 : 30 ) );
+    heroic_leap_cd = TIME_OFFSET( FROM_SECONDS( (TALENT_BOUNDING_STRIDE) ? 30 : 45 ) );
     eq_enqueue( rti, heroic_leap_cd, routnum_heroic_leap_cd, 0 );
     return 1;
 }
@@ -893,19 +915,16 @@ DECL_SPELL( avatar ) {
 // === bladestorm =============================================================
 #if (TALENT_BLADESTORM)
 DECL_EVENT( bladestorm_cd ) {
-    if ( rti->player.bladestorm.cd == rti->timestamp ) {
+    if ( bladestorm_cd == rti->timestamp ) {
         lprintf( ( "bladestorm ready" ) );
     }
 }
-
 void spec_bladestorm_tick( rtinfo_t* rti );
-
 DECL_EVENT( bladestorm_tick ) {
     spec_bladestorm_tick( rti );
     if ( bladestorm_expire > rti->timestamp + FROM_MILLISECONDS( 6 ) )
         eq_enqueue( rti, TIME_OFFSET( rti->player.class->bladestorm.tick_interval ), routnum_bladestorm_tick, target_id );
 }
-
 DECL_SPELL( bladestorm ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( bladestorm_cd > rti->timestamp ) return 0;
@@ -1547,6 +1566,7 @@ void routine_entries( rtinfo_t* rti, _event_t e ) {
         HOOK_EVENT( battle_cry_start );
         HOOK_EVENT( battle_cry_expire );
         HOOK_EVENT( battle_cry_cd );
+        HOOK_EVENT( berserker_rage_cd );
         HOOK_EVENT( heroic_leap_cast );
         HOOK_EVENT( heroic_leap_cd );
 #if (BUFF_BLOODLUST == 1)

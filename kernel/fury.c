@@ -16,10 +16,14 @@
 /* spec state infos. */
 struct spec_state_t{
     struct {
+        time_t cd;
+    } bloodthirst;
+    #define bloodthirst_cd (rti->player.class->spec->bloodthirst.cd)
+    struct {
         time_t expire;
     } enrage;
     #define enrage_expire (rti->player.class->spec->enrage.expire)
-#if (TALENT_FROTHING_BERSERKER) /** TODO: where is frothing berserker? */
+#if (TALENT_FROTHING_BERSERKER)
     struct {
         time_t expire;
     } frothing_berserker;
@@ -119,8 +123,11 @@ enum{
     END_OF_CLASS_ROUTNUM = START_OF_SPEC_ROUTNUM - 1,
     routnum_auto_attack_mh,
     routnum_auto_attack_oh,
+    routnum_bloodthirst_cd,
+    routnum_bloodthirst_cast,
     routnum_enrage_trigger,
     routnum_enrage_expire,
+    routnum_execute_cast,
 #if (TALENT_FROTHING_BERSERKER)
     routnum_frothing_berserker_trigger,
     routnum_frothing_berserker_expire,
@@ -132,7 +139,7 @@ enum{
     START_OF_WILD_ROUTNUM,
 };
 
-// === Auto-attack ============================================================
+// === auto-attack ============================================================
 DECL_EVENT( auto_attack_mh ) {
     float d = weapon_dmg( rti, 1.0f, 0, 0 );
 
@@ -142,7 +149,7 @@ DECL_EVENT( auto_attack_mh ) {
         /* Miss */
         lprintf( ( "mh miss" ) );
     } else {
-        power_gain( rti, 1.4f * weapon[0].speed );
+        power_gain( rti, 1.4f * weapon[0].speed * ( TALENT_ENDLESS_RAGE ? 1.3f : 1.0f ) );
         lprintf( ( "mh hit" ) );
     }
 
@@ -162,7 +169,7 @@ DECL_EVENT( auto_attack_oh ) {
         /* Miss */
         lprintf( ( "oh miss" ) );
     } else {
-        power_gain( rti, 1.4f * weapon[1].speed * 0.5f );
+        power_gain( rti, 1.4f * weapon[1].speed * 0.5f * ( TALENT_ENDLESS_RAGE ? 1.3f : 1.0f ) );
         lprintf( ( "oh hit" ) );
     }
 
@@ -174,7 +181,39 @@ DECL_EVENT( auto_attack_oh ) {
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( weapon[1].speed / aspeed ) ), routnum_auto_attack_oh, rti->player.target );
 }
 
-// === Enrage =================================================================
+// === berserker rage =========================================================
+void spec_berserker_rage_cast( rtinfo_t* rti ) {
+    if (TALENT_OUTBURST)
+        eq_enqueue( rti, rti->timestamp, routnum_enrage_trigger, 0 );
+}
+
+// === bloodthirst ============================================================
+DECL_EVENT( bloodthirst_cd ) {
+    lprintf( ( "bloodthirst cd" ) );
+}
+DECL_EVENT( bloodthirst_cast ) {
+    float d = weapon_dmg( rti, 3.5f, 1, 0 );
+    float cr = 0.0f;
+    if ( TALENT_FRESH_MEAT && enemy_health_percent( rti ) > 80.0f ) cr += 0.3f;
+    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, cr );
+    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    if ( DICE_CRIT == dice )
+        eq_enqueue( rti, rti->timestamp, routnum_enrage_trigger, 0 );
+    power_gain( rti, 10.0f );
+    lprintf( ( "bloodthirst hit" ) );
+}
+DECL_SPELL( bloodthirst ) {
+    if ( rti->player.gcd > rti->timestamp ) return 0;
+    if ( bloodthirst_cd > rti->timestamp ) return 0;
+    bloodthirst_cd = TIME_OFFSET( FROM_SECONDS( 4.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    eq_enqueue( rti, bloodthirst_cd, routnum_bloodthirst_cd, 0 );
+    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    eq_enqueue( rti, rti->timestamp, routnum_bloodthirst_cast, rti->player.target );
+    lprintf( ( "cast bloodthirst" ) );
+    return 1;
+}
+
+// === enrage =================================================================
 DECL_EVENT( enrage_expire ) {
     if ( enrage_expire == rti->timestamp ) {
         lprintf( ( "enrage expire" ) );
@@ -186,7 +225,29 @@ DECL_EVENT( enrage_trigger ) {
     lprintf( ( "enrage trigger" ) );
 }
 
-// === Frothing berserker =====================================================
+// === execute ================================================================
+DECL_EVENT( execute_cast ) {
+    float d = weapon_dmg( rti, 5.0f, 1, 0 );
+    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
+    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    //if ( TALENT_MASSACRE && DICE_CRIT == dice ) // TODO: see if massacre triggers from off-hand execute when go live.
+        // eq_enqueue( rti, rti->timestamp, routnum_massacre_trigger, 0 );
+    d = weapon_dmg( rti, 5.0f, 1, 1 );
+    dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
+    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    lprintf( ( "execute hit" ) );
+}
+DECL_SPELL( execute ) {
+    if ( rti->player.gcd > rti->timestamp ) return 0;
+    if ( power_check( rti, 25.0f ) ) return 0;
+    if ( enemy_health_percent( rti ) > 20.0f ) return 0;
+    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    eq_enqueue( rti, rti->timestamp, routnum_execute_cast, rti->player.target );
+    lprintf( ( "cast execute" ) );
+    return 1;
+}
+
+// === frothing berserker =====================================================
 #if (TALENT_FROTHING_BERSERKER)
 DECL_EVENT( frothing_berserker_expire ) {
     if ( frothing_berserker_expire == rti->timestamp ) {
@@ -211,14 +272,14 @@ void spec_bladestorm_tick( rtinfo_t* rti ) {
         k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
         deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         d = weapon_dmg( rti, 2.88f, 1, 1 );
-        k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
+        dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
         deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         lprintf( ( "bladestorm tick @tar%d", i ) );
     }
 }
 #endif
 
-// === Spec trinket ===========================================================
+// === spec trinket ===========================================================
 #if defined(trinket_worldbreakers_resolve)
 DECL_EVENT( worldbreakers_resolve_expire ) {
     if ( rti->timestamp == worldbreakers_resolve_expire ) {
@@ -251,8 +312,11 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
     switch( e.routine ) {
         HOOK_EVENT( auto_attack_mh );
         HOOK_EVENT( auto_attack_oh );
+        HOOK_EVENT( bloodthirst_cd );
+        HOOK_EVENT( bloodthirst_cast );
         HOOK_EVENT( enrage_trigger );
         HOOK_EVENT( enrage_expire );
+        HOOK_EVENT( execute_cast );
 #if (TALENT_FROTHING_BERSERKER)
         HOOK_EVENT( frothing_berserker_trigger );
         HOOK_EVENT( frothing_berserker_expire );
