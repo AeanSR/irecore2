@@ -15,7 +15,7 @@
 #define death_pct 0.0f
 #define iterations 1
 #define power_max 120.0f
-#define num_enemies 1
+#define num_enemies 6
 #define GLYPH_OF_RAGINGWIND 1
 #define PLATE_SPECIALIZATION 1
 #define BUFF_POTION 1
@@ -63,25 +63,25 @@
 //#define trinket_gronntooth_war_horn 1152
 #define ENEMY_IS_DEMONIC 1
 
-#define TALENT_TIER1 2
-#define TALENT_TIER2 2
+#define TALENT_TIER1 3
+#define TALENT_TIER2 3
 #define TALENT_TIER3 3
-#define TALENT_TIER4 2
+#define TALENT_TIER4 3
 #define TALENT_TIER5 3
-#define TALENT_TIER6 2
-#define TALENT_TIER7 2
+#define TALENT_TIER6 3
+#define TALENT_TIER7 3
 
 #include "kernel.c"
 #include "warrior.c"
 #include "fury.c"
 
 void scan_apl( rtinfo_t* rti ) {
-    SPELL( avatar );
+    //SPELL( avatar );
     SPELL( battle_cry );
     SPELL( heroic_leap );
     SPELL( bloodthirst );
-    SPELL( storm_bolt );
-    SPELL( bladestorm );
+    //SPELL( storm_bolt );
+    //SPELL( bladestorm );
 }
 
 int main(){
