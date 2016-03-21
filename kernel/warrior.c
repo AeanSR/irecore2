@@ -529,19 +529,9 @@ void refresh_vers( rtinfo_t* rti ) {
     rti->player.stat.vers = vers;
 }
 
-float weapon_dmg( rtinfo_t* rti, float weapon_multiplier, kbool normalized, kbool offhand ) {
-    float dmg = ( float )weapon[offhand].low;
-    dmg += uni_rng( rti ) * ( weapon[offhand].high - weapon[offhand].low );
-    dmg += ( normalized ? normalized_weapon_speed[weapon[offhand].type] : weapon[offhand].speed ) * rti->player.stat.ap / 3.5f;
-    dmg *= weapon_multiplier;
-    if ( offhand ) dmg *= 0.5f;
-    return dmg;
-}
+float weapon_dmg( rtinfo_t* rti, float weapon_multiplier, kbool normalized, kbool offhand );
 
-float ap_dmg( rtinfo_t* rti, float ap_multiplier ) {
-    float dmg = ap_multiplier * rti->player.stat.ap;
-    return dmg;
-}
+float ap_dmg( rtinfo_t* rti, float ap_multiplier );
 
 enum {
     ATYPE_WHITE_MELEE,
@@ -554,7 +544,6 @@ enum {
 };
 enum {
     DICE_MISS,
-    DICE_GLANCE,
     DICE_CRIT,
     DICE_HIT,
 };
