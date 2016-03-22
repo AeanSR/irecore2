@@ -96,6 +96,17 @@ struct spec_state_t{
     #define dragon_roar_cd     (0)
     #define dragon_roar_expire (0)
 #endif
+#if (t17_4pc)
+    struct {
+        time_t expire;
+        k32u stack;
+    } t17p4;
+    #define rampage_expire (rti->player.class->spec->t17p4.expire)
+    #define rampage_stack  (rti->player.class->spec->t17p4.stack)
+#else
+    #define rampage_expire (0)
+    #define rampage_stack  (0)
+#endif
 #if defined(trinket_worldbreakers_resolve)
     struct {
         time_t expire;
@@ -119,6 +130,13 @@ float spec_mastery_coefficient( rtinfo_t* rti ){
 
 float spec_mastery_increament( rtinfo_t* rti ){
     return 0.0f;
+}
+
+float spec_crit_increament( rtinfo_t* rti ){
+    float crit = 0.0f;
+    if ( UP( rampage_expire ) ) {
+        crit += 0.06f * rampage_stack;
+    return crit;
 }
 
 float spec_haste_coefficient( rtinfo_t* rti ){
@@ -247,6 +265,10 @@ enum{
     routnum_dragon_roar_expire,
     routnum_dragon_roar_cd,
 #endif
+#if (t17_4pc)
+    routnum_rampage_expire,
+    routnum_rampage_refresh,
+#endif
 #if defined(trinket_worldbreakers_resolve)
     routnum_worldbreakers_resolve_expire,
     routnum_worldbreakers_resolve_trigger,
@@ -271,7 +293,7 @@ DECL_EVENT( auto_attack_mh ) {
     float aspeed = 1.0f + rti->player.stat.haste;
     if ( UP( enrage_expire ) ) aspeed *= 2.0f;
 #if (t17_4pc)
-    aspeed *= 1.0f + 0.06f * rti->player.rampage.stack;
+    aspeed *= 1.0f + 0.06f * rampage_stack;
 #endif
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( weapon[0].speed / aspeed ) ), routnum_auto_attack_mh, rti->player.target );
 }
@@ -291,10 +313,35 @@ DECL_EVENT( auto_attack_oh ) {
     float aspeed = 1.0f + rti->player.stat.haste;
     if ( UP( enrage_expire ) ) aspeed *= 2.0f;
 #if (t17_4pc)
-    aspeed *= 1.0f + 0.06f * rti->player.rampage.stack;
+    aspeed *= 1.0f + 0.06f * rampage_stack;
 #endif
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( weapon[1].speed / aspeed ) ), routnum_auto_attack_oh, rti->player.target );
 }
+
+// === battle cry =============================================================
+void spec_spell_battle_cry( rtinfo_t* rti ) {
+#if (t17_4pc)
+    eq_enqueue( rti, rti->timestamp, routnum_rampage_refresh, 0 );
+#endif
+}
+#if (t17_4pc)
+DECL_EVENT( rampage_expire ) {
+    lprintf( ( "rampage(t17p4) expire" ) );
+    rampage_stack = 0;
+    refresh_crit( rti );
+}
+
+DECL_EVENT( rampage_refresh ) {
+    if ( rampage_stack == 0 ) {
+        rampage_expire = TIME_OFFSET( FROM_SECONDS( 14 ) );
+        eq_enqueue( rti, rampage_expire, routnum_rampage_expire, target_id );
+    }
+    rampage_stack++;
+    refresh_crit( rti );
+    if ( rampage_stack < 10 )
+        eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1 ) ), routnum_rampage_refresh, target_id );
+}
+#endif
 
 // === berserker rage =========================================================
 void spec_berserker_rage_cast( rtinfo_t* rti ) {
@@ -396,8 +443,8 @@ DECL_SPELL( execute ) {
 // === furious slash ==========================================================
 DECL_EVENT( furious_slash_cast ) {
     float d = weapon_dmg( rti, 2.0f, 1, 1 );
-    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
-    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, ( t18_2pc ? 0.5f : 0.0f ) );
+    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, ( t18_2pc ? 0.12f : 0.0f ) , 0 );
     eq_enqueue( rti, rti->timestamp, routnum_taste_for_blood_trigger, 0 );
 #if (TALENT_FRENZY)
     eq_enqueue( rti, rti->timestamp, routnum_frenzy_trigger, 0 );
@@ -441,9 +488,15 @@ DECL_EVENT( raging_blow_cast ) {
     float d = weapon_dmg( rti, 2.3f * ( TALENT_INNER_RAGE ? 2.0f : 1.0f ), 1, 0 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    if ( t17_2pc && DICE_CRIT == dice && uni_rng( rti ) < 0.2 ) {
+        eq_enqueue( rti, rti->timestamp, routnum_enrage_trigger, target_id );
+    }
     d = weapon_dmg( rti, 2.3f * ( TALENT_INNER_RAGE ? 2.0f : 1.0f ), 1, 1 );
     dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    if ( t17_2pc && DICE_CRIT == dice && uni_rng( rti ) < 0.2 ) {
+        eq_enqueue( rti, rti->timestamp, routnum_enrage_trigger, target_id );
+    }
     power_gain( rti, 5.0f );
     lprintf( ( "raging_blow hit" ) );
 }
@@ -801,6 +854,10 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
         HOOK_EVENT( dragon_roar_cast );
         HOOK_EVENT( dragon_roar_expire );
         HOOK_EVENT( dragon_roar_cd );
+#endif
+#if (t17_4pc)
+        HOOK_EVENT( rampage_expire );
+        HOOK_EVENT( rampage_refresh );
 #endif
 #if defined(trinket_worldbreakers_resolve)
         HOOK_EVENT( worldbreakers_resolve_trigger );

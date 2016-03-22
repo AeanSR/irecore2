@@ -489,6 +489,8 @@ void refresh_mastery( rtinfo_t* rti ) {
     rti->player.stat.mastery = mastery;
 }
 
+float spec_crit_increament( rtinfo_t* rti );
+
 void refresh_crit( rtinfo_t* rti ) {
     float crit = ( float )rti->player.stat.gear_crit;
 #if (thunderlord_mh)
@@ -498,14 +500,9 @@ void refresh_crit( rtinfo_t* rti ) {
     if ( UP( rti->player.class->enchant_oh.expire ) ) crit += 500.0f;
 #endif
     // crit *= 1.05f; // TODO: does this increase still exists in legion?
-    crit = 0.05f + crit / 11000;
+    crit = 0.05f + crit / 11000 + spec_mastery_increament( rti );
     if ( ( RACE == RACE_NIGHTELF_DAY ) || ( RACE == RACE_BLOODELF ) || ( RACE == RACE_WORGEN ) )
         crit += 0.01f;
-    /*#if (t17_4pc)
-        if ( UP( rampage.expire ) ) {
-            crit += 0.06f * rti->player.rampage.stack;
-        }
-    #endif*/
     rti->player.stat.crit = crit;
 }
 
@@ -724,7 +721,9 @@ DECL_EVENT( gcd_expire ) {
 
 // === battle cry =============================================================
 DECL_EVENT( battle_cry_cd ) {
-    lprintf( ( "battle_cry cd" ) );
+    if ( battle_cry_cd == rti->timestamp ) {
+        lprintf( ( "battle_cry cd" ) );
+    }
 }
 DECL_EVENT( battle_cry_expire ) {
     lprintf( ( "battle_cry expire" ) );
@@ -736,11 +735,13 @@ DECL_EVENT( battle_cry_start ) {
         power_gain( rti, 100.0f );
     lprintf( ( "battle_cry start" ) );
 }
+void spec_spell_battle_cry( rtinfo_t* rti );
 DECL_SPELL( battle_cry ) {
     if ( battle_cry_cd > rti->timestamp ) return 0;
     if ( UP( bladestorm_expire ) ) return 0;
     eq_enqueue( rti, rti->timestamp, routnum_battle_cry_start, 0 );
     battle_cry_cd = TIME_OFFSET( FROM_SECONDS( 60 ) ); // TODO: some traits would decrease cd?
+    spec_spell_battle_cry( rti ); // this may modify cd!
     eq_enqueue( rti, battle_cry_cd, routnum_battle_cry_cd, 0 );
     return 1;
 }
