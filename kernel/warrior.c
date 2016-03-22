@@ -500,7 +500,7 @@ void refresh_crit( rtinfo_t* rti ) {
     if ( UP( rti->player.class->enchant_oh.expire ) ) crit += 500.0f;
 #endif
     // crit *= 1.05f; // TODO: does this increase still exists in legion?
-    crit = 0.05f + crit / 11000 + spec_mastery_increament( rti );
+    crit = 0.05f + crit / 11000 + spec_crit_increament( rti );
     if ( ( RACE == RACE_NIGHTELF_DAY ) || ( RACE == RACE_BLOODELF ) || ( RACE == RACE_WORGEN ) )
         crit += 0.01f;
     rti->player.stat.crit = crit;
