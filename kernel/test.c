@@ -73,13 +73,14 @@
 
 #include "kernel.c"
 #include "warrior.c"
-#include "fury.c"
+//#include "fury.c"
+#include "arms.c"
 
 void scan_apl( rtinfo_t* rti ) {
     //SPELL( avatar );
     SPELL( battle_cry );
     SPELL( heroic_leap );
-    SPELL( bloodthirst );
+    //SPELL( bloodthirst );
     //SPELL( storm_bolt );
     //SPELL( bladestorm );
 }

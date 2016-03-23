@@ -877,6 +877,7 @@ void spec_module_init( rtinfo_t* rti ) {
         rti->enemy[i].class->spec = &spec_debuff[i];
     }
 
+    power_gain( rti, 15.0f ); // charge!
     eq_enqueue( rti, rti->timestamp, routnum_auto_attack_mh, 0 );
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( SYNC_MELEE ? 0 : 0.5 ) ), routnum_auto_attack_oh, 0 );
 #if (TALENT_WRECKING_BALL)
