@@ -742,7 +742,7 @@ DECL_SPELL( battle_cry ) {
     eq_enqueue( rti, rti->timestamp, routnum_battle_cry_start, 0 );
     battle_cry_cd = TIME_OFFSET( FROM_SECONDS( 60 ) ); // TODO: some traits would decrease cd?
     spec_spell_battle_cry( rti ); // this may modify cd!
-    eq_enqueue( rti, battle_cry_cd, routnum_battle_cry_cd, 0 );
+    if ( !TALENT_ANGER_MANAGEMENT ) eq_enqueue( rti, battle_cry_cd, routnum_battle_cry_cd, 0 ); // with anger management enabled it doesn't worth to track exact cd.
     return 1;
 }
 
