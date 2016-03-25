@@ -408,7 +408,7 @@ DECL_EVENT( enrage_expire ) {
     }
 }
 DECL_EVENT( enrage_trigger ) {
-    enrage_expire = TIME_OFFSET( FROM_SECONDS( 4 ) ); // TODO: does haste decrease enrage duration?
+    enrage_expire = TIME_OFFSET( FROM_SECONDS( 4 ) );
     eq_enqueue( rti, enrage_expire, routnum_enrage_expire, 0 );
     lprintf( ( "enrage trigger" ) );
 }

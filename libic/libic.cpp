@@ -67,37 +67,23 @@ void ic_setprintcallback(ic_printcb_t cbf){
     config().printcb = cbf;
 }
 
+#define load_source( kptr, srcname )     if (!config().kptr){ \
+        FILE* f = fopen("kernel\\" srcname, "rb"); \
+        fseek(f, 0, SEEK_END); \
+        size_t tell = ftell(f); \
+        rewind(f); \
+        config().kptr = (char*)calloc(tell + 1, 1); \
+        fread(config().kptr, tell, 1, f); \
+        fclose(f); \
+    }
 
 // API: initializer.
 void ic_init(void){
     // Load kernel source
-    if (!config().kernel_str){
-        FILE* f = fopen("kernel\kernel.c", "rb");
-        fseek(f, 0, SEEK_END);
-        size_t tell = ftell(f);
-        rewind(f);
-        config().kernel_str = (char*)calloc(tell + 1, 1);
-        fread(config().kernel_str, tell, 1, f);
-        fclose(f);
-    }
-    if (!config().kernel_arms_str){
-        FILE* f = fopen("kernel\arms.c", "rb");
-        fseek(f, 0, SEEK_END);
-        size_t tell = ftell(f);
-        rewind(f);
-        config().kernel_arms_str = (char*)calloc(tell + 1, 1);
-        fread(config().kernel_arms_str, tell, 1, f);
-        fclose(f);
-    }
-    if (!config().kernel_fury_str){
-        FILE* f = fopen("kernel\fury.c", "rb");
-        fseek(f, 0, SEEK_END);
-        size_t tell = ftell(f);
-        rewind(f);
-        config().kernel_fury_str = (char*)calloc(tell + 1, 1);
-        fread(config().kernel_fury_str, tell, 1, f);
-        fclose(f);
-    }
+    load_source( kernel_str, "kernel.c" );
+    load_source( kernel_warrior_str, "warrior.c" );
+    load_source( kernel_arms_str, "arms.c" );
+    load_source( kernel_fury_str, "fury.c" );
     // Lookup available devices.
     if (config().device_list.empty()){
         config().device_list.clear();
@@ -1163,6 +1149,7 @@ int ic_runsim(float* dps, float* dpsr, float* dpse, float* sim_time){
     if (!ttprobe(hashkey, &program)){
         // compile kernel
         cbprintf("JIT ...\n");
+        source += config().kernel_warrior_str; // todo: select kernel source by spec.
         source += config().kernel_arms_str; // todo: select kernel source by spec.
         source = predef + source;
         source += "void scan_apl( rtinfo_t* rti ) {";

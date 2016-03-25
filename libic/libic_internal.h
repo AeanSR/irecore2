@@ -112,6 +112,7 @@ struct config_t{
     int developer_debug;
     ic_printcb_t printcb;
     char* kernel_str;
+    char* kernel_warrior_str;
     char* kernel_arms_str;
     char* kernel_fury_str;
     FILE* output_file;
