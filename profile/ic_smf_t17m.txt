@@ -2,6 +2,7 @@
 # For comparison you should remove Heroic Leap & Impending Victory from SimC profile either, since IreCore do not implement them.
 
 race=tauren
+spec=fury
 talent=1321321
 raidbuff_all=1
 plate_specialization=1

@@ -46,6 +46,7 @@ static const struct luaL_Reg printlib[] = {
 };
 
 const char* str_param_list[] = {
+    "spec",
     "actions",
     "simc_actions",
     "rng_engine",

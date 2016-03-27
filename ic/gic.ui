@@ -263,20 +263,6 @@ Check this option may significantly boost the simulation when the speed of both 
                </property>
               </widget>
              </item>
-             <item row="1" column="1">
-              <widget class="QCheckBox" name="checkAvatarLikeBloodbath">
-               <property name="toolTip">
-                <string>Avatar-like Bloodbath: Bloodbath will be treated as +30% special damage instantly.
-Check this option may boost the simulation, but it is really inconsistent with real combats. Not recommended.</string>
-               </property>
-               <property name="text">
-                <string>Avatar-like Bloodbath</string>
-               </property>
-               <property name="checked">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
              <item row="0" column="0">
               <widget class="QCheckBox" name="checkStrictGCD">
                <property name="toolTip">
@@ -333,96 +319,6 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
                <widget class="QLabel" name="label_9">
                 <property name="text">
                  <string>Raid Buffs:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="checkRaidBuffStr">
-                <property name="text">
-                 <string>Str. Agi. Int.</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="checkRaidBuffAP">
-                <property name="text">
-                 <string>Attack Power</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="checkRaidBuffSP">
-                <property name="text">
-                 <string>Spell Power</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="checkRaidBuffSta">
-                <property name="text">
-                 <string>Stamina</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="checkRaidBuffCrit">
-                <property name="text">
-                 <string>Crit</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="checkRaidBuffHaste">
-                <property name="text">
-                 <string>Haste</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="checkRaidBuffMastery">
-                <property name="text">
-                 <string>Mastery</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="checkRaidBuffMult">
-                <property name="text">
-                 <string>Multistrike</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="checkRaidBuffVers">
-                <property name="text">
-                 <string>Versatility</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
                 </property>
                </widget>
               </item>
@@ -661,7 +557,7 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
           <rect>
            <x>10</x>
            <y>10</y>
-           <width>491</width>
+           <width>741</width>
            <height>51</height>
           </rect>
          </property>
@@ -673,7 +569,7 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
            <rect>
             <x>20</x>
             <y>20</y>
-            <width>51</width>
+            <width>71</width>
             <height>22</height>
            </rect>
           </property>
@@ -681,7 +577,7 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
          <widget class="QPushButton" name="btnImport">
           <property name="geometry">
            <rect>
-            <x>320</x>
+            <x>560</x>
             <y>20</y>
             <width>75</width>
             <height>23</height>
@@ -694,9 +590,9 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
          <widget class="QLineEdit" name="txtRealm">
           <property name="geometry">
            <rect>
-            <x>80</x>
+            <x>120</x>
             <y>20</y>
-            <width>111</width>
+            <width>141</width>
             <height>20</height>
            </rect>
           </property>
@@ -707,9 +603,9 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
          <widget class="QLineEdit" name="txtCharacter">
           <property name="geometry">
            <rect>
-            <x>200</x>
+            <x>280</x>
             <y>20</y>
-            <width>111</width>
+            <width>141</width>
             <height>20</height>
            </rect>
           </property>
@@ -717,10 +613,20 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
            <string>Name</string>
           </property>
          </widget>
+         <widget class="QComboBox" name="comboImportActive">
+          <property name="geometry">
+           <rect>
+            <x>440</x>
+            <y>20</y>
+            <width>101</width>
+            <height>22</height>
+           </rect>
+          </property>
+         </widget>
          <widget class="QPushButton" name="btnResetBuild">
           <property name="geometry">
            <rect>
-            <x>400</x>
+            <x>650</x>
             <y>20</y>
             <width>75</width>
             <height>23</height>
@@ -737,7 +643,7 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
            <x>10</x>
            <y>70</y>
            <width>491</width>
-           <height>211</height>
+           <height>221</height>
           </rect>
          </property>
          <property name="title">
@@ -747,9 +653,9 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>20</y>
+            <y>30</y>
             <width>476</width>
-            <height>181</height>
+            <height>174</height>
            </rect>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_9">
@@ -940,16 +846,6 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_30">
-               <property name="text">
-                <string>Mult:</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QLabel" name="label_31">
                <property name="text">
                 <string>Vers:</string>
@@ -1056,25 +952,6 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="txtItemMult">
-               <property name="minimumSize">
-                <size>
-                 <width>120</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>120</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="placeholderText">
-                <string>Multistrike Rating</string>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QLineEdit" name="txtItemVers">
                <property name="minimumSize">
                 <size>
@@ -1102,7 +979,7 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>290</y>
+           <y>300</y>
            <width>271</width>
            <height>251</height>
           </rect>
@@ -1120,20 +997,6 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_8">
-           <item>
-            <widget class="QCheckBox" name="checkGlyphOfUnendingRage">
-             <property name="text">
-              <string>Glyph of Unending Rage</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="checkGlyphOfRagingWind">
-             <property name="text">
-              <string>Glyph of Raging Wind</string>
-             </property>
-            </widget>
-           </item>
            <item>
             <widget class="QCheckBox" name="checkT172P">
              <property name="text">
@@ -1161,6 +1024,19 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
               <string>T18 4pc set bonus</string>
              </property>
             </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
            </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_22">
@@ -1268,7 +1144,7 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
          <property name="geometry">
           <rect>
            <x>290</x>
-           <y>290</y>
+           <y>300</y>
            <width>211</width>
            <height>121</height>
           </rect>
@@ -1374,7 +1250,7 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
          <property name="geometry">
           <rect>
            <x>290</x>
-           <y>420</y>
+           <y>430</y>
            <width>211</width>
            <height>121</height>
           </rect>
@@ -1480,7 +1356,7 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
          <property name="geometry">
           <rect>
            <x>510</x>
-           <y>10</y>
+           <y>70</y>
            <width>251</width>
            <height>271</height>
           </rect>
@@ -1491,13 +1367,52 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
          <widget class="QWidget" name="layoutWidget">
           <property name="geometry">
            <rect>
-            <x>20</x>
+            <x>10</x>
             <y>20</y>
-            <width>221</width>
-            <height>241</height>
+            <width>231</width>
+            <height>248</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_9">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_32">
+             <item>
+              <widget class="QLabel" name="label_30">
+               <property name="minimumSize">
+                <size>
+                 <width>61</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Spec:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="comboSpec">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>140</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>140</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_12">
              <item>
@@ -1515,6 +1430,12 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
              </item>
              <item>
               <widget class="QComboBox" name="comboRace">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="minimumSize">
                 <size>
                  <width>140</width>
@@ -1548,6 +1469,12 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
              </item>
              <item>
               <widget class="QComboBox" name="comboTalent1">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="minimumSize">
                 <size>
                  <width>140</width>
@@ -1581,6 +1508,12 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
              </item>
              <item>
               <widget class="QComboBox" name="comboTalent2">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="minimumSize">
                 <size>
                  <width>140</width>
@@ -1614,6 +1547,12 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
              </item>
              <item>
               <widget class="QComboBox" name="comboTalent3">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="minimumSize">
                 <size>
                  <width>140</width>
@@ -1647,6 +1586,12 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
              </item>
              <item>
               <widget class="QComboBox" name="comboTalent4">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="minimumSize">
                 <size>
                  <width>140</width>
@@ -1680,6 +1625,12 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
              </item>
              <item>
               <widget class="QComboBox" name="comboTalent5">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="minimumSize">
                 <size>
                  <width>140</width>
@@ -1713,6 +1664,12 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
              </item>
              <item>
               <widget class="QComboBox" name="comboTalent6">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="minimumSize">
                 <size>
                  <width>140</width>
@@ -1746,6 +1703,12 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
              </item>
              <item>
               <widget class="QComboBox" name="comboTalent7">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="minimumSize">
                 <size>
                  <width>140</width>
@@ -1769,9 +1732,9 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
          <property name="geometry">
           <rect>
            <x>510</x>
-           <y>290</y>
+           <y>350</y>
            <width>251</width>
-           <height>251</height>
+           <height>201</height>
           </rect>
          </property>
          <property name="title">
@@ -1783,7 +1746,7 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
             <x>20</x>
             <y>20</y>
             <width>211</width>
-            <height>221</height>
+            <height>171</height>
            </rect>
           </property>
           <property name="verticalScrollBarPolicy">
@@ -1793,7 +1756,7 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
            <enum>Qt::ScrollBarAlwaysOff</enum>
           </property>
           <property name="rowCount">
-           <number>8</number>
+           <number>7</number>
           </property>
           <property name="columnCount">
            <number>3</number>
@@ -1816,7 +1779,6 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
           <attribute name="verticalHeaderMinimumSectionSize">
            <number>0</number>
           </attribute>
-          <row/>
           <row/>
           <row/>
           <row/>
@@ -2068,7 +2030,7 @@ You can also choose to use SimC-style APL instead, IreCore will attempt to trans
            </rect>
           </property>
           <property name="currentIndex">
-           <number>3</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="tab">
            <attribute name="title">
@@ -2253,7 +2215,7 @@ Typically takes several seconds to minutes.</string>
               <x>596</x>
               <y>10</y>
               <width>111</width>
-              <height>106</height>
+              <height>84</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -2281,16 +2243,6 @@ Typically takes several seconds to minutes.</string>
               <widget class="QCheckBox" name="checkScaleFactorMastery">
                <property name="text">
                 <string>Mastery Rating</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="checkScaleFactorMult">
-               <property name="text">
-                <string>Mult Rating</string>
                </property>
                <property name="checked">
                 <bool>true</bool>
@@ -2557,9 +2509,9 @@ confidence level.</string>
             <property name="geometry">
              <rect>
               <x>530</x>
-              <y>10</y>
+              <y>20</y>
               <width>188</width>
-              <height>108</height>
+              <height>91</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_29">
@@ -2602,13 +2554,6 @@ confidence level.</string>
                  </property>
                  <property name="checked">
                   <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="checkPlotMult">
-                 <property name="text">
-                  <string>Mult</string>
                  </property>
                 </widget>
                </item>

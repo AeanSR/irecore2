@@ -117,12 +117,12 @@ QString qsprint( int v );
 //      49 -> mastery
 //      59 -> multistrike
 //      40 -> versatility
-int gic::import_player( std::string& realm, std::string& name, std::string& region, int silence ) {
+int gic::import_player( std::string& realm, std::string& name, std::string& region, int active, int silence ) {
     getjson bn;
     QString url;
     int talent;
-    int glyph_of_ragingwind;
     int race;
+    int spec;
     int archmages_incandescence;
     int archmages_greater_incandescence;
     int legendary_ring;
@@ -170,26 +170,35 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
     }
     rapidjson::Value& jtalentlist = j["talents"];
     talent = -1;
-    int glyph_ur = 0;
     for (int i = 0; i < jtalentlist.Size(); i++) {
-        if (std::string( "Z" ).compare( jtalentlist[i]["calcSpec"].GetString() )) continue;
-        std::string calcTalent = jtalentlist[i]["calcTalent"].GetString();
-        talent = 0;
-        for (int k = 0; k < 7; k++) {
-            talent *= 10;
-            switch (calcTalent.length() > k ? calcTalent[k] : '.') {
-            case '0': talent += 1; break;
-            case '1': talent += 2; break;
-            case '2': talent += 3; break;
-            default: break;
+        if ( ( jtalentlist[i]["selected"].GetBool() == !!active ) ) {
+            if (0 == std::string( "Z" ).compare( jtalentlist[i]["calcSpec"].GetString() )) {
+                spec = SPEC_FURY_WARRIOR;
+            } else if (0 == std::string( "a" ).compare( jtalentlist[i]["calcSpec"].GetString() )) {
+                spec = SPEC_ARMS_WARRIOR;
+            } else {
+                if (!silence)
+                    QMessageBox::information( this, QApplication::translate( "gicClass", "Import Fail" ), QApplication::translate( "gicClass", "Selected specialization is not a valid DPS spec. Try toggle the \"active\" option?" ), QMessageBox::Ok );
+                return -1;
             }
+            std::string calcTalent = jtalentlist[i]["calcTalent"].GetString();
+            talent = 0;
+            for (int k = 0; k < 7; k++) {
+                talent *= 10;
+                switch (calcTalent.length() > k ? calcTalent[k] : '.') {
+                case '0': talent += 1; break;
+                case '1': talent += 2; break;
+                case '2': talent += 3; break;
+                default: break;
+                }
+            }
+            // glyph_ur = !!strchr( jtalentlist[i]["calcGlyph"].GetString(), 'c' );
+            // glyph_of_ragingwind = !!strchr( jtalentlist[i]["calcGlyph"].GetString(), 'Q' );
         }
-        glyph_ur = !!strchr( jtalentlist[i]["calcGlyph"].GetString(), 'c' );
-        glyph_of_ragingwind = !!strchr( jtalentlist[i]["calcGlyph"].GetString(), 'Q' );
     }
     if (talent < 0) {
         if (!silence)
-            QMessageBox::information( this, QApplication::translate( "gicClass", "Import Fail" ), QApplication::translate( "gicClass", "This character do not have fury spec." ), QMessageBox::Ok );
+            QMessageBox::information( this, QApplication::translate( "gicClass", "Import Fail" ), QApplication::translate( "gicClass", "Selected specialization does not exist. Try toggle the \"active\" option?" ), QMessageBox::Ok );
         return -1;
     }
     switch (j["race"].GetInt()) {
@@ -262,7 +271,7 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
             case 32: paperdoll.gear_list[i].crit += piecestat[k]["amount"].GetInt(); break;
             case 36: paperdoll.gear_list[i].haste += piecestat[k]["amount"].GetInt(); break;
             case 49: paperdoll.gear_list[i].mastery += piecestat[k]["amount"].GetInt(); break;
-            case 59: paperdoll.gear_list[i].mult += piecestat[k]["amount"].GetInt(); break;
+                // case 59: paperdoll.gear_list[i].mult += piecestat[k]["amount"].GetInt(); break;
             case 40: paperdoll.gear_list[i].vers += piecestat[k]["amount"].GetInt(); break;
             default: break;
             }
@@ -279,7 +288,7 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
                 case 32: paperdoll.gear_list[i].crit += ench_value; break;
                 case 36: paperdoll.gear_list[i].haste += ench_value; break;
                 case 49: paperdoll.gear_list[i].mastery += ench_value; break;
-                case 59: paperdoll.gear_list[i].mult += ench_value; break;
+                    // case 59: paperdoll.gear_list[i].mult += ench_value; break;
                 case 40: paperdoll.gear_list[i].vers += ench_value; break;
                 default: break;
                 }
@@ -294,15 +303,7 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
             mh_low = item["weaponInfo"]["damage"]["min"].GetInt();
             mh_high = item["weaponInfo"]["damage"]["max"].GetInt();
             mh_speed = item["weaponInfo"]["weaponSpeed"].GetDouble();
-            paperdoll.gear_list[i].type = 2;
-            switch (dbc_query_weapon_type( itemid )) {
-            case WEAPONSUBCLASS_AXE_1H: case WEAPONSUBCLASS_MACE_1H: case WEAPONSUBCLASS_SWORD_1H: case WEAPONSUBCLASS_FIST_WEAPON:
-                paperdoll.gear_list[i].type = 1; break;
-            case WEAPONSUBCLASS_AXE_2H: case WEAPONSUBCLASS_MACE_2H: case WEAPONSUBCLASS_SWORD_2H: case WEAPONSUBCLASS_POLEARM: case WEAPONSUBCLASS_STAFF:
-                paperdoll.gear_list[i].type = 0; break;
-            case WEAPONSUBCLASS_DAGGER: default:
-                paperdoll.gear_list[i].type = 2; break;
-            }
+            paperdoll.gear_list[i].type = dbc_query_weapon_type( itemid );
         }
         if (i == 7) {
             if (enchid == 5330) ui.comboOHEnchant->setCurrentIndex( 1 );
@@ -312,15 +313,7 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
             oh_low = item["weaponInfo"]["damage"]["min"].GetInt();
             oh_high = item["weaponInfo"]["damage"]["max"].GetInt();
             oh_speed = item["weaponInfo"]["weaponSpeed"].GetDouble();
-            paperdoll.gear_list[i].type = 2;
-            switch (dbc_query_weapon_type( itemid )) {
-            case WEAPONSUBCLASS_AXE_1H: case WEAPONSUBCLASS_MACE_1H: case WEAPONSUBCLASS_SWORD_1H: case WEAPONSUBCLASS_FIST_WEAPON:
-                paperdoll.gear_list[i].type = 1; break;
-            case WEAPONSUBCLASS_AXE_2H: case WEAPONSUBCLASS_MACE_2H: case WEAPONSUBCLASS_SWORD_2H: case WEAPONSUBCLASS_POLEARM: case WEAPONSUBCLASS_STAFF:
-                paperdoll.gear_list[i].type = 0; break;
-            case WEAPONSUBCLASS_DAGGER: default:
-                paperdoll.gear_list[i].type = 2; break;
-            }
+            paperdoll.gear_list[i].type = dbc_query_weapon_type( itemid );
         }
         if (enchid) {
             for (int prop_idx = 0; prop_idx < 3; prop_idx++) {
@@ -331,14 +324,14 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
                 case 32: paperdoll.gear_list[i].crit += ench_value; break;
                 case 36: paperdoll.gear_list[i].haste += ench_value; break;
                 case 49: paperdoll.gear_list[i].mastery += ench_value; break;
-                case 59: paperdoll.gear_list[i].mult += ench_value; break;
+                    // case 59: paperdoll.gear_list[i].mult += ench_value; break;
                 case 40: paperdoll.gear_list[i].vers += ench_value; break;
                 default: break;
                 }
             }
         }
         if (plate_slot[i]) {
-            paperdoll.gear_list[i].type = ( dbc_query_armor_type( itemid ) == GEARSUBCLASS_PLATE ? 0 : 1 );
+            paperdoll.gear_list[i].type = dbc_query_armor_type( itemid );
         }
     }
 
@@ -365,6 +358,8 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
     sprintf( buf, "%.2f", oh_speed );
     ui.txtOHSpeed->setText( buf );
 
+    ui.comboSpec->setCurrentIndex( spec );
+
     ui.comboTalent7->setCurrentIndex( talent % 10 );
     talent /= 10;
     ui.comboTalent6->setCurrentIndex( talent % 10 );
@@ -379,8 +374,5 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
     talent /= 10;
     ui.comboTalent1->setCurrentIndex( talent % 10 );
     talent /= 10;
-    ui.checkGlyphOfUnendingRage->setChecked( glyph_ur );
-    ui.checkGlyphOfRagingWind->setChecked( glyph_of_ragingwind );
-
     return 0;
 }

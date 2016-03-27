@@ -29,15 +29,6 @@
 #include "libic.h"
 
 struct raidbuff_t {
-    int str;
-    int ap;
-    int sp;
-    int sta;
-    int crit;
-    int haste;
-    int mastery;
-    int vers;
-    int mult;
     int flask;
     int food;
     int potion;
@@ -54,18 +45,19 @@ struct ic_computedevice_t {
     ic_computedevice_t() : platform_name( 0 ), device_name( 0 ), context( 0 ), queue( 0 ) { }
 };
 
+enum { SPEC_ARMS_WARRIOR, SPEC_FURY_WARRIOR };
 
 struct config_t {
     cl_uint gear_str;
     cl_uint gear_crit;
     cl_uint gear_haste;
     cl_uint gear_mastery;
-    cl_uint gear_mult;
     cl_uint gear_vers;
     raidbuff_t raidbuff;
     cl_uint seed;
     std::string apl;
     std::string simc_actions;
+    int spec;
     int iterations;
     float vary_combat_length;
     float max_length;
@@ -75,7 +67,6 @@ struct config_t {
     int glyph_of_ragingwind;
     int num_enemies;
     int plate_specialization;
-    int single_minded;
     int race;
     float mh_speed;
     float oh_speed;
@@ -88,7 +79,6 @@ struct config_t {
     int strict_gcd;
     int sync_melee;
     int wbr_never_expire;
-    int avatar_like_bloodbath;
     int default_actions;
     int archmages_incandescence;
     int archmages_greater_incandescence;
@@ -119,7 +109,6 @@ struct config_t {
     std::vector<ic_computedevice_t> device_list;
     config_t() {
         memset( this, 0, sizeof *this );
-        raidbuff.vers = 1;
         srand( ( unsigned int ) time( NULL ) );
         rng_engine = 32;
         strict_gcd = 1;

@@ -28,9 +28,8 @@ struct item_t {
     int crit;
     int haste;
     int mastery;
-    int mult;
     int vers;
-    item_t() : type( 0 ), str( 0 ), crit( 0 ), haste( 0 ), mastery( 0 ), mult( 0 ), vers( 0 ), name( "" ) { }
+    item_t() : type( 0 ), str( 0 ), crit( 0 ), haste( 0 ), mastery( 0 ), vers( 0 ), name( "" ) { }
 };
 
 struct paperdoll_t {
@@ -64,6 +63,8 @@ struct contour_data_t {
     bool operator<( const contour_data_t& rhs ) { return value < rhs.value; }
 };
 
+enum { SPEC_ARMS_WARRIOR, SPEC_FURY_WARRIOR };
+
 class gic : public QMainWindow {
     Q_OBJECT
 
@@ -75,7 +76,7 @@ public:
     static int vgicprintf( const char* format, va_list vl );
     static int printf( const char* format, ... );
     static int printq( QString text );
-    int import_player( std::string& realm, std::string& name, std::string& region, int silence = 0 );
+    int import_player( std::string& realm, std::string& name, std::string& region, int active, int silence = 0 );
     void run_scripts();
 
     public slots:
@@ -99,6 +100,7 @@ public:
     void on_btnToggleAllTrinkets_clicked();
     void on_btnToggleUpgradedTrinkets_clicked();
     void on_comboIncandescence_currentIndexChanged( int );
+    void on_comboSpec_currentIndexChanged( int );
     void TxtBoxNotify( QString );
     void on_radioDefaultActions_toggled();
     void on_radioIreCoreActions_toggled();
@@ -127,13 +129,12 @@ struct trinket_profile_t {
     int crit;
     int haste;
     int mastery;
-    int mult;
     int vers;
     int demonic;
     int upgrade;
     int not_selected;
-    trinket_profile_t( QString name, int itemid, int itemlvl, int str, int crit, int haste, int mastery, int mult, int vers, int upgrade = 0, int demonic = -1 ) :
-        name( name ), itemid( itemid ), itemlvl( itemlvl ), str( str ), crit( crit ), haste( haste ), mastery( mastery ), mult( mult ), vers( vers ), upgrade( upgrade ), demonic( demonic ), not_selected( 0 ) {
+    trinket_profile_t( QString name, int itemid, int itemlvl, int str, int crit, int haste, int mastery, int vers, int upgrade = 0, int demonic = -1 ) :
+        name( name ), itemid( itemid ), itemlvl( itemlvl ), str( str ), crit( crit ), haste( haste ), mastery( mastery ), vers( vers ), upgrade( upgrade ), demonic( demonic ), not_selected( 0 ) {
     };
 };
 struct trinket_ladder_t {
@@ -155,7 +156,6 @@ QString script_trinket_ladder(
     int trinket_slot_crit,
     int trinket_slot_haste,
     int trinket_slot_mastery,
-    int trinket_slot_mult,
     int trinket_slot_vers
     );
 QString script_stat_maxima(

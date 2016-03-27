@@ -200,6 +200,17 @@ gic::gic( QWidget *parent )
     ui.comboRegion->addItem( "tw" );
     ui.comboRegion->addItem( "kr" );
 
+    ui.comboImportActive->addItem( QApplication::translate( "gicClass", "Active Spec" ) );
+    ui.comboImportActive->addItem( QApplication::translate( "gicClass", "Inactive Spec" ) );
+    ui.comboImportActive->setCurrentIndex( 0 );
+
+    std::vector<QString> spec_name;
+    spec_name.resize( 2 );
+    spec_name[SPEC_ARMS_WARRIOR] = QApplication::translate( "gicClass", "Arms Warrior" );
+    spec_name[SPEC_FURY_WARRIOR] = QApplication::translate( "gicClass", "Fury Warrior" );
+    for (auto i = spec_name.begin(); i != spec_name.end(); i++) ui.comboSpec->addItem( *i );
+    on_comboSpec_currentIndexChanged( 0 );
+
     // legendary rings.
     ui.comboIncandescence->addItem( QApplication::translate( "gicClass", "No Legendary Ring" ) );
     ui.comboIncandescence->addItem( QApplication::translate( "gicClass", "Incandescence(690)" ) );
@@ -263,50 +274,13 @@ gic::gic( QWidget *parent )
     ui.comboRace->addItems( lists );
     lists.clear();
 
-    // talents.
-    ui.comboTalent1->addItem( QApplication::translate( "gicClass", "Not set." ) );
-    ui.comboTalent1->addItem( QApplication::translate( "gicClass", "Juggernaut" ) );
-    ui.comboTalent1->addItem( QApplication::translate( "gicClass", "Double Time" ) );
-    ui.comboTalent1->addItem( QApplication::translate( "gicClass", "Warbringer" ) );
-
-    ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Not set." ) );
-    ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Enraged Regeneration" ) );
-    ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Second Wind" ) );
-    ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Impending Victory" ) );
-
-    ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Not set." ) );
-    ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Furious Strike" ) );
-    ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Sudden Death" ) );
-    ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Unquenchable Thirst" ) );
-
-    ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Not set." ) );
-    ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Storm Bolt" ) );
-    ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Shockwave" ) );
-    ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Dragon Roar" ) );
-
-    ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Not set." ) );
-    ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Mass Spell Reflection" ) );
-    ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Safeguard" ) );
-    ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Vigilance" ) );
-
-    ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Not set." ) );
-    ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Avatar" ) );
-    ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Bloodbath" ) );
-    ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Bladestorm" ) );
-
-    ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Not set." ) );
-    ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Anger Management" ) );
-    ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Ravager" ) );
-    ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Siegebreaker" ) );
-
     // gear summary
     ui.tableGearSummary->setItem( 1, 0, new QTableWidgetItem( QApplication::translate( "gicClass", "Strength" ) ) );
     ui.tableGearSummary->setItem( 2, 0, new QTableWidgetItem( QApplication::translate( "gicClass", "AP" ) ) );
     ui.tableGearSummary->setItem( 3, 0, new QTableWidgetItem( QApplication::translate( "gicClass", "Crit" ) ) );
     ui.tableGearSummary->setItem( 4, 0, new QTableWidgetItem( QApplication::translate( "gicClass", "Haste" ) ) );
     ui.tableGearSummary->setItem( 5, 0, new QTableWidgetItem( QApplication::translate( "gicClass", "Mastery" ) ) );
-    ui.tableGearSummary->setItem( 6, 0, new QTableWidgetItem( QApplication::translate( "gicClass", "Mult" ) ) );
-    ui.tableGearSummary->setItem( 7, 0, new QTableWidgetItem( QApplication::translate( "gicClass", "Vers" ) ) );
+    ui.tableGearSummary->setItem( 6, 0, new QTableWidgetItem( QApplication::translate( "gicClass", "Vers" ) ) );
     ui.tableGearSummary->setItem( 0, 1, new QTableWidgetItem( QApplication::translate( "gicClass", "Gear" ) ) );
     ui.tableGearSummary->setItem( 0, 2, new QTableWidgetItem( QApplication::translate( "gicClass", "Buffed" ) ) );
 
@@ -336,17 +310,9 @@ gic::gic( QWidget *parent )
     connect( ui.txtItemCrit, SIGNAL( textEdited( const QString& ) ), this, SLOT( gear_summary_calculate() ) );
     connect( ui.txtItemHaste, SIGNAL( textEdited( const QString& ) ), this, SLOT( gear_summary_calculate() ) );
     connect( ui.txtItemMastery, SIGNAL( textEdited( const QString& ) ), this, SLOT( gear_summary_calculate() ) );
-    connect( ui.txtItemMult, SIGNAL( textEdited( const QString& ) ), this, SLOT( gear_summary_calculate() ) );
     connect( ui.txtItemVers, SIGNAL( textEdited( const QString& ) ), this, SLOT( gear_summary_calculate() ) );
     connect( ui.comboItemType, SIGNAL( activated( int ) ), this, SLOT( gear_summary_calculate() ) );
     connect( ui.comboRace, SIGNAL( activated( int ) ), this, SLOT( gear_summary_calculate() ) );
-    connect( ui.checkRaidBuffAP, SIGNAL( stateChanged( int ) ), this, SLOT( gear_summary_calculate() ) );
-    connect( ui.checkRaidBuffStr, SIGNAL( stateChanged( int ) ), this, SLOT( gear_summary_calculate() ) );
-    connect( ui.checkRaidBuffCrit, SIGNAL( stateChanged( int ) ), this, SLOT( gear_summary_calculate() ) );
-    connect( ui.checkRaidBuffMult, SIGNAL( stateChanged( int ) ), this, SLOT( gear_summary_calculate() ) );
-    connect( ui.checkRaidBuffVers, SIGNAL( stateChanged( int ) ), this, SLOT( gear_summary_calculate() ) );
-    connect( ui.checkRaidBuffHaste, SIGNAL( stateChanged( int ) ), this, SLOT( gear_summary_calculate() ) );
-    connect( ui.checkRaidBuffMastery, SIGNAL( stateChanged( int ) ), this, SLOT( gear_summary_calculate() ) );
     connect( ui.checkRaidBuffFlask, SIGNAL( stateChanged( int ) ), this, SLOT( gear_summary_calculate() ) );
     connect( ui.checkRaidBuffFood, SIGNAL( stateChanged( int ) ), this, SLOT( gear_summary_calculate() ) );
 
@@ -475,25 +441,15 @@ void gic::set_parameters() {
     ic_setparam( "strict_gcd", ui.checkStrictGCD->isChecked() ? "1" : "0" );
     ic_setparam( "sync_melee", ui.checkSyncMelee->isChecked() ? "1" : "0" );
     ic_setparam( "wbr_never_expire", ui.checkWBRNeverExpire->isChecked() ? "1" : "0" );
-    ic_setparam( "avatar_like_bloodbath", ui.checkAvatarLikeBloodbath->isChecked() ? "1" : "0" );
     ic_setparam( "max_length", ui.comboCombatLength->currentData().toString().toLocal8Bit() );
     ic_setparam( "vary_combat_length", ui.comboVaryCombatLength->currentData().toString().toLocal8Bit() );
     ic_setparam( "initial_health_percentage", ui.comboInitialHealthPercentage->currentData().toString().toLocal8Bit() );
     ic_setparam( "death_pct", ui.comboDeathPct->currentData().toString().toLocal8Bit() );
     ic_setparam( "num_enemies", ui.comboNumEnemies->currentData().toString().toLocal8Bit() );
-    ic_setparam( "raidbuff_ap", ui.checkRaidBuffAP->isChecked() ? "1" : "0" );
     ic_setparam( "raidbuff_bloodlust", ui.checkRaidBuffBloodlust->isChecked() ? "1" : "0" );
-    ic_setparam( "raidbuff_crit", ui.checkRaidBuffCrit->isChecked() ? "1" : "0" );
     ic_setparam( "raidbuff_flask", ui.checkRaidBuffFlask->isChecked() ? "1" : "0" );
     ic_setparam( "raidbuff_food", ui.checkRaidBuffFood->isChecked() ? "1" : "0" );
-    ic_setparam( "raidbuff_haste", ui.checkRaidBuffHaste->isChecked() ? "1" : "0" );
-    ic_setparam( "raidbuff_mastery", ui.checkRaidBuffMastery->isChecked() ? "1" : "0" );
-    ic_setparam( "raidbuff_mult", ui.checkRaidBuffMult->isChecked() ? "1" : "0" );
     ic_setparam( "raidbuff_potion", ui.checkRaidBuffPotion->isChecked() ? "1" : "0" );
-    ic_setparam( "raidbuff_sp", ui.checkRaidBuffSP->isChecked() ? "1" : "0" );
-    ic_setparam( "raidbuff_sta", ui.checkRaidBuffSta->isChecked() ? "1" : "0" );
-    ic_setparam( "raidbuff_str", ui.checkRaidBuffStr->isChecked() ? "1" : "0" );
-    ic_setparam( "raidbuff_vers", ui.checkRaidBuffVers->isChecked() ? "1" : "0" );
 
     QString talent;
     talent += QString().setNum( ui.comboTalent1->currentIndex() );
@@ -518,16 +474,32 @@ void gic::set_parameters() {
     ic_setparam( "mh_speed", ui.txtMHSpeed->text().toLocal8Bit() );
     ic_setparam( "oh_speed", ui.txtOHSpeed->text().toLocal8Bit() );
 
-    const char* weapon_type[] = { "2h", "1h", "dagger" };
+    const char* weapon_type[] = { 
+        "1h", // WEAPONSUBCLASS_AXE_1H = 0,
+        "2h", // WEAPONSUBCLASS_AXE_2H = 1,
+        "2h", // WEAPONSUBCLASS_BOW = 2,
+        "2h", // WEAPONSUBCLASS_GUN = 3,
+        "1h", // WEAPONSUBCLASS_MACE_1H = 4,
+        "2h", // WEAPONSUBCLASS_MACE_2H = 5,
+        "2h", // WEAPONSUBCLASS_POLEARM = 6,
+        "1h", // WEAPONSUBCLASS_SWORD_1H = 7,
+        "2h", // WEAPONSUBCLASS_SWORD_2H = 8,
+        "1h", // WEAPONSUBCLASS_WARGLAIVE = 9,
+        "2h", // WEAPONSUBCLASS_STAFF = 10,
+        "1h", // WEAPONSUBCLASS_BEAR_CLAW = 11,
+        "1h", // WEAPONSUBCLASS_CAT_CLAW = 12,
+        "1h", // WEAPONSUBCLASS_FIST_WEAPON = 13,
+        "1h", // WEAPONSUBCLASS_MISC = 14,
+        "dagger",// WEAPONSUBCLASS_DAGGER = 15,
+    };
     ic_setparam( "mh_type", weapon_type[paperdoll.gear_list[6].type] );
     ic_setparam( "oh_type", weapon_type[paperdoll.gear_list[7].type] );
 
     if (ui.comboRace->currentIndex() == 3)
-        ic_setparam( "rage_max", ui.checkGlyphOfUnendingRage->isChecked() ? "126" : "105" );
+        ic_setparam( "rage_max", "105" );
     else
-        ic_setparam( "rage_max", ui.checkGlyphOfUnendingRage->isChecked() ? "120" : "100" );
+        ic_setparam( "rage_max", "100" );
 
-    ic_setparam( "glyph_of_ragingwind", ui.checkGlyphOfRagingWind->isChecked() ? "1" : "0" );
     ic_setparam( "t17_2pc", ui.checkT172P->isChecked() ? "1" : "0" );
     ic_setparam( "t17_4pc", ui.checkT174P->isChecked() ? "1" : "0" );
     ic_setparam( "t18_2pc", ui.checkT182P->isChecked() ? "1" : "0" );
@@ -572,6 +544,95 @@ void gic::on_comboIncandescence_currentIndexChanged( int idx ) {
     ui.txtLegendaryRing->setEnabled( ui.comboIncandescence->currentIndex() == 3 );
 }
 
+void gic::on_comboSpec_currentIndexChanged( int idx ) {
+    int t1 = ui.comboTalent1->currentIndex();
+    int t2 = ui.comboTalent2->currentIndex();
+    int t3 = ui.comboTalent3->currentIndex();
+    int t4 = ui.comboTalent4->currentIndex();
+    int t5 = ui.comboTalent5->currentIndex();
+    int t6 = ui.comboTalent6->currentIndex();
+    int t7 = ui.comboTalent7->currentIndex();
+    ui.comboTalent1->clear();
+    ui.comboTalent2->clear();
+    ui.comboTalent3->clear();
+    ui.comboTalent4->clear();
+    ui.comboTalent5->clear();
+    ui.comboTalent6->clear();
+    ui.comboTalent7->clear();
+    ui.comboTalent1->addItem( QApplication::translate( "gicClass", "Not set." ) );
+    ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Not set." ) );
+    ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Not set." ) );
+    ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Not set." ) );
+    ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Not set." ) );
+    ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Not set." ) );
+    ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Not set." ) );
+    if (idx == SPEC_ARMS_WARRIOR) {
+        ui.comboTalent1->addItem( QApplication::translate( "gicClass", "Dauntless" ) );
+        ui.comboTalent1->addItem( QApplication::translate( "gicClass", "Overpower" ) );
+        ui.comboTalent1->addItem( QApplication::translate( "gicClass", "Sweeping Strikes" ) );
+
+        ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Shockwave" ) );
+        ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Storm Bolt" ) );
+        ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Double Time" ) );
+
+        ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Fervor of Battle" ) );
+        ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Rend" ) );
+        ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Avatar" ) );
+
+        ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Second Wind" ) );
+        ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Bounding Stride" ) );
+        ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Die by the Sword" ) );
+
+        ui.comboTalent5->addItem( QApplication::translate( "gicClass", "In For The Kill" ) );
+        ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Mortal Combo" ) );
+        ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Bladestorm" ) );
+
+        ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Focused Rage" ) );
+        ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Trauma" ) );
+        ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Titanic Might" ) );
+
+        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Anger Management" ) );
+        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Opportunity Strikes" ) );
+        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Ravager" ) );
+    }
+    if (idx == SPEC_FURY_WARRIOR) {
+        ui.comboTalent1->addItem( QApplication::translate( "gicClass", "War Machine" ) );
+        ui.comboTalent1->addItem( QApplication::translate( "gicClass", "Endless Rage" ) );
+        ui.comboTalent1->addItem( QApplication::translate( "gicClass", "Fresh Meat" ) );
+
+        ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Shockwave" ) );
+        ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Storm Bolt" ) );
+        ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Double Time" ) );
+
+        ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Wrecking Ball" ) );
+        ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Outburst" ) );
+        ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Avatar" ) );
+
+        ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Furious Charge" ) );
+        ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Bounding Stride" ) );
+        ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Warpaint" ) );
+
+        ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Massacre" ) );
+        ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Frothing Berserker" ) );
+        ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Bladestorm" ) );
+
+        ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Meat Grinder" ) );
+        ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Frenzy" ) );
+        ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Inner Rage" ) );
+
+        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Carnage" ) );
+        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Reckless Abandon" ) );
+        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Dragon Roar" ) );
+    }
+    ui.comboTalent1->setCurrentIndex( std::max( t1, 0 ) );
+    ui.comboTalent2->setCurrentIndex( std::max( t2, 0 ) );
+    ui.comboTalent3->setCurrentIndex( std::max( t3, 0 ) );
+    ui.comboTalent4->setCurrentIndex( std::max( t4, 0 ) );
+    ui.comboTalent5->setCurrentIndex( std::max( t5, 0 ) );
+    ui.comboTalent6->setCurrentIndex( std::max( t6, 0 ) );
+    ui.comboTalent7->setCurrentIndex( std::max( t7, 0 ) );
+}
+
 void gic::on_btnImport_clicked() {
     ui.btnImport->setDisabled( true );
     std::string region;
@@ -580,7 +641,7 @@ void gic::on_btnImport_clicked() {
     region = ui.comboRegion->currentText().toStdString();
     realm = ui.txtRealm->text().toStdString();
     name = ui.txtCharacter->text().toStdString();
-    import_player( realm, name, region );
+    import_player( realm, name, region, ui.comboImportActive->currentIndex() == 0 );
     ui.btnImport->setDisabled( false );
 }
 
@@ -600,7 +661,6 @@ void gic::on_btnResetBuild_clicked() {
     ui.txtItemCrit->clear();
     ui.txtItemHaste->clear();
     ui.txtItemMastery->clear();
-    ui.txtItemMult->clear();
     ui.txtItemStr->clear();
     ui.txtItemVers->clear();
     ui.txtLegendaryRing->clear();
@@ -627,7 +687,6 @@ void gic::on_btnResetBuild_clicked() {
     ui.comboTalent7->setCurrentIndex( 0 );
     ui.comboTrinketSpecial1->setCurrentIndex( 0 );
     ui.comboTrinketSpecial2->setCurrentIndex( 0 );
-    ui.checkGlyphOfUnendingRage->setChecked( false );
     ui.checkT172P->setChecked( false );
     ui.checkT174P->setChecked( false );
     ui.checkT182P->setChecked( false );
@@ -695,8 +754,7 @@ void gic::on_btnApplyPresetTask_clicked() {
         if (ui.checkScaleFactorCrit->isChecked()) stat_mask |= 2;
         if (ui.checkScaleFactorHaste->isChecked()) stat_mask |= 4;
         if (ui.checkScaleFactorMastery->isChecked()) stat_mask |= 8;
-        if (ui.checkScaleFactorMult->isChecked()) stat_mask |= 16;
-        if (ui.checkScaleFactorVers->isChecked()) stat_mask |= 32;
+        if (ui.checkScaleFactorVers->isChecked()) stat_mask |= 16;
         script = script_scale_factor(
             ui.txtScaleFactorInverval->text().toInt(),
             ui.checkScaleFactorCentralDelta->isChecked(),
@@ -712,7 +770,6 @@ void gic::on_btnApplyPresetTask_clicked() {
             paperdoll.gear_list[14].crit + paperdoll.gear_list[15].crit,
             paperdoll.gear_list[14].haste + paperdoll.gear_list[15].haste,
             paperdoll.gear_list[14].mastery + paperdoll.gear_list[15].mastery,
-            paperdoll.gear_list[14].mult + paperdoll.gear_list[15].mult,
             paperdoll.gear_list[14].vers + paperdoll.gear_list[15].vers
             );
     }
@@ -737,8 +794,7 @@ void gic::on_btnApplyPresetTask_clicked() {
         if (ui.checkPlotCrit->isChecked()) stat[i++] = 0;
         if (ui.checkPlotHaste->isChecked()) stat[i++] = 1;
         if (ui.checkPlotMastery->isChecked()) stat[i++] = 2;
-        if (ui.checkPlotMult->isChecked()) stat[i++] = 3;
-        if (ui.checkPlotVers->isChecked()) stat[i++] = 4;
+        if (ui.checkPlotVers->isChecked()) stat[i++] = 3;
         if (i != 3) {
             QMessageBox::information( this, QApplication::translate( "gicClass", "Apply Preset Task" ),
                 QApplication::translate( "gicClass", "Contour Plot stats not set properly. Exact 3 stats should be checked.\nReset to Crit-Haste-Mastery.\n" ),
@@ -749,7 +805,6 @@ void gic::on_btnApplyPresetTask_clicked() {
             ui.checkPlotCrit->setChecked( true );
             ui.checkPlotHaste->setChecked( true );
             ui.checkPlotMastery->setChecked( true );
-            ui.checkPlotMult->setChecked( false );
             ui.checkPlotVers->setChecked( false );
         }
         script = script_contour_plot(

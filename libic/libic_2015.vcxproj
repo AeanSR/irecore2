@@ -64,6 +64,7 @@
     <LibraryPath>$(CUDA_PATH)\lib\$(PlatformName)\;$(AMDAPPSDKROOT)\lib\x86\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\libic\</OutDir>
     <IntDir>$(SolutionDir)\libic\$(Configuration)\</IntDir>
+    <TargetName>libic</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

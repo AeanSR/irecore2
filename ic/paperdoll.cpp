@@ -16,8 +16,25 @@ QString gear_type_list_armor[] = {
     QString(),
     QString(),
     QString(),
+    QString(),
+    QString(),
+    QString(),
+    QString(),
 };
 QString gear_type_list_weapon[] = {
+    QString(),
+    QString(),
+    QString(),
+    QString(),
+    QString(),
+    QString(),
+    QString(),
+    QString(),
+    QString(),
+    QString(),
+    QString(),
+    QString(),
+    QString(),
     QString(),
     QString(),
     QString(),
@@ -43,11 +60,30 @@ QString* gear_type_list[] = {
 };
 
 paperdoll_t::paperdoll_t( Ui::gicClass& ui ) : selected_gear_slot( 0 ), ui( &ui ) {
-    gear_type_list_armor[0] = QApplication::translate( "gicClass", "Plate" );
-    gear_type_list_armor[1] = QApplication::translate( "gicClass", "Mail/Leather/Cloth" );
-    gear_type_list_weapon[0] = QApplication::translate( "gicClass", "2H Sword/Axe/Mace/Polearm" );
-    gear_type_list_weapon[1] = QApplication::translate( "gicClass", "1H Sword/Axe/Mace/Fist" );
-    gear_type_list_weapon[2] = QApplication::translate( "gicClass", "Dagger" );
+    gear_type_list_armor[GEARSUBCLASS_CLOTH] = QApplication::translate( "gicClass", "Cloth" );
+    gear_type_list_armor[GEARSUBCLASS_LEATHER] = QApplication::translate( "gicClass", "Leather" );
+    gear_type_list_armor[GEARSUBCLASS_MAIL] = QApplication::translate( "gicClass", "Mail" );
+    gear_type_list_armor[GEARSUBCLASS_PLATE] = QApplication::translate( "gicClass", "Plate" );
+    gear_type_list_armor[GEARSUBCLASS_COSMETIC] = QApplication::translate( "gicClass", "Cosmetic" );
+    gear_type_list_armor[GEARSUBCLASS_MISC] = QApplication::translate( "gicClass", "Misc" );
+
+    gear_type_list_weapon[WEAPONSUBCLASS_AXE_1H] = QApplication::translate( "gicClass", "One-Hand Axe" );
+    gear_type_list_weapon[WEAPONSUBCLASS_AXE_2H] = QApplication::translate( "gicClass", "Two-Hand Axe" );
+    gear_type_list_weapon[WEAPONSUBCLASS_BOW] = QApplication::translate( "gicClass", "Bow" );
+    gear_type_list_weapon[WEAPONSUBCLASS_GUN] = QApplication::translate( "gicClass", "Gun" );
+    gear_type_list_weapon[WEAPONSUBCLASS_MACE_1H] = QApplication::translate( "gicClass", "One-Hand Mace" );
+    gear_type_list_weapon[WEAPONSUBCLASS_MACE_2H] = QApplication::translate( "gicClass", "Two-Hand Mace" );
+    gear_type_list_weapon[WEAPONSUBCLASS_POLEARM] = QApplication::translate( "gicClass", "Polearm" );
+    gear_type_list_weapon[WEAPONSUBCLASS_SWORD_1H] = QApplication::translate( "gicClass", "One-Hand Sword" );
+    gear_type_list_weapon[WEAPONSUBCLASS_SWORD_2H] = QApplication::translate( "gicClass", "Two-Hand Sword" );
+    gear_type_list_weapon[WEAPONSUBCLASS_WARGLAIVE] = QApplication::translate( "gicClass", "Warglaive" );
+    gear_type_list_weapon[WEAPONSUBCLASS_STAFF] = QApplication::translate( "gicClass", "Staff" );
+    gear_type_list_weapon[WEAPONSUBCLASS_BEAR_CLAW] = QApplication::translate( "gicClass", "Bear Claw" );
+    gear_type_list_weapon[WEAPONSUBCLASS_CAT_CLAW] = QApplication::translate( "gicClass", "Cat Claw" );
+    gear_type_list_weapon[WEAPONSUBCLASS_FIST_WEAPON] = QApplication::translate( "gicClass", "Fist Weapon" );
+    gear_type_list_weapon[WEAPONSUBCLASS_MISC] = QApplication::translate( "gicClass", "Misc" );
+    gear_type_list_weapon[WEAPONSUBCLASS_DAGGER] = QApplication::translate( "gicClass", "Dagger" );
+
 }
 
 QString qsprint( int v ) {
@@ -91,7 +127,6 @@ void paperdoll_t::slot_switched() {
     ui->txtItemCrit->setText( qsprint( gear_list[selected_gear_slot].crit ) );
     ui->txtItemHaste->setText( qsprint( gear_list[selected_gear_slot].haste ) );
     ui->txtItemMastery->setText( qsprint( gear_list[selected_gear_slot].mastery ) );
-    ui->txtItemMult->setText( qsprint( gear_list[selected_gear_slot].mult ) );
     ui->txtItemVers->setText( qsprint( gear_list[selected_gear_slot].vers ) );
     QString* p = gear_type_list[selected_gear_slot];
     ui->comboItemType->clear();
@@ -124,19 +159,17 @@ void paperdoll_t::gear_summary_calculate() {
     gear_list[selected_gear_slot].crit = ui->txtItemCrit->text().toInt();
     gear_list[selected_gear_slot].haste = ui->txtItemHaste->text().toInt();
     gear_list[selected_gear_slot].mastery = ui->txtItemMastery->text().toInt();
-    gear_list[selected_gear_slot].mult = ui->txtItemMult->text().toInt();
     gear_list[selected_gear_slot].vers = ui->txtItemVers->text().toInt();
 
     int plate_specialization = 1;
     int str = 0, crit = 0, haste = 0, mastery = 0, mult = 0, vers = 0, ap = 0;
 
     for (int i = 0; i < 16; i++) {
-        plate_specialization = plate_specialization && ( ( gear_type_list[i] != gear_type_list_armor ) || ( gear_list[i].type == 0 ) );
+        plate_specialization = plate_specialization && ( ( gear_type_list[i] != gear_type_list_armor ) || ( gear_list[i].type == GEARSUBCLASS_PLATE ) );
         str += gear_list[i].str;
         crit += gear_list[i].crit;
         haste += gear_list[i].haste;
         mastery += gear_list[i].mastery;
-        mult += gear_list[i].mult;
         vers += gear_list[i].vers;
     }
 
@@ -144,15 +177,13 @@ void paperdoll_t::gear_summary_calculate() {
     ui->tableGearSummary->setItem( 3, 1, new QTableWidgetItem( qsprint( crit ) ) );
     ui->tableGearSummary->setItem( 4, 1, new QTableWidgetItem( qsprint( haste ) ) );
     ui->tableGearSummary->setItem( 5, 1, new QTableWidgetItem( qsprint( mastery ) ) );
-    ui->tableGearSummary->setItem( 6, 1, new QTableWidgetItem( qsprint( mult ) ) );
-    ui->tableGearSummary->setItem( 7, 1, new QTableWidgetItem( qsprint( vers ) ) );
+    ui->tableGearSummary->setItem( 6, 1, new QTableWidgetItem( qsprint( vers ) ) );
 
     // set these parameters directly into libic kernel since they are costly to calculate.
     ic_setparam( "gear_str", itoa( str, buf, 10 ) );
     ic_setparam( "gear_crit", itoa( crit, buf, 10 ) );
     ic_setparam( "gear_mastery", itoa( mastery, buf, 10 ) );
     ic_setparam( "gear_haste", itoa( haste, buf, 10 ) );
-    ic_setparam( "gear_mult", itoa( mult, buf, 10 ) );
     ic_setparam( "gear_vers", itoa( vers, buf, 10 ) );
     ic_setparam( "plate_specialization", plate_specialization ? "1" : "0" );
 
@@ -166,47 +197,36 @@ void paperdoll_t::gear_summary_calculate() {
     float fstr = str;
     float coeff = 1.0f;
     if (plate_specialization) coeff *= 1.05f;
-    if (ui->checkRaidBuffStr->isChecked()) coeff *= 1.05f;
     str = ( int ) ( fstr * coeff );
     fstr = 1455; /* Base str @lvl 100. */
     fstr += racial_base_str[race]; /* Racial str. */
     str += ( int ) ( fstr * coeff );
 
     ap = str;
-    if (ui->checkRaidBuffAP->isChecked()) ap = ( int ) ( ap * 1.1f + 0.5f );
 
     float fmastery = ( float ) mastery;
-    if (ui->checkRaidBuffMastery->isChecked()) fmastery += 550;
     fmastery = 1.4f * ( 0.08f + fmastery / 11000 );
 
     float fcrit = ( float ) crit;
     fcrit *= 1.05f;
     fcrit = 0.05f + fcrit / 11000;
-    if (ui->checkRaidBuffCrit->isChecked()) fcrit += 0.05f;
     if (( race == RACE_NIGHTELF_DAY ) || ( race == RACE_BLOODELF ) || ( race == RACE_WORGEN ))
         fcrit += 0.01f;
 
     float fhaste = ( float ) haste;
-    fhaste = 1.0f + fhaste / 9000;
-    if (ui->checkRaidBuffHaste->isChecked()) fhaste *= 1.05f;
+    fhaste = 1.0f + fhaste / 10000;
     if (( race == RACE_NIGHTELF_NIGHT ) || ( race == RACE_GOBLIN ) || ( race == RACE_GNOME ))
         fhaste *= 1.01f;
     fhaste = fhaste - 1.0f;
 
-    float fmult = ( float ) mult;
-    fmult = fmult / 6600;
-    if (ui->checkRaidBuffMult->isChecked()) fmult += 0.05f;
-
     float fvers = ( float ) vers;
     if (race == RACE_HUMAN) fvers += 100;
     fvers = fvers / 13000;
-    if (ui->checkRaidBuffVers->isChecked()) fvers += 0.03f;
 
     ui->tableGearSummary->setItem( 1, 2, new QTableWidgetItem( qsprint( str ) ) );
     ui->tableGearSummary->setItem( 2, 2, new QTableWidgetItem( qsprint( ap ) ) );
     ui->tableGearSummary->setItem( 3, 2, new QTableWidgetItem( qsprint( fcrit ) ) );
     ui->tableGearSummary->setItem( 4, 2, new QTableWidgetItem( qsprint( fhaste ) ) );
     ui->tableGearSummary->setItem( 5, 2, new QTableWidgetItem( qsprint( fmastery ) ) );
-    ui->tableGearSummary->setItem( 6, 2, new QTableWidgetItem( qsprint( fmult ) ) );
-    ui->tableGearSummary->setItem( 7, 2, new QTableWidgetItem( qsprint( fvers ) ) );
+    ui->tableGearSummary->setItem( 6, 2, new QTableWidgetItem( qsprint( fvers ) ) );
 }
