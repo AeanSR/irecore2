@@ -5,7 +5,7 @@
     IreCore is distributed under the terms of The MIT License.
     You should have received a copy of the MIT License along with this program.
     If not, see <http://opensource.org/licenses/mit-license.php>.
-    */
+*/
 
 #ifndef LIBIC_INTL_H_INCLUDED
 #define LIBIC_INTL_H_INCLUDED
@@ -44,18 +44,18 @@ struct raidbuff_t {
     int bloodlust;
 };
 
-struct ic_computedevice_t{
+struct ic_computedevice_t {
     int id;
     cl_device_id device_id;
     cl_context context;
     cl_command_queue queue;
     char* platform_name;
     char* device_name;
-    ic_computedevice_t() : platform_name(0), device_name(0), context(0), queue(0) {}
+    ic_computedevice_t() : platform_name( 0 ), device_name( 0 ), context( 0 ), queue( 0 ) { }
 };
 
 
-struct config_t{
+struct config_t {
     cl_uint gear_str;
     cl_uint gear_crit;
     cl_uint gear_haste;
@@ -118,9 +118,9 @@ struct config_t{
     FILE* output_file;
     std::vector<ic_computedevice_t> device_list;
     config_t() {
-        memset(this, 0, sizeof *this);
+        memset( this, 0, sizeof *this );
         raidbuff.vers = 1;
-        srand((unsigned int)time(NULL));
+        srand( ( unsigned int ) time( NULL ) );
         rng_engine = 32;
         strict_gcd = 1;
         sync_melee = 1;
@@ -142,7 +142,7 @@ struct config_t{
     }
 };
 
-IC_LOCAL int cbprintf(const char* format, ...);
+IC_LOCAL int cbprintf( const char* format, ... );
 // apltr
 IC_LOCAL int fapltr( std::string& input_file, std::string& output );
 IC_LOCAL int sapltr( std::string& input, std::string& output );

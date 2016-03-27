@@ -16,7 +16,7 @@
 #include <vector>
 #include "libic.h"
 
-int clic_main(int argc, char *argv[]);
+int clic_main( int argc, char *argv[] );
 
 typedef struct {
     std::string key;

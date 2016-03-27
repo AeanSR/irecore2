@@ -30,56 +30,55 @@ struct item_t {
     int mastery;
     int mult;
     int vers;
-    item_t() : type( 0 ), str( 0 ), crit( 0 ), haste( 0 ), mastery( 0 ), mult( 0 ), vers( 0 ), name( "" ) {}
+    item_t() : type( 0 ), str( 0 ), crit( 0 ), haste( 0 ), mastery( 0 ), mult( 0 ), vers( 0 ), name( "" ) { }
 };
 
-struct paperdoll_t{
+struct paperdoll_t {
     item_t gear_list[16];
     int selected_gear_slot;
     Ui::gicClass* ui;
-    paperdoll_t(Ui::gicClass& ui);
+    paperdoll_t( Ui::gicClass& ui );
     void slot_switched();
     void gear_summary_calculate();
     void clear();
 };
 
-class QChartDialog : public QDialog{
+class QChartDialog : public QDialog {
     QCustomPlot* qcp;
-    virtual void resizeEvent(QResizeEvent* e);
+    virtual void resizeEvent( QResizeEvent* e );
 public:
-    void setQCP(QCustomPlot* pqcp);
+    void setQCP( QCustomPlot* pqcp );
 };
-struct bar_data_t{
+struct bar_data_t {
     QString name;
     double value;
     double error;
-    bar_data_t(QString name, double value, double error) : name(name), value(value), error(error){}
-    bool operator<(const bar_data_t& rhs){ return value < rhs.value; }
+    bar_data_t( QString name, double value, double error ) : name( name ), value( value ), error( error ) { }
+    bool operator<( const bar_data_t& rhs ) { return value < rhs.value; }
 };
-struct contour_data_t{
+struct contour_data_t {
     int x;
     int y;
     double value;
-    contour_data_t(int x, int y, double value) : x(x), y(y), value(value){}
-    bool operator<(const contour_data_t& rhs){ return value < rhs.value; }
+    contour_data_t( int x, int y, double value ) : x( x ), y( y ), value( value ) { }
+    bool operator<( const contour_data_t& rhs ) { return value < rhs.value; }
 };
 
-class gic : public QMainWindow
-{
+class gic : public QMainWindow {
     Q_OBJECT
 
 public:
     paperdoll_t paperdoll;
     static gic* static_this;
-    gic(QWidget *parent = 0);
+    gic( QWidget *parent = 0 );
     ~gic();
-    static int vgicprintf(const char* format, va_list vl);
-    static int printf(const char* format, ...);
-    static int printq(QString text);
+    static int vgicprintf( const char* format, va_list vl );
+    static int printf( const char* format, ... );
+    static int printq( QString text );
     int import_player( std::string& realm, std::string& name, std::string& region, int silence = 0 );
     void run_scripts();
 
-public slots:
+    public slots:
     void slot_switched();
     void gear_summary_calculate();
     void mh_dps_calculate();
@@ -105,10 +104,10 @@ public slots:
     void on_radioIreCoreActions_toggled();
     void on_radioSimCActions_toggled();
     void new_bar_chart();
-    void add_bar(QString name, double value, double error);
+    void add_bar( QString name, double value, double error );
     void finish_bar();
-    void new_contour_chart(QString xlbl, QString ylbl, QString zlbl);
-    void add_contour(int x, int y, double value);
+    void new_contour_chart( QString xlbl, QString ylbl, QString zlbl );
+    void add_contour( int x, int y, double value );
     void finish_contour();
 
 private:
@@ -134,8 +133,8 @@ struct trinket_profile_t {
     int upgrade;
     int not_selected;
     trinket_profile_t( QString name, int itemid, int itemlvl, int str, int crit, int haste, int mastery, int mult, int vers, int upgrade = 0, int demonic = -1 ) :
-        name( name ), itemid( itemid ), itemlvl( itemlvl ), str( str ), crit( crit ), haste( haste ), mastery( mastery ), mult( mult ), vers( vers ), upgrade(upgrade), demonic( demonic ), not_selected( 0 )
-    {};
+        name( name ), itemid( itemid ), itemlvl( itemlvl ), str( str ), crit( crit ), haste( haste ), mastery( mastery ), mult( mult ), vers( vers ), upgrade( upgrade ), demonic( demonic ), not_selected( 0 ) {
+    };
 };
 struct trinket_ladder_t {
     std::vector<trinket_profile_t> list;
@@ -150,7 +149,7 @@ QString script_scale_factor(
     int scale_stat_mask,
     bool scale_mh,
     bool scale_oh
-);
+    );
 QString script_trinket_ladder(
     int trinket_slot_str,
     int trinket_slot_crit,
@@ -158,13 +157,13 @@ QString script_trinket_ladder(
     int trinket_slot_mastery,
     int trinket_slot_mult,
     int trinket_slot_vers
-);
+    );
 QString script_stat_maxima(
     float confidence,
     int delta,
     int min_delta,
     int max_iteration
-);
+    );
 QString script_contour_plot(
     int delta,
     float tolerance,
@@ -172,19 +171,6 @@ QString script_contour_plot(
     int stat1,
     int stat2,
     int stat3
-);
+    );
 
-typedef struct {
-    int id;
-    int stat;
-    int value;
-} enchant_t;
-typedef struct {
-    int id;
-    int subclass;
-} item_subclass_t;
-extern "C" enchant_t enchant_list[];
-extern "C" enchant_t gem_list[];
-extern "C" int plate_list[];
-extern "C" item_subclass_t weapon_type_list[];
 #endif // GIC_H

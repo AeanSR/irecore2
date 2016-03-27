@@ -5,11 +5,8 @@
     IreCore is distributed under the terms of The MIT License.
     You should have received a copy of the MIT License along with this program.
     If not, see <http://opensource.org/licenses/mit-license.php>.
-    */
+*/
 #define _CRT_SECURE_NO_WARNINGS
-#ifdef _MSC_VER
-#define snprintf _snprintf
-#endif
 
 #include "libic_internal.h"
 
@@ -26,15 +23,14 @@
 #include <stack>
 #include <algorithm>
 
-namespace apltr{
+namespace apltr {
     IC_LOCAL std::vector<std::string> source;
     IC_LOCAL int warnings = 0;
     IC_LOCAL int errors = 0;
 };
 using namespace apltr;
 
-typedef struct
-{
+typedef struct {
     std::string apl;
     int line;
     int pos;
@@ -42,8 +38,7 @@ typedef struct
     double valuef;
     int suppress;
 } token_t;
-IC_LOCAL token_t token(int line, int pos, std::string apl = "", std::string value = "", double valuef = 0)
-{
+IC_LOCAL token_t token( int line, int pos, std::string apl = "", std::string value = "", double valuef = 0 ) {
     token_t tk;
     tk.line = line;
     tk.pos = pos;
@@ -54,8 +49,7 @@ IC_LOCAL token_t token(int line, int pos, std::string apl = "", std::string valu
     return tk;
 }
 
-IC_LOCAL void veprintf(token_t tok, int type, const char* message, va_list vl)
-{
+IC_LOCAL void veprintf( token_t tok, int type, const char* message, va_list vl ) {
     char* p;
     char buffer[4096] = { 0 };
     int pos = tok.pos;
@@ -78,39 +72,33 @@ IC_LOCAL void veprintf(token_t tok, int type, const char* message, va_list vl)
         ^   <-- a mark pointing to where error occurred.
         */
 
-    vsnprintf(buffer, 4096, message, vl);
-    cbprintf("\n%s:%d:%u: %s: %s\n",
+    vsnprintf( buffer, 4096, message, vl );
+    cbprintf( "\n%s:%d:%u: %s: %s\n",
         tok.apl.c_str(),
         1 + tok.line,
         1U + tok.pos,
         typestr[type],
-        buffer);
-    strncpy(buffer, source.at(tok.line).c_str(), 4095);
+        buffer );
+    strncpy( buffer, source.at( tok.line ).c_str(), 4095 );
     p = buffer;
-    if (source.at(tok.line).length() >= 80)
-    {
-        int tail = std::min(tok.pos + 36, (int)source.at(tok.line).length());
-        int head = std::max(tok.pos - 36, 0);
-        head = std::min(head, 4095);
+    if (source.at( tok.line ).length() >= 80) {
+        int tail = std::min( tok.pos + 36, ( int ) source.at( tok.line ).length() );
+        int head = std::max( tok.pos - 36, 0 );
+        head = std::min( head, 4095 );
         pos = tok.pos - head;
         p = &buffer[head];
 
-        if (tail < source.at(tok.line).length() - 3) {
+        if (tail < source.at( tok.line ).length() - 3) {
             p[72] = 0;
-            strcat(p, "...\n");
+            strcat( p, "...\n" );
+        } else {
+            tail = source.at( tok.line ).length();
         }
-        else {
-            tail = source.at(tok.line).length();
-        }
-        if (head > 0)
-        {
-            if (head < 3)
-            {
+        if (head > 0) {
+            if (head < 3) {
                 p = buffer;
                 pos = tok.pos;
-            }
-            else
-            {
+            } else {
                 p -= 3;
                 p[0] = '.';
                 p[1] = '.';
@@ -119,56 +107,50 @@ IC_LOCAL void veprintf(token_t tok, int type, const char* message, va_list vl)
             }
         }
     }
-    cbprintf("%s", p);
+    cbprintf( "%s", p );
 
     int b = 0;
     while (b++ < pos)
-        cbprintf(" ");
-    cbprintf("^");
-    cbprintf("\n");
+        cbprintf( " " );
+    cbprintf( "^" );
+    cbprintf( "\n" );
 }
-IC_LOCAL void eprintf(token_t tok, int type, const char* message, ...)
-{
+IC_LOCAL void eprintf( token_t tok, int type, const char* message, ... ) {
     va_list vl;
-    va_start(vl, message);
-    veprintf(tok, type, message, vl);
-    va_end(vl);
+    va_start( vl, message );
+    veprintf( tok, type, message, vl );
+    va_end( vl );
 }
 
-IC_LOCAL void read_source(const char* filename)
-{
-    FILE* f = fopen(filename, "rb");
-    if (!f)
-    {
-        cbprintf("apltr: failed to open file \"%s\"\n", filename);
+IC_LOCAL void read_source( const char* filename ) {
+    FILE* f = fopen( filename, "rb" );
+    if (!f) {
+        cbprintf( "apltr: failed to open file \"%s\"\n", filename );
         return;
     }
-    while (1)
-    {
-        if (feof(f)) break;
+    while (1) {
+        if (feof( f )) break;
         std::string line;
         char ch;
-        while ('\n' != (ch = fgetc(f)))
-        {
+        while ('\n' != ( ch = fgetc( f ) )) {
             if (ch != '\r')
-                line.push_back(ch);
-            if (feof(f)) break;
+                line.push_back( ch );
+            if (feof( f )) break;
         }
-        line.push_back('\n');
-        source.push_back(line);
+        line.push_back( '\n' );
+        source.push_back( line );
     }
 }
 
 enum { VAR, CONST, AND, OR, NOT, EQ, NE, LT, GT, LE, GE, ADD, SUB, NEG, MUL, DIV };
 
-typedef struct
-{
+typedef struct {
     const char* simc;
     const char* ic;
     int type;
 } item_t;
 
-namespace apltr{
+namespace apltr {
     IC_LOCAL item_t act_list[] =
     {
         { "wait", "return", 0 },
@@ -206,16 +188,14 @@ namespace apltr{
     };
 }
 
-IC_LOCAL int lookup_act(std::string name)
-{
-    for (int i = 0; act_list[i].simc; i++)
-    {
-        if (0 == name.compare(act_list[i].simc)) return i;
+IC_LOCAL int lookup_act( std::string name ) {
+    for (int i = 0; act_list[i].simc; i++) {
+        if (0 == name.compare( act_list[i].simc )) return i;
     }
     return -1;
 }
 
-namespace apltr{
+namespace apltr {
     IC_LOCAL item_t var_list[] =
     {
         { "spell_targets.bladestorm_mh", "num_enemies", 0 },
@@ -330,16 +310,14 @@ namespace apltr{
     };
 }
 
-IC_LOCAL int lookup_var(std::string name)
-{
-    for (int i = 0; var_list[i].simc; i++)
-    {
-        if (0 == name.compare(var_list[i].simc)) return i;
+IC_LOCAL int lookup_var( std::string name ) {
+    for (int i = 0; var_list[i].simc; i++) {
+        if (0 == name.compare( var_list[i].simc )) return i;
     }
     return -1;
 }
 
-namespace apltr{
+namespace apltr {
     IC_LOCAL const char* punc_list[] =
     {
         "/",
@@ -363,76 +341,58 @@ namespace apltr{
     };
 }
 
-IC_LOCAL int lookup_punc(std::string name)
-{
-    for (int i = 0; punc_list[i]; i++)
-    {
-        if (0 == name.compare(punc_list[i])) return i;
+IC_LOCAL int lookup_punc( std::string name ) {
+    for (int i = 0; punc_list[i]; i++) {
+        if (0 == name.compare( punc_list[i] )) return i;
     }
     return -1;
 }
 
 
-IC_LOCAL int is_digit(char c)
-{
+IC_LOCAL int is_digit( char c ) {
     return c >= '0' && c <= '9';
 }
-IC_LOCAL int is_upper(char c)
-{
+IC_LOCAL int is_upper( char c ) {
     return c >= 'A' && c <= 'Z';
 }
-IC_LOCAL int is_lower(char c)
-{
+IC_LOCAL int is_lower( char c ) {
     return c >= 'a' && c <= 'z';
 }
-IC_LOCAL int is_alphabet(char c)
-{
-    return is_upper(c) || is_lower(c);
+IC_LOCAL int is_alphabet( char c ) {
+    return is_upper( c ) || is_lower( c );
 }
-IC_LOCAL int is_ident(char c)
-{
-    return is_alphabet(c) || is_digit(c) || c == '_' || c == '.';
+IC_LOCAL int is_ident( char c ) {
+    return is_alphabet( c ) || is_digit( c ) || c == '_' || c == '.';
 }
-IC_LOCAL int is_break(char c)
-{
+IC_LOCAL int is_break( char c ) {
     return c == ' ' || c == '\r' || c == '\n' || c == '\t' || c == '\b' || c == EOF;
 }
 
-IC_LOCAL double read_const(std::string name)
-{
+IC_LOCAL double read_const( std::string name ) {
     double value = 0;
     int i;
-    for (i = 0; i < name.length(); i++)
-    {
-        if (is_digit(name.at(i)))
-        {
+    for (i = 0; i < name.length(); i++) {
+        if (is_digit( name.at( i ) )) {
             value *= 10;
-            value += (double)(name.at(i) - '0');
-        }
-        else break;
+            value += ( double ) ( name.at( i ) - '0' );
+        } else break;
     }
-    if (i < name.length())
-    {
-        if (name.at(i) == '.')
-        {
+    if (i < name.length()) {
+        if (name.at( i ) == '.') {
             i++;
             double radix = 1;
-            for (; i < name.length(); i++)
-            {
-                if (is_digit(name.at(i)))
-                {
+            for (; i < name.length(); i++) {
+                if (is_digit( name.at( i ) )) {
                     radix *= 0.1;
-                    value += radix * (double)(name.at(i) - '0');
-                }
-                else break;
+                    value += radix * ( double ) ( name.at( i ) - '0' );
+                } else break;
             }
         }
     }
     return value;
 }
 
-struct cond_node_t
-{
+struct cond_node_t {
     cond_node_t* lvalue;
     cond_node_t* rvalue;
     int op;
@@ -443,111 +403,109 @@ struct cond_node_t
         op = 0;
         value = 0;
     }
-    void dump(std::string& str)
-    {
-        switch (op)
-        {
+    void dump( std::string& str ) {
+        switch (op) {
         case VAR:
-            str.append(var_list[(int)value].ic);
+            str.append( var_list[( int ) value].ic );
             break;
         case CONST:
         {
             char buf[32];
-            snprintf(buf, 31, "%ff", value);
-            str.append(buf);
+            sprintf( buf, "%ff", value );
+            str.append( buf );
         }
         break;
         case AND:
-            str.append("(");
-            lvalue->dump(str);
-            str.append("&&");
-            rvalue->dump(str);
-            str.append(")");
+            str.append( "(" );
+            lvalue->dump( str );
+            str.append( "&&" );
+            rvalue->dump( str );
+            str.append( ")" );
             break;
         case OR:
-            str.append("(");
-            lvalue->dump(str);
-            str.append("||");
-            rvalue->dump(str);
-            str.append(")");
+            str.append( "(" );
+            lvalue->dump( str );
+            str.append( "||" );
+            rvalue->dump( str );
+            str.append( ")" );
             break;
         case NOT:
-            str.append("!");
-            lvalue->dump(str);
+            str.append( "!" );
+            lvalue->dump( str );
             break;
         case EQ:
-            str.append("(");
-            lvalue->dump(str);
-            str.append("==");
-            rvalue->dump(str);
-            str.append(")");
+            str.append( "(" );
+            lvalue->dump( str );
+            str.append( "==" );
+            rvalue->dump( str );
+            str.append( ")" );
             break;
         case NE:
-            str.append("(");
-            lvalue->dump(str);
-            str.append("!=");
-            rvalue->dump(str);
-            str.append(")");
+            str.append( "(" );
+            lvalue->dump( str );
+            str.append( "!=" );
+            rvalue->dump( str );
+            str.append( ")" );
             break;
         case LT:
-            str.append("(");
-            lvalue->dump(str);
-            str.append("<");
-            rvalue->dump(str);
-            str.append(")");
+            str.append( "(" );
+            lvalue->dump( str );
+            str.append( "<" );
+            rvalue->dump( str );
+            str.append( ")" );
             break;
         case GT:
-            str.append("(");
-            lvalue->dump(str);
-            str.append(">");
-            rvalue->dump(str);
-            str.append(")");
+            str.append( "(" );
+            lvalue->dump( str );
+            str.append( ">" );
+            rvalue->dump( str );
+            str.append( ")" );
             break;
         case LE:
-            str.append("(");
-            lvalue->dump(str);
-            str.append("<=");
-            rvalue->dump(str);
-            str.append(")");
+            str.append( "(" );
+            lvalue->dump( str );
+            str.append( "<=" );
+            rvalue->dump( str );
+            str.append( ")" );
             break;
         case GE:
-            str.append("(");
-            lvalue->dump(str);
-            str.append(">=");
-            rvalue->dump(str);
-            str.append(")");
+            str.append( "(" );
+            lvalue->dump( str );
+            str.append( ">=" );
+            rvalue->dump( str );
+            str.append( ")" );
             break;
         case ADD:
-            str.append("(");
-            lvalue->dump(str);
-            str.append("+");
-            rvalue->dump(str);
-            str.append(")");
+            str.append( "(" );
+            lvalue->dump( str );
+            str.append( "+" );
+            rvalue->dump( str );
+            str.append( ")" );
             break;
         case SUB:
-            str.append("(");
-            lvalue->dump(str);
-            str.append("-");
-            rvalue->dump(str);
-            str.append(")");
+            str.append( "(" );
+            lvalue->dump( str );
+            str.append( "-" );
+            rvalue->dump( str );
+            str.append( ")" );
             break;
         case NEG:
-            str.append("-");
-            lvalue->dump(str);
+            str.append( "-" );
+            lvalue->dump( str );
             break;
         case MUL:
-            str.append("(");
-            lvalue->dump(str);
-            str.append("*");
-            rvalue->dump(str);
-            str.append(")");
+            str.append( "(" );
+            lvalue->dump( str );
+            str.append( "*" );
+            rvalue->dump( str );
+            str.append( ")" );
             break;
         case DIV:
-            str.append("(");
-            lvalue->dump(str);
-            str.append("/");
-            rvalue->dump(str);
-            str.append(")");
+            str.append( "(" );
+            lvalue->dump( str );
+            str.append( "/" );
+            rvalue->dump( str );
+            str.append( ")" );
             break;
         }
     }
@@ -555,13 +513,12 @@ struct cond_node_t
 
 struct apl_t;
 
-struct rule_t
-{
+struct rule_t {
     cond_node_t* cond;
     int action;
     apl_t* run_list;
     int ret_on_call;
-    void dump(std::string& str);
+    void dump( std::string& str );
     rule_t() {
         cond = 0;
         action = 0;
@@ -570,241 +527,169 @@ struct rule_t
     }
 };
 
-struct apl_t
-{
+struct apl_t {
     apl_t* next;
     rule_t* item;
-    void dump(std::string& str);
+    void dump( std::string& str );
     apl_t() {
         next = 0;
         item = 0;
     }
 };
 
-void rule_t::dump(std::string& str)
-{
+void rule_t::dump( std::string& str ) {
     if (action < 0) return;
-    if (run_list && cond)
-    {
-        str.append("if(");
-        cond->dump(str);
-        str.append("){\r\n");
-        run_list->dump(str);
+    if (run_list && cond) {
+        str.append( "if(" );
+        cond->dump( str );
+        str.append( "){\r\n" );
+        run_list->dump( str );
         if (ret_on_call) {
-            str.append("return;\r\n");
+            str.append( "return;\r\n" );
         }
-        str.append("}");
-    }
-    else if (run_list && !cond)
-    {
-        str.append("{\r\n");
-        run_list->dump(str);
+        str.append( "}" );
+    } else if (run_list && !cond) {
+        str.append( "{\r\n" );
+        run_list->dump( str );
         if (ret_on_call) {
-            str.append("return;\r\n");
+            str.append( "return;\r\n" );
         }
-        str.append("}");
+        str.append( "}" );
+    } else if (cond) {
+        str.append( "if(" );
+        cond->dump( str );
+        str.append( ")" );
+        str.append( act_list[action].ic );
+        str.append( ";" );
+    } else {
+        str.append( act_list[action].ic );
+        str.append( ";" );
     }
-    else if (cond)
-    {
-        str.append("if(");
-        cond->dump(str);
-        str.append(")");
-        str.append(act_list[action].ic);
-        str.append(";");
-    }
-    else
-    {
-        str.append(act_list[action].ic);
-        str.append(";");
-    }
-    str.append("\r\n");
+    str.append( "\r\n" );
 }
-void apl_t::dump(std::string& str)
-{
-    if (item)
-    {
-        item->dump(str);
-        if (next) next->dump(str);
+void apl_t::dump( std::string& str ) {
+    if (item) {
+        item->dump( str );
+        if (next) next->dump( str );
     }
 }
-namespace apltr{
+namespace apltr {
     IC_LOCAL std::map<std::string, std::vector<token_t> > simc_apls;
 }
 
-IC_LOCAL void lexer()
-{
-    enum
-    {
+IC_LOCAL void lexer() {
+    enum {
         S_BREAK,
         S_IDENT,
         S_CONST,
     };
     int state = S_BREAK;
     std::string memory;
-    for (int lno = 0; lno < source.size(); lno++)
-    {
-        std::string& line = source.at(lno);
+    for (int lno = 0; lno < source.size(); lno++) {
+        std::string& line = source.at( lno );
         std::string this_apl;
         if (line[0] == '#') continue; // comment line
-        if (strncmp(line.c_str(), "actions", strlen("actions"))) continue; // non apl line
-        int pos = strlen("actions");
+        if (strncmp( line.c_str(), "actions", strlen( "actions" ) )) continue; // non apl line
+        int pos = strlen( "actions" );
         memory.clear();
-        for (; pos < line.length(); pos++)
-        {
-            if (is_ident(line[pos])) memory.push_back(line[pos]);
-            else if (line[pos] == '=')
-            {
+        for (; pos < line.length(); pos++) {
+            if (is_ident( line[pos] )) memory.push_back( line[pos] );
+            else if (line[pos] == '=') {
                 // create a new apl;
                 simc_apls[memory].clear();
                 this_apl = memory;
                 memory.clear();
                 pos++;
                 break;
-            }
-            else if (line[pos] == '+' && line.at(pos + 1) == '=')
-            {
+            } else if (line[pos] == '+' && line.at( pos + 1 ) == '=') {
                 // append to a apl;
                 this_apl = memory;
                 memory.clear();
                 pos += 2;
                 break;
-            }
-            else
-            {
-                eprintf(token(lno, pos, "", ""), 1, "expected apl name or '=' or '+='");
+            } else {
+                eprintf( token( lno, pos, "", "" ), 1, "expected apl name or '=' or '+='" );
             }
         }
-        if (!memory.empty())eprintf(token(lno, pos, "", ""), 1, "unexpected line ending");
+        if (!memory.empty())eprintf( token( lno, pos, "", "" ), 1, "unexpected line ending" );
         state = S_BREAK;
-        for (; pos < line.length(); pos++)
-        {
-            switch (state)
-            {
+        for (; pos < line.length(); pos++) {
+            switch (state) {
             case S_BREAK:
-                if (is_break(line[pos]))
-                {
+                if (is_break( line[pos] )) {
                     pos = line.length();
-                }
-                else if (line[pos] == '/')
-                {
-                    simc_apls[this_apl].push_back(token(lno, pos, this_apl, "/"));
-                }
-                else if (line[pos] == ',')
-                {
-                    simc_apls[this_apl].push_back(token(lno, pos, this_apl, ","));
-                }
-                else if (line[pos] == '(')
-                {
-                    simc_apls[this_apl].push_back(token(lno, pos, this_apl, "("));
-                }
-                else if (line[pos] == ')')
-                {
-                    simc_apls[this_apl].push_back(token(lno, pos, this_apl, ")"));
-                }
-                else if (line[pos] == '&')
-                {
-                    simc_apls[this_apl].push_back(token(lno, pos, this_apl, "&"));
-                }
-                else if (line[pos] == '|')
-                {
-                    simc_apls[this_apl].push_back(token(lno, pos, this_apl, "|"));
-                }
-                else if (line[pos] == '!')
-                {
+                } else if (line[pos] == '/') {
+                    simc_apls[this_apl].push_back( token( lno, pos, this_apl, "/" ) );
+                } else if (line[pos] == ',') {
+                    simc_apls[this_apl].push_back( token( lno, pos, this_apl, "," ) );
+                } else if (line[pos] == '(') {
+                    simc_apls[this_apl].push_back( token( lno, pos, this_apl, "(" ) );
+                } else if (line[pos] == ')') {
+                    simc_apls[this_apl].push_back( token( lno, pos, this_apl, ")" ) );
+                } else if (line[pos] == '&') {
+                    simc_apls[this_apl].push_back( token( lno, pos, this_apl, "&" ) );
+                } else if (line[pos] == '|') {
+                    simc_apls[this_apl].push_back( token( lno, pos, this_apl, "|" ) );
+                } else if (line[pos] == '!') {
                     if (pos + 1 < line.length())
-                        if (line.at(pos + 1) == '=')
-                        {
+                        if (line.at( pos + 1 ) == '=') {
                             pos++;
-                            simc_apls[this_apl].push_back(token(lno, pos, this_apl, "!="));
+                            simc_apls[this_apl].push_back( token( lno, pos, this_apl, "!=" ) );
+                        } else {
+                            simc_apls[this_apl].push_back( token( lno, pos, this_apl, "!" ) );
                         }
-                        else
-                        {
-                            simc_apls[this_apl].push_back(token(lno, pos, this_apl, "!"));
-                        }
-                }
-                else if (line[pos] == '+')
-                {
-                    simc_apls[this_apl].push_back(token(lno, pos, this_apl, "+"));
-                }
-                else if (line[pos] == '-')
-                {
-                    simc_apls[this_apl].push_back(token(lno, pos, this_apl, "-"));
-                }
-                else if (line[pos] == '*')
-                {
-                    simc_apls[this_apl].push_back(token(lno, pos, this_apl, "*"));
-                }
-                else if (line[pos] == '%')
-                {
-                    simc_apls[this_apl].push_back(token(lno, pos, this_apl, "%"));
-                }
-                else if (line[pos] == '=')
-                {
-                    simc_apls[this_apl].push_back(token(lno, pos, this_apl, "="));
-                }
-                else if (line[pos] == '>')
-                {
+                } else if (line[pos] == '+') {
+                    simc_apls[this_apl].push_back( token( lno, pos, this_apl, "+" ) );
+                } else if (line[pos] == '-') {
+                    simc_apls[this_apl].push_back( token( lno, pos, this_apl, "-" ) );
+                } else if (line[pos] == '*') {
+                    simc_apls[this_apl].push_back( token( lno, pos, this_apl, "*" ) );
+                } else if (line[pos] == '%') {
+                    simc_apls[this_apl].push_back( token( lno, pos, this_apl, "%" ) );
+                } else if (line[pos] == '=') {
+                    simc_apls[this_apl].push_back( token( lno, pos, this_apl, "=" ) );
+                } else if (line[pos] == '>') {
                     if (pos + 1 < line.length())
-                        if (line.at(pos + 1) == '=')
-                        {
+                        if (line.at( pos + 1 ) == '=') {
                             pos++;
-                            simc_apls[this_apl].push_back(token(lno, pos, this_apl, ">="));
+                            simc_apls[this_apl].push_back( token( lno, pos, this_apl, ">=" ) );
+                        } else {
+                            simc_apls[this_apl].push_back( token( lno, pos, this_apl, ">" ) );
                         }
-                        else
-                        {
-                            simc_apls[this_apl].push_back(token(lno, pos, this_apl, ">"));
-                        }
-                }
-                else if (line[pos] == '<')
-                {
+                } else if (line[pos] == '<') {
                     if (pos + 1 < line.length())
-                        if (line.at(pos + 1) == '=')
-                        {
+                        if (line.at( pos + 1 ) == '=') {
                             pos++;
-                            simc_apls[this_apl].push_back(token(lno, pos, this_apl, "<="));
+                            simc_apls[this_apl].push_back( token( lno, pos, this_apl, "<=" ) );
+                        } else {
+                            simc_apls[this_apl].push_back( token( lno, pos, this_apl, "<" ) );
                         }
-                        else
-                        {
-                            simc_apls[this_apl].push_back(token(lno, pos, this_apl, "<"));
-                        }
-                }
-                else if (is_digit(line[pos]))
-                {
+                } else if (is_digit( line[pos] )) {
                     memory.clear();
-                    memory.push_back(line[pos]);
+                    memory.push_back( line[pos] );
                     state = S_CONST;
-                }
-                else if (is_alphabet(line[pos]))
-                {
+                } else if (is_alphabet( line[pos] )) {
                     memory.clear();
-                    memory.push_back(line[pos]);
+                    memory.push_back( line[pos] );
                     state = S_IDENT;
-                }
-                else
-                {
-                    eprintf(token(lno, pos, this_apl, ""), 1, "unexpected character '%c'(%02X)", line[pos], (unsigned)line[pos]);
+                } else {
+                    eprintf( token( lno, pos, this_apl, "" ), 1, "unexpected character '%c'(%02X)", line[pos], ( unsigned ) line[pos] );
                 }
                 break;
             case S_IDENT:
-                if (is_ident(line[pos]))
-                {
-                    memory.push_back(line[pos]);
-                }
-                else
-                {
-                    simc_apls[this_apl].push_back(token(lno, pos - 1, this_apl, memory));
+                if (is_ident( line[pos] )) {
+                    memory.push_back( line[pos] );
+                } else {
+                    simc_apls[this_apl].push_back( token( lno, pos - 1, this_apl, memory ) );
                     pos--;
                     state = S_BREAK;
                 }
                 break;
             case S_CONST:
-                if (is_digit(line[pos]) || line[pos] == '.')
-                {
-                    memory.push_back(line[pos]);
-                }
-                else
-                {
-                    simc_apls[this_apl].push_back(token(lno, pos - 1, this_apl, "", read_const(memory)));
+                if (is_digit( line[pos] ) || line[pos] == '.') {
+                    memory.push_back( line[pos] );
+                } else {
+                    simc_apls[this_apl].push_back( token( lno, pos - 1, this_apl, "", read_const( memory ) ) );
                     pos--;
                     state = S_BREAK;
                 }
@@ -813,8 +698,8 @@ IC_LOCAL void lexer()
         }
     }
 }
-namespace apltr{
-    IC_LOCAL token_t NAL = token(-1, -1, "");
+namespace apltr {
+    IC_LOCAL token_t NAL = token( -1, -1, "" );
     IC_LOCAL std::stack<int> mark_stack;
     IC_LOCAL int pos;
     IC_LOCAL int last;
@@ -827,11 +712,9 @@ namespace apltr{
 #define get() (last=std::max(last,pos),pos<working->size()?working->at(pos++):NAL)
 
 
-IC_LOCAL cond_node_t* constant()
-{
+IC_LOCAL cond_node_t* constant() {
     token_t& t = get();
-    if (t.value.empty())
-    {
+    if (t.value.empty()) {
         auto node = new cond_node_t;
         node->op = CONST;
         node->value = t.valuef;
@@ -839,17 +722,14 @@ IC_LOCAL cond_node_t* constant()
     }
     return 0;
 }
-IC_LOCAL cond_node_t* variable()
-{
+IC_LOCAL cond_node_t* variable() {
     token_t& t = get();
-    if (!t.value.empty() && -1 == lookup_punc(t.value))
-    {
+    if (!t.value.empty() && -1 == lookup_punc( t.value )) {
         auto node = new cond_node_t;
         node->op = VAR;
-        node->value = lookup_var(t.value);
-        if (node->value < 0)
-        {
-            if (!t.suppress) eprintf(t, 0, "unknown variable '%s', assumed as constant false", t.value.c_str());
+        node->value = lookup_var( t.value );
+        if (node->value < 0) {
+            if (!t.suppress) eprintf( t, 0, "unknown variable '%s', assumed as constant false", t.value.c_str() );
             node->op = CONST;
             node->value = 0;
             t.suppress = 1;
@@ -859,89 +739,70 @@ IC_LOCAL cond_node_t* variable()
     return 0;
 }
 IC_LOCAL cond_node_t* logical_expression();
-IC_LOCAL cond_node_t* primary_expression()
-{
+IC_LOCAL cond_node_t* primary_expression() {
     cond_node_t* child;
     mark();
-    if (0 != (child = variable()))
-    {
+    if (0 != ( child = variable() )) {
         return unmark(), child;
     }
     btm();
-    if (0 != (child = constant()))
-    {
+    if (0 != ( child = constant() )) {
         return unmark(), child;
     }
     btm();
     if (get().value == "(")
-        if (0 != (child = logical_expression()))
-            if (get().value == ")")
-            {
+        if (0 != ( child = logical_expression() ))
+            if (get().value == ")") {
                 return unmark(), child;
             }
     unmark();
     return 0;
 }
 
-IC_LOCAL cond_node_t* unary_expression()
-{
+IC_LOCAL cond_node_t* unary_expression() {
     cond_node_t* child;
     mark();
     std::string op = get().value;
-    if (op == "+")
-    {
-        if ((child = unary_expression()) != 0)
-        {
+    if (op == "+") {
+        if (( child = unary_expression() ) != 0) {
             return unmark(), child;
         }
-    }
-    else if (op == "-" || op == "!")
-    {
-        if ((child = unary_expression()) != 0)
-        {
+    } else if (op == "-" || op == "!") {
+        if (( child = unary_expression() ) != 0) {
             auto node = new cond_node_t;
             node->lvalue = child;
-            node->op = (op == "-" ? NEG : NOT);
+            node->op = ( op == "-" ? NEG : NOT );
             return unmark(), node;
         }
     }
     btm();
     unmark();
-    if (0 != (child = primary_expression()))
-    {
+    if (0 != ( child = primary_expression() )) {
         return child;
     }
     return 0;
 }
 
-IC_LOCAL cond_node_t* multiplicative_expression()
-{
+IC_LOCAL cond_node_t* multiplicative_expression() {
     cond_node_t* lhs = 0;
     cond_node_t* rhs = 0;
     std::string op;
-    while (1)
-    {
-        if (!(rhs = unary_expression())) return 0;
+    while (1) {
+        if (!( rhs = unary_expression() )) return 0;
         mark();
-        if (lhs)
-        {
+        if (lhs) {
             auto node = new cond_node_t;
-            node->op = (op == "*" ? MUL : DIV);
+            node->op = ( op == "*" ? MUL : DIV );
             node->lvalue = lhs;
             node->rvalue = rhs;
             lhs = node;
-        }
-        else
-        {
+        } else {
             lhs = rhs;
         }
         op = get().value;
-        if (op == "*" || op == "%")
-        {
+        if (op == "*" || op == "%") {
             unmark();
-        }
-        else
-        {
+        } else {
             btm();
             unmark();
             break;
@@ -951,34 +812,26 @@ IC_LOCAL cond_node_t* multiplicative_expression()
     return lhs;
 }
 
-IC_LOCAL cond_node_t* additive_expression()
-{
+IC_LOCAL cond_node_t* additive_expression() {
     cond_node_t* lhs = 0;
     cond_node_t* rhs = 0;
     std::string op;
-    while (1)
-    {
-        if (!(rhs = multiplicative_expression())) return 0;
+    while (1) {
+        if (!( rhs = multiplicative_expression() )) return 0;
         mark();
-        if (lhs)
-        {
+        if (lhs) {
             auto node = new cond_node_t;
-            node->op = (op == "+" ? ADD : SUB);
+            node->op = ( op == "+" ? ADD : SUB );
             node->lvalue = lhs;
             node->rvalue = rhs;
             lhs = node;
-        }
-        else
-        {
+        } else {
             lhs = rhs;
         }
         op = get().value;
-        if (op == "+" || op == "-")
-        {
+        if (op == "+" || op == "-") {
             unmark();
-        }
-        else
-        {
+        } else {
             btm();
             unmark();
             break;
@@ -988,17 +841,14 @@ IC_LOCAL cond_node_t* additive_expression()
     return lhs;
 }
 
-IC_LOCAL cond_node_t* relational_expression()
-{
+IC_LOCAL cond_node_t* relational_expression() {
     cond_node_t* lhs = 0;
     cond_node_t* rhs = 0;
     std::string op;
-    while (1)
-    {
-        if (!(rhs = additive_expression())) return 0;
+    while (1) {
+        if (!( rhs = additive_expression() )) return 0;
         mark();
-        if (lhs)
-        {
+        if (lhs) {
             auto node = new cond_node_t;
             if (op == "=") node->op = EQ;
             if (op == "!=") node->op = NE;
@@ -1009,18 +859,13 @@ IC_LOCAL cond_node_t* relational_expression()
             node->lvalue = lhs;
             node->rvalue = rhs;
             lhs = node;
-        }
-        else
-        {
+        } else {
             lhs = rhs;
         }
         op = get().value;
-        if (op == "=" || op == "!=" || op == "<" || op == "<=" || op == ">" || op == ">=")
-        {
+        if (op == "=" || op == "!=" || op == "<" || op == "<=" || op == ">" || op == ">=") {
             unmark();
-        }
-        else
-        {
+        } else {
             btm();
             unmark();
             break;
@@ -1030,34 +875,26 @@ IC_LOCAL cond_node_t* relational_expression()
     return lhs;
 }
 
-IC_LOCAL cond_node_t* logical_expression()
-{
+IC_LOCAL cond_node_t* logical_expression() {
     cond_node_t* lhs = 0;
     cond_node_t* rhs = 0;
     std::string op;
-    while (1)
-    {
-        if (!(rhs = relational_expression())) return 0;
+    while (1) {
+        if (!( rhs = relational_expression() )) return 0;
         mark();
-        if (lhs)
-        {
+        if (lhs) {
             auto node = new cond_node_t;
-            node->op = (op == "&" ? AND : OR);
+            node->op = ( op == "&" ? AND : OR );
             node->lvalue = lhs;
             node->rvalue = rhs;
             lhs = node;
-        }
-        else
-        {
+        } else {
             lhs = rhs;
         }
         op = get().value;
-        if (op == "&" || op == "|")
-        {
+        if (op == "&" || op == "|") {
             unmark();
-        }
-        else
-        {
+        } else {
             btm();
             unmark();
             break;
@@ -1067,27 +904,20 @@ IC_LOCAL cond_node_t* logical_expression()
     return lhs;
 }
 
-IC_LOCAL int kv_pair(std::string& key, int& vpos)
-{
+IC_LOCAL int kv_pair( std::string& key, int& vpos ) {
     std::string tkey;
     int tvpos;
-    if (get().value == ",")
-    {
+    if (get().value == ",") {
         token_t& t = get();
         tkey = t.value;
-        if (get().value == "=")
-        {
+        if (get().value == "=") {
             tvpos = pos++;
-            if (tvpos >= working->size() || working->at(tvpos).value == "/" || working->at(tvpos).value == ",") return 0;
-            if (tkey == "name" || tkey == "if")
-            {
+            if (tvpos >= working->size() || working->at( tvpos ).value == "/" || working->at( tvpos ).value == ",") return 0;
+            if (tkey == "name" || tkey == "if") {
 
-            }
-            else
-            {
-                if (!t.suppress)
-                {
-                    eprintf(t, 0, "unsupported key '%s', ignored", t.value.c_str());
+            } else {
+                if (!t.suppress) {
+                    eprintf( t, 0, "unsupported key '%s', ignored", t.value.c_str() );
                     t.suppress = 1;
                 }
             }
@@ -1099,11 +929,9 @@ IC_LOCAL int kv_pair(std::string& key, int& vpos)
     return 0;
 }
 
-IC_LOCAL rule_t* rule_item()
-{
+IC_LOCAL rule_t* rule_item() {
     std::string action = get().value;
-    if (action == "use_item")
-    {
+    if (action == "use_item") {
         auto node = new rule_t;
         node->action = -1;
         std::string key;
@@ -1111,32 +939,31 @@ IC_LOCAL rule_t* rule_item()
         int processed_if = 0;
         int processed_name = 0;
         mark();
-        while (kv_pair(key, vpos)) {
+        while (kv_pair( key, vpos )) {
             if (key == "name") {
                 if (processed_name) {
-                    token_t& t = working->at(vpos - 2);
-                    if (!t.suppress) eprintf(t, 0, "name duplicated, overwritten");
+                    token_t& t = working->at( vpos - 2 );
+                    if (!t.suppress) eprintf( t, 0, "name duplicated, overwritten" );
                     t.suppress = 1;
                 }
-                node->action = lookup_act(working->at(vpos).value);
+                node->action = lookup_act( working->at( vpos ).value );
                 if (node->action < 0) {
-                    token_t& t = working->at(vpos);
-                    if (!t.suppress) eprintf(t, 0, "unknown item '%s', ignored", t.value.c_str());
+                    token_t& t = working->at( vpos );
+                    if (!t.suppress) eprintf( t, 0, "unknown item '%s', ignored", t.value.c_str() );
                     t.suppress = 1;
                 }
                 processed_name = 1;
-            }
-            else if (key == "if") {
+            } else if (key == "if") {
                 if (processed_if) {
-                    token_t& t = working->at(vpos - 2);
-                    if (!t.suppress) eprintf(t, 0, "condition duplicated, overwritten");
+                    token_t& t = working->at( vpos - 2 );
+                    if (!t.suppress) eprintf( t, 0, "condition duplicated, overwritten" );
                     t.suppress = 1;
                 }
                 pos = vpos;
                 node->cond = logical_expression();
                 if (!node->cond) {
-                    token_t& t = working->at(vpos);
-                    if (!t.suppress) eprintf(t, 1, "cannot build condition tree from here");
+                    token_t& t = working->at( vpos );
+                    if (!t.suppress) eprintf( t, 1, "cannot build condition tree from here" );
                     t.suppress = 1;
                 }
                 processed_if = 1;
@@ -1147,46 +974,42 @@ IC_LOCAL rule_t* rule_item()
         btm();
         unmark();
         return node;
-    }
-    else if (action == "call_action_list" || action == "run_action_list")
-    {
+    } else if (action == "call_action_list" || action == "run_action_list") {
         auto node = new rule_t;
         node->action = -1;
-        node->ret_on_call = (action == "call_action_list" ? 0 : 1);
+        node->ret_on_call = ( action == "call_action_list" ? 0 : 1 );
         std::string key;
         int vpos;
         int processed_if = 0;
         int processed_name = 0;
         mark();
-        while (kv_pair(key, vpos)) {
+        while (kv_pair( key, vpos )) {
             if (key == "name") {
                 if (processed_name) {
-                    token_t& t = working->at(vpos - 2);
-                    if (!t.suppress) eprintf(t, 0, "name duplicated, overwritten");
+                    token_t& t = working->at( vpos - 2 );
+                    if (!t.suppress) eprintf( t, 0, "name duplicated, overwritten" );
                     t.suppress = 1;
                 }
-                if (ic_apls.count("." + working->at(vpos).value)) {
-                    node->run_list = &ic_apls["." + working->at(vpos).value];
+                if (ic_apls.count( "." + working->at( vpos ).value )) {
+                    node->run_list = &ic_apls["." + working->at( vpos ).value];
                     node->action = 0;
-                }
-                else {
-                    token_t& t = working->at(vpos);
-                    if (!t.suppress) eprintf(t, 0, "action list '%s' do not exist, ignored", t.value.c_str());
+                } else {
+                    token_t& t = working->at( vpos );
+                    if (!t.suppress) eprintf( t, 0, "action list '%s' do not exist, ignored", t.value.c_str() );
                     t.suppress = 1;
                 }
                 processed_name = 1;
-            }
-            else if (key == "if") {
+            } else if (key == "if") {
                 if (processed_if) {
-                    token_t& t = working->at(vpos - 2);
-                    if (!t.suppress) eprintf(t, 0, "condition duplicated, overwritten");
+                    token_t& t = working->at( vpos - 2 );
+                    if (!t.suppress) eprintf( t, 0, "condition duplicated, overwritten" );
                     t.suppress = 1;
                 }
                 pos = vpos;
                 node->cond = logical_expression();
                 if (!node->cond) {
-                    token_t& t = working->at(vpos);
-                    if (!t.suppress) eprintf(t, 1, "cannot build condition tree from here");
+                    token_t& t = working->at( vpos );
+                    if (!t.suppress) eprintf( t, 1, "cannot build condition tree from here" );
                     t.suppress = 1;
                 }
                 processed_if = 1;
@@ -1197,37 +1020,35 @@ IC_LOCAL rule_t* rule_item()
         btm();
         unmark();
         return node;
-    }
-    else {
+    } else {
         auto node = new rule_t;
-        node->action = lookup_act(action);
+        node->action = lookup_act( action );
         if (node->action < 0) {
             pos--;
             token_t& t = get();
-            if (!t.suppress) eprintf(t, 0, "unknown action '%s', ignored", t.value.c_str());
+            if (!t.suppress) eprintf( t, 0, "unknown action '%s', ignored", t.value.c_str() );
             t.suppress = 1;
         }
         std::string key;
         int vpos;
         int processed_if = 0;
         mark();
-        while (kv_pair(key, vpos)) {
+        while (kv_pair( key, vpos )) {
             if (key == "name") {
-                token_t& t = working->at(vpos - 2);
-                if (!t.suppress) eprintf(t, 0, "unsupported key 'name', ignored");
+                token_t& t = working->at( vpos - 2 );
+                if (!t.suppress) eprintf( t, 0, "unsupported key 'name', ignored" );
                 t.suppress = 1;
-            }
-            else if (key == "if") {
+            } else if (key == "if") {
                 if (processed_if) {
-                    token_t& t = working->at(vpos - 2);
-                    if (!t.suppress) eprintf(t, 0, "condition duplicated, overwritten");
+                    token_t& t = working->at( vpos - 2 );
+                    if (!t.suppress) eprintf( t, 0, "condition duplicated, overwritten" );
                     t.suppress = 1;
                 }
                 pos = vpos;
                 node->cond = logical_expression();
                 if (!node->cond) {
-                    token_t& t = working->at(vpos);
-                    if (!t.suppress) eprintf(t, 1, "cannot build condition tree from here");
+                    token_t& t = working->at( vpos );
+                    if (!t.suppress) eprintf( t, 1, "cannot build condition tree from here" );
                     t.suppress = 1;
                 }
                 processed_if = 1;
@@ -1241,111 +1062,97 @@ IC_LOCAL rule_t* rule_item()
     }
 }
 
-IC_LOCAL apl_t* rule_sequences()
-{
+IC_LOCAL apl_t* rule_sequences() {
     apl_t* lhs = 0;
     rule_t* rhs = 0;
-    while (1)
-    {
-        if (!(rhs = rule_item())) return new apl_t;
+    while (1) {
+        if (!( rhs = rule_item() )) return new apl_t;
         //if (pos < working->size()){
         //  printf("%d:%s\n", pos, working->at(pos).value.c_str());
         //  eprintf(working->at(pos), 2, "check");
         //}
         mark();
-        if (lhs)
-        {
+        if (lhs) {
             auto node = new apl_t;
             auto p = lhs;
             while (p->next)p = p->next;
             p->next = node;
             node->item = rhs;
-        }
-        else
-        {
+        } else {
             lhs = new apl_t;
             lhs->item = rhs;
         }
-        if (get().value == "/")
-        {
+        if (get().value == "/") {
             unmark();
-        }
-        else
-        {
+        } else {
             btm();
             unmark();
             break;
         }
     }
-    if (!lhs)
-    {
+    if (!lhs) {
         lhs = new apl_t;
         lhs->item = rhs;
     }
     return lhs;
 }
-IC_LOCAL void parser()
-{
-    for (auto i = simc_apls.begin(); i != simc_apls.end(); i++)
-    {
+IC_LOCAL void parser() {
+    for (auto i = simc_apls.begin(); i != simc_apls.end(); i++) {
         ic_apls[i->first] = apl_t();
     }
-    for (auto i = simc_apls.begin(); i != simc_apls.end(); i++)
-    {
+    for (auto i = simc_apls.begin(); i != simc_apls.end(); i++) {
         working = &i->second;
         pos = 0;
         ic_apls[i->first] = *rule_sequences();
     }
 }
 
-IC_LOCAL void reset_gv(){
+IC_LOCAL void reset_gv() {
     apltr::errors = 0;
     apltr::warnings = 0;
     apltr::ic_apls.clear();
     apltr::last = 0;
     apltr::pos = 0;
-    while(!apltr::mark_stack.empty())
+    while (!apltr::mark_stack.empty())
         apltr::mark_stack.pop();
     apltr::simc_apls.clear();
     apltr::source.clear();
     apltr::working = 0;
 }
 
-IC_LOCAL int fapltr(std::string& input_file, std::string& output)
-{
+IC_LOCAL int fapltr( std::string& input_file, std::string& output ) {
     reset_gv();
-    read_source(input_file.c_str());
+    read_source( input_file.c_str() );
     lexer();
     parser();
-    ic_apls[""].dump(output);
-    cbprintf("translation complete, %d errors, %d warnings", errors, warnings);
+    ic_apls[""].dump( output );
+    cbprintf( "translation complete, %d errors, %d warnings", errors, warnings );
     return 0;
 }
 
-IC_LOCAL std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
-    std::stringstream ss(s);
+IC_LOCAL std::vector<std::string> &split( const std::string &s, char delim, std::vector<std::string> &elems ) {
+    std::stringstream ss( s );
     std::string item;
-    while (std::getline(ss, item, delim)) {
-        item.push_back('\n');
-        elems.push_back(item);
+    while (std::getline( ss, item, delim )) {
+        item.push_back( '\n' );
+        elems.push_back( item );
     }
     return elems;
 }
 
 
-IC_LOCAL std::vector<std::string> split(const std::string &s, char delim) {
+IC_LOCAL std::vector<std::string> split( const std::string &s, char delim ) {
     std::vector<std::string> elems;
-    split(s, delim, elems);
+    split( s, delim, elems );
     return elems;
 }
 
-IC_LOCAL int sapltr(std::string& input, std::string& output)
-{
+IC_LOCAL int sapltr( std::string& input, std::string& output ) {
     reset_gv();
-    split(input, '\n', source);
+    split( input, '\n', source );
     lexer();
     parser();
-    ic_apls[""].dump(output);
-    cbprintf("translation complete, %d errors, %d warnings\n", errors, warnings);
+    ic_apls[""].dump( output );
+    cbprintf( "translation complete, %d errors, %d warnings\n", errors, warnings );
     return 0;
 }

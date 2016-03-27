@@ -5,11 +5,11 @@
     IreCore is distributed under the terms of The MIT License.
     You should have received a copy of the MIT License along with this program.
     If not, see <http://opensource.org/licenses/mit-license.php>.
-    */
+*/
 
 #include "gic.h"
 
-trinket_ladder_t::trinket_ladder_t(){
+trinket_ladder_t::trinket_ladder_t() {
     list.clear();
     list.push_back( trinket_profile_t( QApplication::translate( "gicClass", "Vial of Convulsive Shadows" ), 113969, 670, 334, 0, 0, 0, 0, 0, 0 ) );
     list.push_back( trinket_profile_t( QApplication::translate( "gicClass", "Vial of Convulsive Shadows" ), 113969, 676, 354, 0, 0, 0, 0, 0, 0 ) );
@@ -125,38 +125,38 @@ trinket_ladder_t::trinket_ladder_t(){
     list.push_back( trinket_profile_t( QApplication::translate( "gicClass", "Chipped Soul Prism" ), 124545, 705, 187, 187, 187, 187, 187, 187, 1 ) );
     list.push_back( trinket_profile_t( QApplication::translate( "gicClass", "Gronntooth War Horn" ), 133595, 715, 140, 140, 140, 0, 0, 0, 0, 0 ) );
     list.push_back( trinket_profile_t( QApplication::translate( "gicClass", "Gronntooth War Horn(Demon)" ), 133595, 715, 140, 140, 140, 0, 0, 0, 0, 1 ) );
-    std::stable_sort(list.begin(), list.end(), [](const trinket_profile_t& t1, const trinket_profile_t& t2){return t1.itemlvl > t2.itemlvl;});
+    std::stable_sort( list.begin(), list.end(), []( const trinket_profile_t& t1, const trinket_profile_t& t2 ) {return t1.itemlvl > t2.itemlvl; } );
     int s = list.size();
-    for(int i = 0; i < s; i++){
-        if(list[i].upgrade){
+    for (int i = 0; i < s; i++) {
+        if (list[i].upgrade) {
             list[i].upgrade = 0;
-            trinket_profile_t g1(list[i]);
-            trinket_profile_t g2(list[i]);
+            trinket_profile_t g1( list[i] );
+            trinket_profile_t g2( list[i] );
             g1.upgrade = 5;
             g2.upgrade = 10;
             g1.itemlvl += 5;
             g2.itemlvl += 10;
             g1.name = g1.name + "(+5)";
             g2.name = g2.name + "(+10)";
-            g1.crit = (int)(((double) g1.crit) * approx_scale_coeff_cr(list[i].itemlvl, g1.itemlvl));
-            g1.mastery = (int)(((double) g1.mastery) * approx_scale_coeff_cr(list[i].itemlvl, g1.itemlvl));
-            g1.haste = (int)(((double) g1.haste) * approx_scale_coeff_cr(list[i].itemlvl, g1.itemlvl));
-            g1.mult = (int)(((double) g1.mult) * approx_scale_coeff_cr(list[i].itemlvl, g1.itemlvl));
-            g1.vers = (int)(((double) g1.vers) * approx_scale_coeff_cr(list[i].itemlvl, g1.itemlvl));
-            g1.str = (int)(((double) g1.str) * approx_scale_coeff(list[i].itemlvl, g1.itemlvl));
-            g2.crit = (int)(((double) g2.crit) * approx_scale_coeff_cr(list[i].itemlvl, g2.itemlvl));
-            g2.mastery = (int)(((double) g2.mastery) * approx_scale_coeff_cr(list[i].itemlvl, g2.itemlvl));
-            g2.haste = (int)(((double) g2.haste) * approx_scale_coeff_cr(list[i].itemlvl, g2.itemlvl));
-            g2.mult = (int)(((double) g2.mult) * approx_scale_coeff_cr(list[i].itemlvl, g2.itemlvl));
-            g2.vers = (int)(((double) g2.vers) * approx_scale_coeff_cr(list[i].itemlvl, g2.itemlvl));
-            g2.str = (int)(((double) g2.str) * approx_scale_coeff(list[i].itemlvl, g2.itemlvl));
-            list.push_back(g2);
-            list.push_back(g1);
+            g1.crit = ( int ) ( ( ( double ) g1.crit ) * approx_scale_coeff_cr( list[i].itemlvl, g1.itemlvl ) );
+            g1.mastery = ( int ) ( ( ( double ) g1.mastery ) * approx_scale_coeff_cr( list[i].itemlvl, g1.itemlvl ) );
+            g1.haste = ( int ) ( ( ( double ) g1.haste ) * approx_scale_coeff_cr( list[i].itemlvl, g1.itemlvl ) );
+            g1.mult = ( int ) ( ( ( double ) g1.mult ) * approx_scale_coeff_cr( list[i].itemlvl, g1.itemlvl ) );
+            g1.vers = ( int ) ( ( ( double ) g1.vers ) * approx_scale_coeff_cr( list[i].itemlvl, g1.itemlvl ) );
+            g1.str = ( int ) ( ( ( double ) g1.str ) * approx_scale_coeff( list[i].itemlvl, g1.itemlvl ) );
+            g2.crit = ( int ) ( ( ( double ) g2.crit ) * approx_scale_coeff_cr( list[i].itemlvl, g2.itemlvl ) );
+            g2.mastery = ( int ) ( ( ( double ) g2.mastery ) * approx_scale_coeff_cr( list[i].itemlvl, g2.itemlvl ) );
+            g2.haste = ( int ) ( ( ( double ) g2.haste ) * approx_scale_coeff_cr( list[i].itemlvl, g2.itemlvl ) );
+            g2.mult = ( int ) ( ( ( double ) g2.mult ) * approx_scale_coeff_cr( list[i].itemlvl, g2.itemlvl ) );
+            g2.vers = ( int ) ( ( ( double ) g2.vers ) * approx_scale_coeff_cr( list[i].itemlvl, g2.itemlvl ) );
+            g2.str = ( int ) ( ( ( double ) g2.str ) * approx_scale_coeff( list[i].itemlvl, g2.itemlvl ) );
+            list.push_back( g2 );
+            list.push_back( g1 );
         }
     }
 }
 
-std::vector<trinket_profile_t>& trinket_ladder(){
+std::vector<trinket_profile_t>& trinket_ladder() {
     static trinket_ladder_t tl;
     return tl.list;
 }

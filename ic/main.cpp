@@ -12,9 +12,8 @@
 #include <QtWidgets/QApplication>
 #include <Windows.h>
 
-int main(int argc, char *argv[])
-{
-    if ( GetStdHandle( STD_OUTPUT_HANDLE ) == 0 ) // this is a detached gui process. show gui.
+int main( int argc, char *argv[] ) {
+    if (GetStdHandle( STD_OUTPUT_HANDLE ) == 0) // this is a detached gui process. show gui.
     {
         QApplication a( argc, argv );
         QString lang = QLocale::system().name().split( '_' ).at( 0 ).toLower();
@@ -25,9 +24,9 @@ int main(int argc, char *argv[])
 
         QFont font( "SimSun", 9 );
         a.setFont( font );
-        QCoreApplication::setOrganizationName("Aean");
-        QCoreApplication::setOrganizationDomain("aean.net");
-        QCoreApplication::setApplicationName("IreCore");
+        QCoreApplication::setOrganizationName( "Aean" );
+        QCoreApplication::setOrganizationDomain( "aean.net" );
+        QCoreApplication::setApplicationName( "IreCore" );
         //QSettings history;
         //history.clear();
 
@@ -35,19 +34,17 @@ int main(int argc, char *argv[])
 
         w.show();
         return a.exec();
-    }
-    else if ( argc > 1 ) // user given command line arguments. treat as cli.
+    } else if (argc > 1) // user given command line arguments. treat as cli.
     {
         return clic_main( argc, argv );
-    }
-    else // create a new detached gui process, and close this one.
+    } else // create a new detached gui process, and close this one.
     {
         DWORD dwCreationFlags = CREATE_DEFAULT_ERROR_MODE | DETACHED_PROCESS;
         STARTUPINFO startinfo;
         PROCESS_INFORMATION procinfo;
         ZeroMemory( &startinfo, sizeof( startinfo ) );
         startinfo.cb = sizeof( startinfo );
-        if ( !CreateProcess( NULL, GetCommandLine(), NULL, NULL, FALSE, dwCreationFlags, NULL, NULL, &startinfo, &procinfo ) )
+        if (!CreateProcess( NULL, GetCommandLine(), NULL, NULL, FALSE, dwCreationFlags, NULL, NULL, &startinfo, &procinfo ))
             MessageBox( 0, TEXT( "CreateProcess failed." ), TEXT( "" ), 0 );
         return 0;
     }

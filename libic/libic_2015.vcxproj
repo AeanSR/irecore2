@@ -11,11 +11,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\util\dbc.c" />
     <ClCompile Include="..\util\util.cpp" />
     <ClCompile Include="apltr.cpp" />
     <ClCompile Include="libic.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\util\dbc.h" />
     <ClInclude Include="..\util\util.h" />
     <ClInclude Include="..\util\VersionNo.h" />
     <ClInclude Include="libic.h" />
@@ -25,6 +27,7 @@
     <ProjectGuid>{D5778C57-4C21-474C-B1A3-F48AFCFE7089}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>libic</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -36,7 +39,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>

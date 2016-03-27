@@ -5,7 +5,7 @@
     IreCore is distributed under the terms of The MIT License.
     You should have received a copy of the MIT License along with this program.
     If not, see <http://opensource.org/licenses/mit-license.php>.
-    */
+*/
 #define _CRT_SECURE_NO_WARNINGS
 #pragma pack(1)
 
@@ -14,9 +14,10 @@
 #include <vector>
 #include <utility>
 #include <cmath>
+#include <algorithm>
 
 struct record_t {
-    void inline_str_process(void* data, size_t length, size_t size_of_this ) {
+    void inline_str_process( void* data, size_t length, size_t size_of_this ) {
         if (length >= size_of_this) {
             memcpy( this, data, size_of_this );
         }
@@ -86,20 +87,20 @@ struct item_sparse_record_t {
     UINT8   dc62;
     UINT8   dc63;
     UINT8   dc64;
-    void inline_str_process(void* data, size_t length, size_t size_of_this ) {
+    void inline_str_process( void* data, size_t length, size_t size_of_this ) {
         size_t invariant1 = 132;
-        size_t invariant2 = sizeof(*this) - invariant1 - 2 * sizeof( std::string );
+        size_t invariant2 = sizeof( *this ) - invariant1 - 2 * sizeof( std::string );
 
         memcpy( this, data, invariant1 );
-        memcpy( &dc18, (char*)data + length - invariant2, invariant2 );
-        
-        char* q = (char*)data + invariant1;
-        while( *q ) {
-            name.push_back(*q++);
+        memcpy( &dc18, ( char* ) data + length - invariant2, invariant2 );
+
+        char* q = ( char* ) data + invariant1;
+        while (*q) {
+            name.push_back( *q++ );
         }
-        while( !*q++ );
-        while( *q ) {
-            desc.push_back(*q++);
+        while (!*q++);
+        while (*q) {
+            desc.push_back( *q++ );
         }
     }
 };
@@ -254,7 +255,7 @@ int wdb4_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::
                 printf( "dbc offset map broken\n" );
                 return 0;
             }
-            offset_map.push_back(o);
+            offset_map.push_back( o );
         }
         records.resize( header.record_count );
         if (header.flags & 0x04) {
@@ -271,10 +272,10 @@ int wdb4_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::
                 records[i].first = id;
             }
         }
-        for ( auto i = records.begin(); i != records.end(); i++) {
+        for (auto i = records.begin(); i != records.end(); i++) {
             T new_record;
             std::string buf;
-            buf.resize(offset_map[i->first - header.min_id].length);
+            buf.resize( offset_map[i->first - header.min_id].length );
             CascSetFilePointer( file, offset_map[i->first - header.min_id].offset, 0, FILE_BEGIN );
             if (!CascReadFile( file, &buf[0], buf.size(), &read )) {
                 printf( "failed to read dbc record\n" );
@@ -284,17 +285,17 @@ int wdb4_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::
                 printf( "dbc record broken\n" );
                 return 0;
             }
-            new_record.typename T::inline_str_process(&buf[0], buf.size(), sizeof(T));
+            new_record.typename T::inline_str_process( &buf[0], buf.size(), sizeof( T ) );
             i->second = new_record;
         }
-        CascSetFilePointer( file, header.string_block_size + offset_map.size() * sizeof( offset_map_entry_t ) + header.record_count * sizeof( UINT32 ) , 0, FILE_BEGIN );
+        CascSetFilePointer( file, header.string_block_size + offset_map.size() * sizeof( offset_map_entry_t ) + header.record_count * sizeof( UINT32 ), 0, FILE_BEGIN );
     } else {
         if (header.record_size < sizeof( T )) {
             printf( "record size is lesser than expect\n" );
             return 0;
         }
         if (header.record_size > sizeof( T )) {
-            printf( "record size is greater than expect, %d %d\n", sizeof(T), header.record_size );
+            printf( "record size is greater than expect, %d %d\n", sizeof( T ), header.record_size );
             // this is a warning. resume.
             discard = alloca( header.record_size - sizeof( T ) );
         }
@@ -484,10 +485,10 @@ int _tmain( int argc, TCHAR* argv[] ) {
     const size_t spell_scaling_levels = 123;
     const size_t spell_scaling_classes = 18;
     float spell_scaling[spell_scaling_classes][spell_scaling_levels];
-    if ( spell_scaling_levels * spell_scaling_classes != spell_scaling_records.size() ) {
+    if (spell_scaling_levels * spell_scaling_classes != spell_scaling_records.size()) {
         printf( "num spell scaling records(%d) not equal to %dx%d\n", spell_scaling_records.size(), spell_scaling_classes, spell_scaling_levels );
     }
-    for( auto i = spell_scaling_records.begin(); i != spell_scaling_records.end(); i++ ) {
+    for (auto i = spell_scaling_records.begin(); i != spell_scaling_records.end(); i++) {
         size_t i_class = i->second.id / spell_scaling_levels;
         size_t i_levels = i->second.id % spell_scaling_levels;
         spell_scaling[i_class][i_levels] = i->second.value;
@@ -495,10 +496,10 @@ int _tmain( int argc, TCHAR* argv[] ) {
 
     const size_t combat_ratings_mult_maxilvl = 1300;
     float combat_ratings_mult[combat_ratings_mult_maxilvl];
-    if ( combat_ratings_mult_maxilvl != combat_ratings_mult_records.size() ) {
+    if (combat_ratings_mult_maxilvl != combat_ratings_mult_records.size()) {
         printf( "num combat ratings mult records(%d) not equal to %d\n", combat_ratings_mult_records.size(), combat_ratings_mult_maxilvl );
     }
-    for( auto i = combat_ratings_mult_records.begin(); i != combat_ratings_mult_records.end(); i++ ) {
+    for (auto i = combat_ratings_mult_records.begin(); i != combat_ratings_mult_records.end(); i++) {
         size_t id = i->second.id;
         combat_ratings_mult[id] = i->second.value;
     }
@@ -508,9 +509,12 @@ int _tmain( int argc, TCHAR* argv[] ) {
         int itemclass;
         int itemsubclass;
         int gem_enchant;
+        std::string name;
+        item_t() : id( 0 ), itemclass( 0 ), itemsubclass( 0 ), gem_enchant( 0 ) { }
+        bool operator< ( const item_t& rhs ) { return id < rhs.id; }
     };
     std::vector<item_t> item_data;
-    for( auto i = item_records.begin(); i != item_records.end(); i++ ) {
+    for (auto i = item_records.begin(); i != item_records.end(); i++) {
         item_t item;
         item.id = i->first;
         item.itemclass = i->second.item_class;
@@ -518,13 +522,19 @@ int _tmain( int argc, TCHAR* argv[] ) {
         item.gem_enchant = 0;
         item_data.push_back( item );
     }
-    for( auto i = item_sparse_records.begin(); i != item_sparse_records.end(); i++ ) {
+    for (auto i = item_sparse_records.begin(); i != item_sparse_records.end(); i++) {
         size_t id = i->first;
         size_t gem = i->second.gem_props;
-        if ( !gem ) continue;
+        for (auto item = item_data.begin(); item != item_data.end(); item++) {
+            if (item->id == id) {
+                item->name = i->second.name;
+                break;
+            }
+        }
+        if (!gem) continue;
         auto pgem = gem_properties_records.end();
-        for( auto g = gem_properties_records.begin(); g != gem_properties_records.end(); g++ ) {
-            if ( g->first == gem ) {
+        for (auto g = gem_properties_records.begin(); g != gem_properties_records.end(); g++) {
+            if (g->first == gem) {
                 pgem = g;
                 break;
             }
@@ -532,8 +542,8 @@ int _tmain( int argc, TCHAR* argv[] ) {
         if (pgem == gem_properties_records.end()) {
             printf( "gem info not found for item%d gem%d\n", i->first, gem );
         } else {
-            for( auto item = item_data.begin(); item != item_data.end(); item++ ) {
-                if ( item->id == id ) {
+            for (auto item = item_data.begin(); item != item_data.end(); item++) {
+                if (item->id == id) {
                     item->gem_enchant = pgem->second.id_enchant;
                     break;
                 }
@@ -545,12 +555,14 @@ int _tmain( int argc, TCHAR* argv[] ) {
         int id;
         int prop[3];
         int value[3];
+        enchant_t() : id( 0 ), prop(), value() { }
+        bool operator< ( const enchant_t& rhs ) { return id < rhs.id; }
     };
     std::vector<enchant_t> enchant_data;
-    for( auto i = item_enchantment_records.begin(); i != item_enchantment_records.end(); i++ ) {
-        enchant_t enchant = { 0 };
+    for (auto i = item_enchantment_records.begin(); i != item_enchantment_records.end(); i++) {
+        enchant_t enchant;
         enchant.id = i->first;
-        for( int prop_idx = 0; prop_idx < 3; prop_idx++ ) {
+        for (int prop_idx = 0; prop_idx < 3; prop_idx++) {
             if (i->second.type[prop_idx] != 4 && i->second.type[prop_idx] != 5) continue; // magic number: 4 - type stat, 5 - type resistance
             enchant.prop[prop_idx] = i->second.id_property[prop_idx];
             if (i->second.scaling_type == 0) {
@@ -558,30 +570,35 @@ int _tmain( int argc, TCHAR* argv[] ) {
             } else {
                 size_t class_id;
                 size_t level = 100; // magic number 100: player level. update this when 110lvl goes live.
-                level = min( (int)level, i->second.max_scaling_level );
+                level = min( ( int ) level, i->second.max_scaling_level );
                 if (i->second.scaling_type < 0) {
                     class_id = 12 - i->second.scaling_type - 1; // magic number 12: count of player classes.
                 } else {
                     class_id = i->second.scaling_type;
                 }
                 double budget = spell_scaling[class_id][level - 1];
-                enchant.value[prop_idx] = (int)round( budget * i->second.coeff[prop_idx] );
+                enchant.value[prop_idx] = ( int ) round( budget * i->second.coeff[prop_idx] );
             }
         }
-        enchant_data.push_back(enchant);
+        enchant_data.push_back( enchant );
     }
 
-    FILE* f = fopen("dbc.c", "wb");
-    fprintf(f, "/*\r\n\tIreCore Database %s\r\n*/\r\n\r\n#include \"dbc.h\"\r\n\r\n", __DATE__);
-    fprintf(f, "float _dbc_combat_ratings_mult[] = {\r\n" );
+    std::sort( item_data.begin(), item_data.end() );
+    std::sort( enchant_data.begin(), enchant_data.end() );
+
+    FILE* f = fopen( "dbc.c", "wb" );
+    fprintf( f, "/*\r\n\tIreCore Database %s\r\n*/\r\n\r\n#include \"dbc.h\"\r\n\r\n", __DATE__ );
+    fprintf( f, "float _dbc_combat_ratings_mult[] = {\r\n" );
     for (size_t i = 0; i < combat_ratings_mult_maxilvl; i++) {
-        fprintf(f, "\t%.6f,", combat_ratings_mult[i] );
-        if (i % 5 == 4) fprintf(f, "\t// %d\r\n", i + 1 );
+        fprintf( f, "\t%.6f,", combat_ratings_mult[i] );
+        if (i % 5 == 4) fprintf( f, "\t// %d\r\n", i + 1 );
     }
-    fprintf(f, "};\r\n" );
-    fprintf(f, "enchant_t _dbc_enchant_data[] = {\r\n" );
+    fprintf( f, "};\r\n" );
+
+    fprintf( f, "_dbc_enchant_t _dbc_enchant_data[] = {\r\n" );
+    enchant_data.push_back( enchant_t() );
     for (size_t i = 0; i < enchant_data.size(); i++) {
-        fprintf(f,
+        fprintf( f,
             "\t{%6d, {%4d,%4d,%4d}, {%4d,%4d,%4d} },\r\n",
             enchant_data[i].id,
             enchant_data[i].prop[0],
@@ -592,20 +609,22 @@ int _tmain( int argc, TCHAR* argv[] ) {
             enchant_data[i].value[2]
             );
     }
-    fprintf(f, "};\r\n" );
-    fprintf(f, "item_t _dbc_item_data[] = {\r\n" );
+    fprintf( f, "};\r\n" );
+    fprintf( f, "_dbc_item_t _dbc_item_data[] = {\r\n" );
     for (size_t i = 0; i < item_data.size(); i++) {
-        if ( item_data[i].itemclass < 2 || item_data[i].itemclass > 4 ) continue;
-        fprintf(f,
-            "\t{%6d, %4d,%4d, %6d},\r\n",
+        if (item_data[i].itemclass < 2 || item_data[i].itemclass > 4) continue;
+        fprintf( f,
+            "\t{%6d, %4d,%4d, %6d}, // %s\r\n",
             item_data[i].id,
             item_data[i].itemclass,
             item_data[i].itemsubclass,
-            item_data[i].gem_enchant
+            item_data[i].gem_enchant,
+            item_data[i].name.c_str()
             );
     }
-    fprintf(f, "};\r\n" );
-    fclose(f);
+    fprintf( f, "\t{%6d, %4d,%4d, %6d},\r\n", 0, 0, 0, 0 );
+    fprintf( f, "};\r\n" );
+    fclose( f );
     printf( "dumped into \"dbc.c\"\n" );
     CascCloseStorage( storage );
     //system("pause");

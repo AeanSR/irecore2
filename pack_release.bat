@@ -6,8 +6,10 @@ rd /S /Q release_nolib
 rd /S /Q release_libic
 mkdir release
 mkdir release\profile
+mkdir release\kernel
 mkdir release\platforms
 mkdir release_nolib
+mkdir release_nolib\kernel
 mkdir release_nolib\profile
 mkdir release_libic
 mkdir release_libic\Win32
@@ -17,14 +19,20 @@ mkdir release_libic\include
 :: Nolib release.
 xcopy profile release_nolib\profile /I
 copy irecore.exe release_nolib\irecore.exe
-copy kernel.c release_nolib\kernel.c
+copy kernel\kernel.c release_nolib\kernel\kernel.c
+copy kernel\warrior.c release_nolib\kernel\warrior.c
+copy kernel\arms.c release_nolib\kernel\arms.c
+copy kernel\fury.c release_nolib\kernel\fury.c
 copy ic\gic_zh.qm release_nolib\gic_zh.qm
 copy LICENSE release_nolib\LICENSE
 
 :: Normal release.
 xcopy profile release\profile /I
 copy irecore.exe release\irecore.exe
-copy kernel.c release\kernel.c
+copy kernel\kernel.c release\kernel\kernel.c
+copy kernel\warrior.c release\kernel\warrior.c
+copy kernel\arms.c release\kernel\arms.c
+copy kernel\fury.c release\kernel\fury.c
 copy ic\gic_zh.qm release\gic_zh.qm
 copy LICENSE release\LICENSE
 copy %windir%\SYSWOW64\msvcr120.dll release\msvcr120.dll
@@ -44,5 +52,8 @@ copy qcplib\qcustomplot1.dll release\qcustomplot1.dll
 copy libic\README.MD release_libic\README.MD
 copy libic\LICENSE release_libic\LICENSE
 copy libic\libic.h release_libic\include\libic.h
-copy kernel.c release_libic\kernel\kernel.c
+copy kernel\kernel.c release_libic\kernel\kernel.c
+copy kernel\warrior.c release_libic\kernel\warrior.c
+copy kernel\arms.c release_libic\kernel\arms.c
+copy kernel\fury.c release_libic\kernel\fury.c
 copy libic\libic.lib release_libic\Win32\libic.lib
