@@ -18,27 +18,27 @@ struct spec_state_t{
     struct {
         time_t cd;
     } bloodthirst;
-    #define bloodthirst_cd (rti->player.class->spec->bloodthirst.cd)
+    #define bloodthirst_cd (rti->player.spec->bloodthirst.cd)
     struct {
         time_t expire;
     } enrage;
-    #define enrage_expire (rti->player.class->spec->enrage.expire)
+    #define enrage_expire (rti->player.spec->enrage.expire)
     struct {
         time_t expire;
         k32u stack;
     } taste_for_blood;
-    #define taste_for_blood_expire (rti->player.class->spec->taste_for_blood.expire)
-    #define taste_for_blood_stack  (rti->player.class->spec->taste_for_blood.stack)
+    #define taste_for_blood_expire (rti->player.spec->taste_for_blood.expire)
+    #define taste_for_blood_stack  (rti->player.spec->taste_for_blood.stack)
     struct {
         time_t expire;
     } meat_cleaver;
-    #define meat_cleaver_expire (rti->player.class->spec->meat_cleaver.expire)
+    #define meat_cleaver_expire (rti->player.spec->meat_cleaver.expire)
 #if (TALENT_WRECKING_BALL)
     struct {
         time_t expire;
         RPPM_t proc;
     } wrecking_ball;
-    #define wrecking_ball_expire (rti->player.class->spec->wrecking_ball.expire)
+    #define wrecking_ball_expire (rti->player.spec->wrecking_ball.expire)
 #else
     #define wrecking_ball_expire (0)
 #endif
@@ -46,7 +46,7 @@ struct spec_state_t{
     struct {
         time_t expire;
     } massacre;
-    #define massacre_expire (rti->player.class->spec->massacre.expire)
+    #define massacre_expire (rti->player.spec->massacre.expire)
 #else
     #define massacre_expire (0)
 #endif
@@ -54,7 +54,7 @@ struct spec_state_t{
     struct {
         time_t expire;
     } frothing_berserker;
-    #define frothing_berserker_expire (rti->player.class->spec->frothing_berserker.expire)
+    #define frothing_berserker_expire (rti->player.spec->frothing_berserker.expire)
 #else
     #define frothing_berserker_expire (0)
 #endif
@@ -62,7 +62,7 @@ struct spec_state_t{
     struct {
         time_t expire;
     } meat_grinder;
-    #define meat_grinder_expire (rti->player.class->spec->meat_grinder.expire)
+    #define meat_grinder_expire (rti->player.spec->meat_grinder.expire)
 #else
     #define meat_grinder_expire (0)
 #endif
@@ -71,8 +71,8 @@ struct spec_state_t{
         time_t expire;
         k32u stack;
     } frenzy;
-    #define frenzy_expire (rti->player.class->spec->frenzy.expire)
-    #define frenzy_stack  (rti->player.class->spec->frenzy.stack)
+    #define frenzy_expire (rti->player.spec->frenzy.expire)
+    #define frenzy_stack  (rti->player.spec->frenzy.stack)
 #else
     #define frenzy_expire (0)
     #define frenzy_stack  (0)
@@ -81,7 +81,7 @@ struct spec_state_t{
     struct {
         time_t cd;
     } raging_blow;
-    #define raging_blow_cd (rti->player.class->spec->raging_blow.cd)
+    #define raging_blow_cd (rti->player.spec->raging_blow.cd)
 #else
     #define raging_blow_cd (0)
 #endif
@@ -90,8 +90,8 @@ struct spec_state_t{
         time_t cd;
         time_t expire;
     } dragon_roar;
-    #define dragon_roar_cd     (rti->player.class->spec->dragon_roar.cd)
-    #define dragon_roar_expire (rti->player.class->spec->dragon_roar.expire)
+    #define dragon_roar_cd     (rti->player.spec->dragon_roar.cd)
+    #define dragon_roar_expire (rti->player.spec->dragon_roar.expire)
 #else
     #define dragon_roar_cd     (0)
     #define dragon_roar_expire (0)
@@ -101,8 +101,8 @@ struct spec_state_t{
         time_t expire;
         k32u stack;
     } t17p4;
-    #define rampage_expire (rti->player.class->spec->t17p4.expire)
-    #define rampage_stack  (rti->player.class->spec->t17p4.stack)
+    #define rampage_expire (rti->player.spec->t17p4.expire)
+    #define rampage_stack  (rti->player.spec->t17p4.stack)
 #else
     #define rampage_expire (0)
     #define rampage_stack  (0)
@@ -113,8 +113,8 @@ struct spec_state_t{
         k32u   stack;
         k32u   target;
     } worldbreakers_resolve;
-    #define worldbreakers_resolve_expire (rti->player.class->spec->worldbreakers_resolve.expire)
-    #define worldbreakers_resolve_stack  (rti->player.class->spec->worldbreakers_resolve.stack)
+    #define worldbreakers_resolve_expire (rti->player.spec->worldbreakers_resolve.expire)
+    #define worldbreakers_resolve_stack  (rti->player.spec->worldbreakers_resolve.stack)
 #else
     #define worldbreakers_resolve_expire (0)
     #define worldbreakers_resolve_stack  (0)
@@ -134,8 +134,7 @@ float spec_mastery_increament( rtinfo_t* rti ){
 
 float spec_crit_increament( rtinfo_t* rti ){
     float crit = 0.0f;
-    if ( UP( rampage_expire ) ) {
-        crit += 0.06f * rampage_stack;
+    if ( UP( rampage_expire ) ) crit += 0.06f * rampage_stack;
     return crit;
 }
 
@@ -187,7 +186,7 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
         if ( ENEMY_IS_DEMONIC && UP(gronntooth_war_horn_expire ) )  dmg *= 1.1f;
     //  if ( SOME_ARTIFACT_TRAITS && UP( battle_cry_expire ) )      cdb *= 1.0f + 0.1f * SOME_ARTIFACT_TRAITS;
         if ( RACE == RACE_DWARF || RACE == RACE_TAUREN )            cdb *= 1.02f;
-    if (DTYPE_PHYSICAL == dmgtype){
+    if ( DTYPE_PHYSICAL == dmgtype ){
         if ( !ignore_armor )                                        dmg *= 0.650684f; // 0.680228f @110lvl
     }
         if ( DICE_CRIT   == dice )                                  dmg *= cdb;
@@ -458,9 +457,9 @@ DECL_EVENT( taste_for_blood_expire ) {
     }
 }
 DECL_EVENT( taste_for_blood_trigger ) {
-    taste_for_blood_expire == TIME_OFFSET( FROM_SECONDS( 8 ) );
+    taste_for_blood_expire = TIME_OFFSET( FROM_SECONDS( 8 ) );
     eq_enqueue( rti, taste_for_blood_expire, routnum_taste_for_blood_expire, 0 );
-    taste_for_blood_stack = min( 6, taste_for_blood_stack + 1 );
+    taste_for_blood_stack = min( 6, (int)taste_for_blood_stack + 1 );
     lprintf( ( "taste_for_blood stack %d", taste_for_blood_stack ) );
 }
 DECL_SPELL( furious_slash ) {
@@ -478,7 +477,7 @@ DECL_EVENT( meat_cleaver_expire ) {
     }
 }
 DECL_EVENT( meat_cleaver_trigger ) {
-    meat_cleaver_expire == TIME_OFFSET( FROM_SECONDS( 60 ) );
+    meat_cleaver_expire = TIME_OFFSET( FROM_SECONDS( 60 ) );
     eq_enqueue( rti, meat_cleaver_expire, routnum_meat_cleaver_expire, 0 );
     lprintf( ( "meat_cleaver trigger" ) );
 }
@@ -741,7 +740,7 @@ DECL_EVENT( frenzy_expire ) {
 DECL_EVENT( frenzy_trigger ) {
     frenzy_expire == TIME_OFFSET( FROM_SECONDS( 10 ) );
     eq_enqueue( rti, frenzy_expire, routnum_frenzy_expire, 0 );
-    frenzy_stack = min( 3, frenzy_stack + 1 );
+    frenzy_stack = min( 3, (int)frenzy_stack + 1 );
     lprintf( ( "frenzy stack %d", frenzy_stack ) );
 }
 #endif
@@ -792,10 +791,10 @@ DECL_EVENT( worldbreakers_resolve_trigger ) {
     if ( !WBR_NEVER_EXPIRE ) {
         worldbreakers_resolve_expire = TIME_OFFSET( FROM_SECONDS( 6 ) );
         eq_enqueue( rti, worldbreakers_resolve_expire, routnum_worldbreakers_resolve_expire, 0 );
-        if( rti->player.class->spec->worldbreakers_resolve.target != target_id ) { /* Target switched. */
+        if( rti->player.spec->worldbreakers_resolve.target != target_id ) { /* Target switched. */
             worldbreakers_resolve_stack = 1;
         }
-        rti->player.class->spec->worldbreakers_resolve.target = target_id;
+        rti->player.spec->worldbreakers_resolve.target = target_id;
     }
     if ( worldbreakers_resolve_stack > 10 ) {
         worldbreakers_resolve_stack = 10;
@@ -870,25 +869,18 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
 }
 
 void spec_module_init( rtinfo_t* rti ) {
-    static struct spec_state_t spec_state;
-    static struct spec_debuff_t spec_debuff[num_enemies];
-    rti->player.class->spec = &spec_state;
-    for(int i = 0; i < num_enemies; i++){
-        rti->enemy[i].class->spec = &spec_debuff[i];
-    }
-
     power_gain( rti, 15.0f ); // charge!
     eq_enqueue( rti, rti->timestamp, routnum_auto_attack_mh, 0 );
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( SYNC_MELEE ? 0 : 0.5 ) ), routnum_auto_attack_oh, 0 );
 #if (TALENT_WRECKING_BALL)
-    initialize_rppm( rti->player.class->spec->wrecking_ball.proc );
+    initialize_rppm( rti->player.spec->wrecking_ball.proc );
 #endif
 }
 
 void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id ) {
     if ( DICE_MISS != dice && ( ATYPE_WHITE_MELEE == attacktype || ATYPE_YELLOW_MELEE == attacktype ) ) {
 #if (TALENT_WRECKING_BALL)
-        proc_RPPM( rti, &rti->player.class->spec->wrecking_ball.proc, 5.0f * ( 1.0f + rti->player.stat.haste ), routnum_wrecking_ball_trigger, target_id );
+        proc_RPPM( rti, &rti->player.spec->wrecking_ball.proc, 5.0f * ( 1.0f + rti->player.stat.haste ), routnum_wrecking_ball_trigger, target_id );
 #endif
     }
 #if defined(trinket_worldbreakers_resolve)

@@ -83,7 +83,6 @@ enum { NSPEC_ARMS, NSPEC_FURY, };
 
 /* class-spec state infos. */
 struct class_state_t {
-    struct spec_state_t* spec;
     struct {
         time_t expire;
         time_t cd;
@@ -157,7 +156,7 @@ struct class_state_t {
 #else
     #define incandescence_expire (0)
 #endif
-#if defined(legendary_ring)
+#if (legendary_ring)
     struct {
         time_t expire;
         time_t cd;
@@ -397,7 +396,6 @@ struct class_state_t {
 #endif
 };
 struct class_debuff_t {
-    struct spec_debuff_t* spec;
 #if (shatteredhand_mh)
     struct {
         time_t expire;
@@ -594,7 +592,7 @@ enum {
     routnum_incandescence_trigger,
     routnum_incandescence_expire,
 #endif
-#if defined(legendary_ring)
+#if (legendary_ring)
     routnum_thorasus_the_stone_heart_of_draenor_start,
     routnum_thorasus_the_stone_heart_of_draenor_expire,
     routnum_thorasus_the_stone_heart_of_draenor_cd,
@@ -946,7 +944,7 @@ DECL_EVENT( incandescence_expire ) {
     }
 }
 #endif
-#if defined(legendary_ring)
+#if (legendary_ring)
 DECL_EVENT( thorasus_the_stone_heart_of_draenor_start ) {
     thorasus_the_stone_heart_of_draenor_expire = TIME_OFFSET( FROM_SECONDS( 15 ) );
     eq_enqueue( rti, thorasus_the_stone_heart_of_draenor_expire, routnum_thorasus_the_stone_heart_of_draenor_expire, target_id );
@@ -1589,7 +1587,7 @@ void routine_entries( rtinfo_t* rti, _event_t e ) {
         HOOK_EVENT( incandescence_trigger );
         HOOK_EVENT( incandescence_expire );
 #endif
-#if defined(legendary_ring)
+#if (legendary_ring)
         HOOK_EVENT( thorasus_the_stone_heart_of_draenor_start );
         HOOK_EVENT( thorasus_the_stone_heart_of_draenor_expire );
         HOOK_EVENT( thorasus_the_stone_heart_of_draenor_cd );
@@ -1712,12 +1710,6 @@ void routine_entries( rtinfo_t* rti, _event_t e ) {
 void spec_module_init( rtinfo_t* rti );
 
 void class_module_init( rtinfo_t* rti ) {
-    static struct class_state_t class_state;
-    static struct class_debuff_t class_debuff[num_enemies];
-    rti->player.class = &class_state;
-    for( int i = 0; i < num_enemies; i++ ) {
-        rti->enemy[i].class = &class_debuff[i];
-    }
     spec_module_init( rti );
 
     rti->player.power = 0.0f;

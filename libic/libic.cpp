@@ -81,6 +81,7 @@ void ic_setprintcallback( ic_printcb_t cbf ) {
 void ic_init( void ) {
     // Load kernel source
     load_source( kernel_str, "kernel.c" );
+    load_source( kernel_entry_str, "entry.c" );
     load_source( kernel_warrior_str, "warrior.c" );
     load_source( kernel_arms_str, "arms.c" );
     load_source( kernel_fury_str, "fury.c" );
@@ -503,7 +504,9 @@ const char* ic_getparam( const char* key ) {
 void ic_resetparam( void ) {
     config_t blank;
     blank.device_list = config().device_list;
-    blank.kernel_str = config().kernel_str;
+    blank.kernel_entry_str = config().kernel_entry_str;
+    blank.kernel_entry_str = config().kernel_entry_str;
+    blank.kernel_warrior_str = config().kernel_warrior_str;
     blank.kernel_arms_str = config().kernel_arms_str;
     blank.kernel_fury_str = config().kernel_fury_str;
     blank.printcb = config().printcb;
@@ -878,6 +881,8 @@ IC_LOCAL std::string generate_predef( config_t& blank ) {
         predef.append( "#define legendary_ring " );
         sprintf( buffer, "%d", ( int ) ( 2500.0 * approx_scale_coeff( 735, blank.legendary_ring ) ) );
         predef.append( buffer ); predef.append( "\r\n" );
+    } else {
+        predef.append( "#define legendary_ring 0\r\n" );
     }
 
     predef.append( "#define t17_2pc " );
@@ -967,7 +972,6 @@ int ic_runsim( float* dps, float* dpsr, float* dpse, float* sim_time ) {
 
     ic_init();
     config_t blank = parameters_consistency();
-    std::string source( config().kernel_str );
     std::string predef = generate_predef( blank );
     if (config().developer_debug) {
         cbprintf( "%s\n", predef.c_str() );
@@ -1002,6 +1006,7 @@ int ic_runsim( float* dps, float* dpsr, float* dpse, float* sim_time ) {
     if (!ttprobe( hashkey, &program )) {
         // compile kernel
         cbprintf( "JIT ...\n" );
+        std::string source( config().kernel_str );
         switch( blank.spec ) {
         case SPEC_ARMS_WARRIOR:
             source += config().kernel_warrior_str;
@@ -1012,6 +1017,7 @@ int ic_runsim( float* dps, float* dpsr, float* dpse, float* sim_time ) {
             source += config().kernel_fury_str;
             break;
         }
+        source += config().kernel_entry_str;
         source = predef + source;
         source += "void scan_apl( rtinfo_t* rti ) {";
         source += blank.apl;
@@ -1082,7 +1088,7 @@ int ic_runsim( float* dps, float* dpsr, float* dpse, float* sim_time ) {
     clSetKernelArg( sim_iterate, 3, sizeof( cl_uint ), &blank.gear_crit );
     clSetKernelArg( sim_iterate, 4, sizeof( cl_uint ), &blank.gear_haste );
     clSetKernelArg( sim_iterate, 5, sizeof( cl_uint ), &blank.gear_mastery );
-    clSetKernelArg( sim_iterate, 7, sizeof( cl_uint ), &blank.gear_vers );
+    clSetKernelArg( sim_iterate, 6, sizeof( cl_uint ), &blank.gear_vers );
 
     cbprintf( "Sim ...\n" );
     size_t work_size = blank.iterations;

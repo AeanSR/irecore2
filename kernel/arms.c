@@ -20,30 +20,30 @@ struct spec_state_t{
         time_t expire;
         k32u stack;
     } cleave;
-    #define cleave_cd     (rti->player.class->spec->cleave.cd)
-    #define cleave_expire (rti->player.class->spec->cleave.expire)
-    #define cleave_stack  (rti->player.class->spec->cleave.stack)
+    #define cleave_cd     (rti->player.spec->cleave.cd)
+    #define cleave_expire (rti->player.spec->cleave.expire)
+    #define cleave_stack  (rti->player.spec->cleave.stack)
     struct {
         time_t cd;
     } colossus_smash;
-    #define colossus_smash_cd (rti->player.class->spec->colossus_smash.cd)
+    #define colossus_smash_cd (rti->player.spec->colossus_smash.cd)
     struct {
         time_t cd;
     } hamstring;
-    #define hamstring_cd (rti->player.class->spec->hamstring.cd)
+    #define hamstring_cd (rti->player.spec->hamstring.cd)
     struct {
         time_t cd;
         k32u charge;
     } mortal_strike;
-    #define mortal_strike_cd     (rti->player.class->spec->mortal_strike.cd)
-    #define mortal_strike_charge (rti->player.class->spec->mortal_strike.charge)
+    #define mortal_strike_cd     (rti->player.spec->mortal_strike.cd)
+    #define mortal_strike_charge (rti->player.spec->mortal_strike.charge)
     #define mortal_strike_maxcharge (TALENT_MORTAL_COMBO ? 2 : 1)
 #if (TALENT_OVERPOWER)
     struct {
         time_t expire;
         RPPM_t proc;
     } overpower;
-    #define overpower_expire (rti->player.class->spec->overpower.expire)
+    #define overpower_expire (rti->player.spec->overpower.expire)
 #else
     #define overpower_expire (0)
 #endif
@@ -52,8 +52,8 @@ struct spec_state_t{
         time_t cd;
         k32u stack;
     } focused_rage;
-    #define focused_rage_cd    (rti->player.class->spec->focused_rage.cd)
-    #define focused_rage_stack (rti->player.class->spec->focused_rage.stack)
+    #define focused_rage_cd    (rti->player.spec->focused_rage.cd)
+    #define focused_rage_stack (rti->player.spec->focused_rage.stack)
 #else
     #define focused_rage_cd    (0)
     #define focused_rage_stack (0)
@@ -64,12 +64,12 @@ struct spec_debuff_t{
         time_t expire;
         float increament;
     } colossus_smash;
-    #define colossus_smash_expire(target) (rti->enemy[target].class->spec->colossus_smash.expire)
+    #define colossus_smash_expire(target) (rti->enemy[target].spec->colossus_smash.expire)
 #if (TALENT_REND)
     struct {
         time_t expire;
     } rend;
-    #define rend_expire(target) (rti->enemy[target].class->spec->rend.expire)
+    #define rend_expire(target) (rti->enemy[target].spec->rend.expire)
 #else
     #define rend_expire(target) (0)
 #endif
@@ -128,7 +128,7 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
     }
     float cdb = ( 1.0f + extra_crit_bonus ) * 2.0f;
                                                                     dmg *= 1.0f + rti->player.stat.vers;
-        if ( UP( colossus_smash_expire( target_id ) ) )             dmg *= rti->enemy[target_id].class->spec->colossus_smash.increament;
+        if ( UP( colossus_smash_expire( target_id ) ) )             dmg *= rti->enemy[target_id].spec->colossus_smash.increament;
         if ( UP( avatar_expire ) )                                  dmg *= 1.2f;
         if ( UP( thorasus_the_stone_heart_of_draenor_expire ) )     dmg *= 1.0f + legendary_ring * 0.0001f;
         if ( ENEMY_IS_DEMONIC && UP( gronntooth_war_horn_expire ) ) dmg *= 1.1f;
@@ -291,13 +291,13 @@ DECL_EVENT( colossus_smash_cd ) {
 }
 DECL_EVENT( colossus_smash_expire ) {
     if ( colossus_smash_expire( target_id ) == rti->timestamp ) {
-        rti->enemy[target_id].class->spec->colossus_smash.increament = 1.0f;
+        rti->enemy[target_id].spec->colossus_smash.increament = 1.0f;
         lprintf( ( "colossus_smash expire @tar%d", target_id ) );
     }
 }
 DECL_EVENT( colossus_smash_trigger ) {
-    colossus_smash_expire( target_id ) == TIME_OFFSET( FROM_SECONDS( 8.0f * ( TALENT_TITANIC_MIGHT ? 3.0f : 1.0f ) ) );
-    rti->enemy[target_id].class->spec->colossus_smash.increament = 1.0f + ( 0.15f + rti->player.stat.mastery ) * ( TALENT_TITANIC_MIGHT ? 0.5f : 1.0f );
+    colossus_smash_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 8.0f * ( TALENT_TITANIC_MIGHT ? 3.0f : 1.0f ) ) );
+    rti->enemy[target_id].spec->colossus_smash.increament = 1.0f + ( 0.15f + rti->player.stat.mastery ) * ( TALENT_TITANIC_MIGHT ? 0.5f : 1.0f );
     lprintf( ( "colossus_smash start @tar%d", target_id ) );
 }
 DECL_EVENT( colossus_smash_cast ) {
@@ -467,8 +467,8 @@ DECL_SPELL( slam ) {
 // === tactician ==============================================================
 DECL_EVENT( tactician_trigger ) {
     // TODO: how tactician works with mortal combo?
-    mortal_strike_charge = min( mortal_strike_maxcharge, mortal_strike_charge + 1 );
-    if ( mortal_strike_charge == mortal_strike_maxcharge ) mortal_strike_cd == rti->timestamp;
+    mortal_strike_charge = min( (int)mortal_strike_maxcharge, (int)mortal_strike_charge + 1 );
+    if ( mortal_strike_charge == mortal_strike_maxcharge ) mortal_strike_cd = rti->timestamp;
     if ( UP( colossus_smash_cd ) ) {
         colossus_smash_cd = rti->timestamp;
         eq_enqueue( rti, rti->timestamp, routnum_colossus_smash_cd, 0 );
@@ -599,7 +599,7 @@ DECL_SPELL( focused_rage ) {
     arms_power_consume( rti, 15.0f );
     focused_rage_cd = TIME_OFFSET( FROM_SECONDS( 1.5f ) );
     eq_enqueue( rti, focused_rage_cd, routnum_focused_rage_cd, 0 );
-    focused_rage_stack = min( 3, focused_rage_stack + 1 );
+    focused_rage_stack = min( 3, (int)focused_rage_stack + 1 );
     lprintf( ( "cast focused_rage stack %d", focused_rage_stack ) );
     return 1;
 }
@@ -637,8 +637,8 @@ void trigger_trauma( rtinfo_t* rti, float dmg, k32u target_id ) {
 // === anger management =======================================================
 #if (TALENT_ANGER_MANAGEMENT)
 void anger_management_count( rtinfo_t* rti, float rage ) {
-    float cdr = FROM_SECONDS( max( rage, 0 ) * 0.1f );
-    cdr = min( battle_cry_cd, cdr );
+    time_t cdr = FROM_SECONDS( max( rage, 0.0f ) * 0.1f );
+    cdr = min( (int)battle_cry_cd, (int)cdr );
     battle_cry_cd -= cdr;
 }
 #endif
@@ -683,25 +683,18 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
 }
 
 void spec_module_init( rtinfo_t* rti ) {
-    static struct spec_state_t spec_state;
-    static struct spec_debuff_t spec_debuff[num_enemies];
-    rti->player.class->spec = &spec_state;
-    for(int i = 0; i < num_enemies; i++){
-        rti->enemy[i].class->spec = &spec_debuff[i];
-    }
-
     power_gain( rti, 15.0f ); // charge!
     mortal_strike_charge = mortal_strike_maxcharge;
     eq_enqueue( rti, rti->timestamp, routnum_auto_attack, 0 );
 #if (TALENT_OVERPOWER)
-    initialize_rppm( rti->player.class->spec->overpower.proc );
+    initialize_rppm( rti->player.spec->overpower.proc );
 #endif
 }
 
 void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id ) {
     if ( DICE_MISS != dice && ( ATYPE_WHITE_MELEE == attacktype || ATYPE_YELLOW_MELEE == attacktype ) ) {
 #if (TALENT_OVERPOWER)
-        proc_RPPM( rti, &rti->player.class->spec->overpower.proc, 5.0f * ( 1.0f + rti->player.stat.haste ), routnum_overpower_trigger, target_id );
+        proc_RPPM( rti, &rti->player.spec->overpower.proc, 5.0f * ( 1.0f + rti->player.stat.haste ), routnum_overpower_trigger, target_id );
 #endif
     }
 }

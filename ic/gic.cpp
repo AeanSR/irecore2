@@ -451,6 +451,15 @@ void gic::set_parameters() {
     ic_setparam( "raidbuff_food", ui.checkRaidBuffFood->isChecked() ? "1" : "0" );
     ic_setparam( "raidbuff_potion", ui.checkRaidBuffPotion->isChecked() ? "1" : "0" );
 
+    switch( ui.comboSpec->currentIndex() ) {
+    case SPEC_ARMS_WARRIOR:
+        ic_setparam( "spec", "arms" );
+        break;
+    case SPEC_FURY_WARRIOR:
+        ic_setparam( "spec", "fury" );
+        break;
+    }
+
     QString talent;
     talent += QString().setNum( ui.comboTalent1->currentIndex() );
     talent += QString().setNum( ui.comboTalent2->currentIndex() );

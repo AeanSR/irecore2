@@ -75,6 +75,7 @@
 #include "warrior.c"
 //#include "fury.c"
 #include "arms.c"
+#include "entry.c"
 
 void scan_apl( rtinfo_t* rti ) {
     //SPELL( avatar );

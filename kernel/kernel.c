@@ -276,12 +276,14 @@ typedef struct {
     float power;
     stat_t stat;
     struct class_state_t* class;
+    struct spec_state_t* spec;
     time_t gcd;
     k32u target;
 } player_t;
 
 typedef struct {
     struct class_debuff_t* class;
+    struct spec_debuff_t* spec;
 } enemy_t;
 
 /* Runtime info struct, each thread preserves its own. */
@@ -557,36 +559,4 @@ void sim_init( rtinfo_t* rti, k32u seed ) {
     class_module_init( rti );
 
     eq_enqueue( rti, rti->expected_combat_length, EVENT_END_SIMULATION, 0 );
-}
-
-/* Single iteration logic. */
-deviceonly( __kernel ) void sim_iterate(
-    deviceonly( __global ) float* dps_result,
-    k32u deterministic_seed,
-    k32u gear_str,
-    k32u gear_crit,
-    k32u gear_haste,
-    k32u gear_mastery,
-    k32u gear_vers
-) {
-    deviceonly( __private ) rtinfo_t _rti;
-    /* Write zero to RTI. */
-    _rti = ( rtinfo_t ) {
-        0
-    };
-
-    _rti.player.stat.gear_str = gear_str;
-    _rti.player.stat.gear_crit = gear_crit;
-    _rti.player.stat.gear_haste = gear_haste;
-    _rti.player.stat.gear_mastery = gear_mastery;
-    _rti.player.stat.gear_vers = gear_vers;
-
-    sim_init(
-        &_rti,
-        ( k32u )deterministic_seed + ( k32u )get_global_id( 0 )
-    );
-
-    while( eq_execute( &_rti ) );
-
-    dps_result[get_global_id( 0 )] = _rti.damage_collected / TO_SECONDS( _rti.expected_combat_length );
 }

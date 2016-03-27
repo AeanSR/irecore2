@@ -20,6 +20,7 @@ mkdir release_libic\include
 xcopy profile release_nolib\profile /I
 copy irecore.exe release_nolib\irecore.exe
 copy kernel\kernel.c release_nolib\kernel\kernel.c
+copy kernel\entry.c release_nolib\kernel\entry.c
 copy kernel\warrior.c release_nolib\kernel\warrior.c
 copy kernel\arms.c release_nolib\kernel\arms.c
 copy kernel\fury.c release_nolib\kernel\fury.c
@@ -30,6 +31,7 @@ copy LICENSE release_nolib\LICENSE
 xcopy profile release\profile /I
 copy irecore.exe release\irecore.exe
 copy kernel\kernel.c release\kernel\kernel.c
+copy kernel\entry.c release\kernel\entry.c
 copy kernel\warrior.c release\kernel\warrior.c
 copy kernel\arms.c release\kernel\arms.c
 copy kernel\fury.c release\kernel\fury.c
@@ -53,6 +55,7 @@ copy libic\README.MD release_libic\README.MD
 copy libic\LICENSE release_libic\LICENSE
 copy libic\libic.h release_libic\include\libic.h
 copy kernel\kernel.c release_libic\kernel\kernel.c
+copy kernel\entry.c release_libic\kernel\entry.c
 copy kernel\warrior.c release_libic\kernel\warrior.c
 copy kernel\arms.c release_libic\kernel\arms.c
 copy kernel\fury.c release_libic\kernel\fury.c
