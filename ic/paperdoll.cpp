@@ -154,6 +154,7 @@ void paperdoll_t::slot_switched() {
 void paperdoll_t::gear_summary_calculate() {
     char buf[32];
     int race = ui->comboRace->currentIndex();
+    int spec = ui->comboSpec->currentIndex();
     gear_list[selected_gear_slot].type = ui->comboItemType->currentIndex();
     gear_list[selected_gear_slot].str = ui->txtItemStr->text().toInt();
     gear_list[selected_gear_slot].crit = ui->txtItemCrit->text().toInt();
@@ -205,7 +206,10 @@ void paperdoll_t::gear_summary_calculate() {
     ap = str;
 
     float fmastery = ( float ) mastery;
-    fmastery = 1.4f * ( 0.08f + fmastery / 11000 );
+    float spec_mastery_coeff[2];
+    spec_mastery_coeff[SPEC_ARMS_WARRIOR] = 2.0f;
+    spec_mastery_coeff[SPEC_FURY_WARRIOR] = 1.4f;
+    fmastery = spec_mastery_coeff[spec] * ( 0.08f + fmastery / 11000 );
 
     float fcrit = ( float ) crit;
     fcrit *= 1.05f;

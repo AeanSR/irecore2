@@ -58,6 +58,17 @@ struct spec_state_t{
     #define focused_rage_cd    (0)
     #define focused_rage_stack (0)
 #endif
+#if (TALENT_RAVAGER)
+    struct {
+        time_t cd;
+        time_t expire;
+    } ravager;
+    #define ravager_cd     (rti->player.spec->ravager.cd)
+    #define ravager_expire (rti->player.spec->ravager.expire)
+#else
+    #define ravager_cd     (0)
+    #define ravager_expire (0)
+#endif
 };
 struct spec_debuff_t{
     struct {
@@ -205,6 +216,14 @@ enum{
 #if (TALENT_TRAUMA)
     routnum_trauma_tick,
 #endif
+#if (TALENT_OPPORTUNITY_STRIKES)
+    routnum_opportunity_strikes_trigger,
+#endif
+#if (TALENT_RAVAGER)
+    routnum_ravager_tick,
+    routnum_ravager_cast,
+    routnum_ravager_cd,
+#endif
     START_OF_WILD_ROUTNUM,
 };
 
@@ -331,10 +350,10 @@ DECL_EVENT( execute_cast ) {
     r += execute_base_rage_cost( rti ) - 10.0f; /* so the rage cost could even be negative. */
     /* if base rage cost reduced to 0, current rage = 0, multiplier could even be 0. */
     if ( TALENT_DAUNTLESS ){
-        power_consume( rti, r * 0.8f );
+        power_consume( rti, r * 0.8f ); /* to avoid dauntless. */
         rti->player.power -= r * 0.2f; /* this is safe. to avoid anger management. */
     } else {
-        power_consume( rti, r );
+        power_consume( rti, r ); /* to avoid dauntless. */
     }
     float d = weapon_dmg( rti, 2.00f, 1, 0 ) * multiplier;
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
@@ -488,10 +507,10 @@ DECL_EVENT( whirlwind_cast ) {
         k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
         deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier;
-        dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
+        dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
         deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier;
-        dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
+        dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
         deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         lprintf( ( "whirlwind hit @tar%d", i ) );
         if ( uni_rng( rti ) < 0.15f ) {
@@ -547,7 +566,7 @@ DECL_SPELL( overpower ) {
 DECL_EVENT( rend_tick ) {
     if ( rend_expire( target_id ) < rti->timestamp ) return; // last tick evaluates as equal.
     float d = ap_dmg( rti, 1.5f );
-    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0.6f ); // TODO: does rend proc? is rend effected by battle cry?
+    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 ); // TODO: does rend proc? is rend effected by battle cry?
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     lprintf( ( "rend tick" ) );
     if ( TIME_DISTANT( rend_expire( target_id ) ) >= FROM_SECONDS( 3 ) ) {
@@ -608,27 +627,27 @@ DECL_SPELL( focused_rage ) {
 // === trauma =================================================================
 #if (TALENT_TRAUMA)
 DECL_EVENT( trauma_tick ) {
-    if ( rti->enemy[target_id].trauma.ticks < 1.0f ) return;
-    if ( rti->enemy[target_id].trauma.dot_start + FROM_SECONDS( 8.0f - 2.0f * rti->enemy[target_id].trauma.ticks ) != rti->timestamp ) return;
-    float dmg = rti->enemy[target_id].trauma.pool / rti->enemy[target_id].trauma.ticks;
-    rti->enemy[target_id].trauma.pool -= dmg;
+    if ( rti->enemy[target_id].spec->trauma.ticks < 1.0f ) return;
+    if ( rti->enemy[target_id].spec->trauma.dot_start + FROM_SECONDS( 8.0f - 2.0f * rti->enemy[target_id].spec->trauma.ticks ) != rti->timestamp ) return;
+    float dmg = rti->enemy[target_id].spec->trauma.pool / rti->enemy[target_id].spec->trauma.ticks;
+    rti->enemy[target_id].spec->trauma.pool -= dmg;
     deal_damage( rti, target_id, dmg, DTYPE_DIRECT, DICE_HIT, 0, 0 );
     lprintf( ( "trauma ticks" ) );
-    rti->enemy[target_id].trauma.ticks -= 1.0f;
-    if ( rti->enemy[target_id].trauma.ticks >= 1.0f )
+    rti->enemy[target_id].spec->trauma.ticks -= 1.0f;
+    if ( rti->enemy[target_id].spec->trauma.ticks >= 1.0f )
         eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1 ) ), routnum_trauma_tick, target_id );
 }
 void trigger_trauma( rtinfo_t* rti, float dmg, k32u target_id ) {
-    rti->enemy[target_id].trauma.pool += dmg * 0.2f;
-    if ( rti->enemy[target_id].trauma.ticks < 1.0f ) {
-        rti->enemy[target_id].trauma.dot_start = rti->timestamp;
-        rti->enemy[target_id].trauma.ticks = 3.0f;
+    rti->enemy[target_id].spec->trauma.pool += dmg * 0.2f;
+    if ( rti->enemy[target_id].spec->trauma.ticks < 1.0f ) {
+        rti->enemy[target_id].spec->trauma.dot_start = rti->timestamp;
+        rti->enemy[target_id].spec->trauma.ticks = 3.0f;
         eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 2 ) ), routnum_trauma_tick, target_id );
         lprintf( ( "trauma apply @tar%d", target_id ) );
     } else {
-        float new_ticks = 3.0f - rti->enemy[target_id].trauma.ticks;
-        rti->enemy[target_id].trauma.ticks = 3.0f;
-        rti->enemy[target_id].trauma.dot_start += FROM_SECONDS( new_ticks * 2 )
+        float new_ticks = 3.0f - rti->enemy[target_id].spec->trauma.ticks;
+        rti->enemy[target_id].spec->trauma.ticks = 3.0f;
+        rti->enemy[target_id].spec->trauma.dot_start += FROM_SECONDS( new_ticks * 2 );
         lprintf( ( "trauma @tar%d extends", target_id ) );
     }
 }
@@ -642,6 +661,54 @@ void anger_management_count( rtinfo_t* rti, float rage ) {
     battle_cry_cd -= cdr;
 }
 #endif
+
+// === opportunity strikes ====================================================
+#if (TALENT_OPPORTUNITY_STRIKES)
+DECL_EVENT( opportunity_strikes_trigger ) {
+    float d = weapon_dmg( rti, 2.0f, 1, 0 );
+    k32u dice = round_table_dice2( rti, target_id, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
+    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    lprintf( ( "opportunity_strikes hit" ) );
+}
+#endif
+
+// === ravager ================================================================
+#if (TALENT_RAVAGER)
+DECL_EVENT( ravager_cd ) {
+    if ( ravager_expire == rti->timestamp ) {
+        lprintf( ( "ravager cd" ) );
+    }
+}
+DECL_EVENT( ravager_tick ) {
+    for( int i = 0; i < num_enemies; i++ ) {
+        float d = ap_dmg( rti, 0.738f );
+        k32u dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
+        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        lprintf( ( "ravager tick" ) );
+    }
+    if ( REMAIN( ravager_expire ) > FROM_SECONDS( 0.5f ) ) {
+        eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1 ) ), routnum_ravager_tick, 0 );
+    } else {
+        lprintf( ( "ravager expire" ) );
+    }
+}
+DECL_EVENT( ravager_cast ) {
+    eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1 ) ), routnum_ravager_tick, 0 );
+    lprintf( ( "ravager cast" ) );
+}
+DECL_SPELL( ravager ) {
+    if ( rti->player.gcd > rti->timestamp ) return 0;
+    if ( ravager_cd > rti->timestamp ) return 0;
+    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    eq_enqueue( rti, rti->timestamp, routnum_ravager_cast, 0 );
+    ravager_cd = TIME_OFFSET( FROM_SECONDS( 60 ) );
+    ravager_expire = TIME_OFFSET( FROM_SECONDS( 10 ) );
+    eq_enqueue( rti, ravager_cd, routnum_ravager_cd, 0 );
+    lprintf( ( "cast ravager" ) );
+    return 1;
+}
+#endif
+
 
 void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
     switch( e.routine ) {
@@ -676,6 +743,14 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
 #if (TALENT_TRAUMA)
         HOOK_EVENT( trauma_tick );
 #endif
+#if (TALENT_OPPORTUNITY_STRIKES)
+        HOOK_EVENT( opportunity_strikes_trigger );
+#endif
+#if (TALENT_RAVAGER)
+        HOOK_EVENT( ravager_tick );
+        HOOK_EVENT( ravager_cast );
+        HOOK_EVENT( ravager_cd );
+#endif
     default:
         lprintf( ( "wild spec routine entry %d, last defined routnum %d", e.routine, START_OF_WILD_ROUTNUM - 1 ) );
         assert( 0 );
@@ -695,6 +770,13 @@ void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_
     if ( DICE_MISS != dice && ( ATYPE_WHITE_MELEE == attacktype || ATYPE_YELLOW_MELEE == attacktype ) ) {
 #if (TALENT_OVERPOWER)
         proc_RPPM( rti, &rti->player.spec->overpower.proc, 5.0f * ( 1.0f + rti->player.stat.haste ), routnum_overpower_trigger, target_id );
+#endif
+    }
+    if ( DICE_MISS != dice && ATYPE_YELLOW_MELEE == attacktype ) {
+#if (TALENT_OPPORTUNITY_STRIKES)
+        if ( uni_rng( rti ) < mix( 0.6f, 0.0f, enemy_health_percent( rti ) * 0.01f ) ) {
+            eq_enqueue( rti, rti->timestamp, routnum_opportunity_strikes_trigger, target_id );
+        }
 #endif
     }
 }

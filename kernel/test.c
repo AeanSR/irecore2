@@ -68,19 +68,20 @@
 #define TALENT_TIER3 3
 #define TALENT_TIER4 3
 #define TALENT_TIER5 3
-#define TALENT_TIER6 3
-#define TALENT_TIER7 3
+#define TALENT_TIER6 1
+#define TALENT_TIER7 1
 
 #include "kernel.c"
 #include "warrior.c"
-//#include "fury.c"
-#include "arms.c"
+#include "fury.c"
+//#include "arms.c"
 #include "entry.c"
 
 void scan_apl( rtinfo_t* rti ) {
     //SPELL( avatar );
     SPELL( battle_cry );
     SPELL( heroic_leap );
+    // SPELL( ravager );
     //SPELL( bloodthirst );
     //SPELL( storm_bolt );
     //SPELL( bladestorm );

@@ -640,6 +640,7 @@ void gic::on_comboSpec_currentIndexChanged( int idx ) {
     ui.comboTalent5->setCurrentIndex( std::max( t5, 0 ) );
     ui.comboTalent6->setCurrentIndex( std::max( t6, 0 ) );
     ui.comboTalent7->setCurrentIndex( std::max( t7, 0 ) );
+    gear_summary_calculate();
 }
 
 void gic::on_btnImport_clicked() {

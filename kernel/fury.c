@@ -625,16 +625,16 @@ DECL_EVENT( whirlwind_cast ) {
         dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
         deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         d = weapon_dmg( rti, 0.48f, 1, 0 ) * multiplier;
-        dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
+        dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
         deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         d = weapon_dmg( rti, 0.48f, 1, 1 ) * multiplier;
-        dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
+        dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
         deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         d = weapon_dmg( rti, 0.48f, 1, 0 ) * multiplier;
-        dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
+        dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
         deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         d = weapon_dmg( rti, 0.48f, 1, 1 ) * multiplier;
-        dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
+        dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
         deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         lprintf( ( "whirlwind hit @tar%d", i ) );
     }
@@ -663,7 +663,7 @@ DECL_EVENT( wrecking_ball_expire ) {
     }
 }
 DECL_EVENT( wrecking_ball_trigger ) {
-    wrecking_ball_expire == TIME_OFFSET( FROM_SECONDS( 10 ) );
+    wrecking_ball_expire = TIME_OFFSET( FROM_SECONDS( 10 ) );
     eq_enqueue( rti, wrecking_ball_expire, routnum_wrecking_ball_expire, 0 );
     lprintf( ( "wrecking_ball trigger" ) );
 }
@@ -677,7 +677,7 @@ DECL_EVENT( massacre_expire ) {
     }
 }
 DECL_EVENT( massacre_trigger ) {
-    massacre_expire == TIME_OFFSET( FROM_SECONDS( 10 ) );
+    massacre_expire = TIME_OFFSET( FROM_SECONDS( 10 ) );
     eq_enqueue( rti, massacre_expire, routnum_massacre_expire, 0 );
     lprintf( ( "massacre trigger" ) );
 }
@@ -723,7 +723,7 @@ DECL_EVENT( meat_grinder_expire ) {
     }
 }
 DECL_EVENT( meat_grinder_trigger ) {
-    meat_grinder_expire == TIME_OFFSET( FROM_SECONDS( 60 ) );
+    meat_grinder_expire = TIME_OFFSET( FROM_SECONDS( 60 ) );
     eq_enqueue( rti, meat_grinder_expire, routnum_meat_grinder_expire, 0 );
     lprintf( ( "meat_grinder trigger" ) );
 }
@@ -738,7 +738,7 @@ DECL_EVENT( frenzy_expire ) {
     }
 }
 DECL_EVENT( frenzy_trigger ) {
-    frenzy_expire == TIME_OFFSET( FROM_SECONDS( 10 ) );
+    frenzy_expire = TIME_OFFSET( FROM_SECONDS( 10 ) );
     eq_enqueue( rti, frenzy_expire, routnum_frenzy_expire, 0 );
     frenzy_stack = min( 3, (int)frenzy_stack + 1 );
     lprintf( ( "frenzy stack %d", frenzy_stack ) );
@@ -756,7 +756,7 @@ DECL_EVENT( dragon_roar_cast ) {
     float d = ap_dmg( rti, 1.98f );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 1 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 1 );
-    dragon_roar_expire == TIME_OFFSET( FROM_SECONDS( 6 ) );
+    dragon_roar_expire = TIME_OFFSET( FROM_SECONDS( 6 ) );
     eq_enqueue( rti, dragon_roar_expire, routnum_dragon_roar_expire, 0 );
     lprintf( ( "dragon_roar hit/trigger" ) );
 }
