@@ -905,7 +905,7 @@ DECL_SPELL( avatar ) {
     if ( avatar_cd > rti->timestamp ) return 0;
     if ( UP( bladestorm_expire ) ) return 0;
     avatar_expire = TIME_OFFSET( FROM_SECONDS( 20 ) );
-    eq_enqueue( rti, avatar_expire, routnum_avatar_expire, target_id );
+    eq_enqueue( rti, avatar_expire, routnum_avatar_expire, 0 );
     eq_enqueue( rti, rti->timestamp, routnum_avatar_start, 0 );
     avatar_cd = TIME_OFFSET( FROM_SECONDS( 90 ) );
     eq_enqueue( rti, avatar_cd, routnum_avatar_cd, 0 );
@@ -1928,7 +1928,7 @@ void special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id ) 
         }
 #endif
 #if (thunderlord_oh)
-        if ( UP( rti->player.class->enchant_oh.expire ) && rti->player.enchant_oh.extend ) {
+        if ( UP( rti->player.class->enchant_oh.expire ) && rti->player.class->enchant_oh.extend ) {
             rti->player.class->enchant_oh.extend --;
             rti->player.class->enchant_oh.expire += FROM_SECONDS( 2 );
             eq_enqueue( rti, rti->player.class->enchant_oh.expire, routnum_enchant_oh_expire, target_id );
