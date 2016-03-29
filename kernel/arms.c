@@ -15,6 +15,7 @@
 
 /* spec state infos. */
 struct spec_state_t{
+    int placeholder;
     struct {
         time_t cd;
         time_t expire;
@@ -71,6 +72,7 @@ struct spec_state_t{
 #endif
 };
 struct spec_debuff_t{
+    int placeholder;
     struct {
         time_t expire;
         float increament;
@@ -559,6 +561,10 @@ DECL_SPELL( overpower ) {
     lprintf( ( "cast overpower" ) );
     return 1;
 }
+#else
+DECL_SPELL( overpower ) {
+    return 0;
+}
 #endif
 
 // === rend ===================================================================
@@ -593,6 +599,10 @@ DECL_SPELL( rend ) {
     lprintf( ( "cast rend" ) );
     return 1;
 }
+#else
+DECL_SPELL( rend ) {
+    return 0;
+}
 #endif
 
 // === bladestorm =============================================================
@@ -621,6 +631,10 @@ DECL_SPELL( focused_rage ) {
     focused_rage_stack = min( 3, (int)focused_rage_stack + 1 );
     lprintf( ( "cast focused_rage stack %d", focused_rage_stack ) );
     return 1;
+}
+#else
+DECL_SPELL( focused_rage ) {
+    return 0;
 }
 #endif
 
@@ -706,6 +720,10 @@ DECL_SPELL( ravager ) {
     eq_enqueue( rti, ravager_cd, routnum_ravager_cd, 0 );
     lprintf( ( "cast ravager" ) );
     return 1;
+}
+#else
+DECL_SPELL( ravager ) {
+    return 0;
 }
 #endif
 

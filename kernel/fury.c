@@ -15,6 +15,7 @@
 
 /* spec state infos. */
 struct spec_state_t{
+    int placeholder;
     struct {
         time_t cd;
     } bloodthirst;
@@ -121,7 +122,7 @@ struct spec_state_t{
 #endif
 };
 struct spec_debuff_t{
-
+    int placeholder;
 };
 
 float spec_mastery_coefficient( rtinfo_t* rti ){
@@ -774,6 +775,10 @@ DECL_SPELL( dragon_roar ) {
     eq_enqueue( rti, dragon_roar_cd, routnum_dragon_roar_cd, 0 );
     lprintf( ( "cast dragon_roar" ) );
     return 1;
+}
+#else
+DECL_SPELL( dragon_roar ) {
+    return 0;
 }
 #endif
 

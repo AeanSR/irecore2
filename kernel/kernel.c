@@ -560,3 +560,6 @@ void sim_init( rtinfo_t* rti, k32u seed ) {
 
     eq_enqueue( rti, rti->expected_combat_length, EVENT_END_SIMULATION, 0 );
 }
+
+// APL helper.
+#define cycle_targets(v) safemacro( k32u t = rti->player.target; for( rti->player.target = 0; rti->player.target < num_enemies; rti->player.target++ ) { v; } rti->player.target = t; )

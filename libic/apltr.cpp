@@ -116,6 +116,7 @@ IC_LOCAL void veprintf( token_t tok, int type, const char* message, va_list vl )
     cbprintf( "\n" );
 }
 IC_LOCAL void eprintf( token_t tok, int type, const char* message, ... ) {
+    if (0 == tok.apl.compare(".precombat")) return;
     va_list vl;
     va_start( vl, message );
     veprintf( tok, type, message, vl );
@@ -142,7 +143,7 @@ IC_LOCAL void read_source( const char* filename ) {
     }
 }
 
-enum { VAR, CONST, AND, OR, NOT, EQ, NE, LT, GT, LE, GE, ADD, SUB, NEG, MUL, DIV };
+enum { VAR, VAR_CD, CONST, SYNC, AND, OR, NOT, EQ, NE, LT, GT, LE, GE, ADD, SUB, NEG, MUL, DIV };
 
 typedef struct {
     const char* simc;
@@ -150,40 +151,62 @@ typedef struct {
     int type;
 } item_t;
 
+typedef struct {
+    const char* simc1;
+    const char* simc2;
+    const char* ic;
+    int type;
+} item_context_dependent_t;
+
 namespace apltr {
     IC_LOCAL item_t act_list[] =
     {
+        { "auto_attack", "0" },
+        { "charge", "0" },
         { "wait", "return", 0 },
-        { "bloodthirst", "SPELL(bloodthirst)", 0 },
-        { "raging_blow", "SPELL(ragingblow)", 0 },
-        { "wild_strike", "SPELL(wildstrike)", 0 },
-        { "whirlwind", "SPELL(whirlwind)", 0 },
+        { "battle_cry", "SPELL(battle_cry)", 0 },
+        { "berserker_rage", "SPELL(berserker_rage)", 0 },
+        { "avatar", "SPELL(avatar)", 0 },
+        { "heroic_leap", "SPELL(heroic_leap)", 0 },
+        { "heroic_charge", "SPELL(heroic_leap)", 0 }, /* I guess this is a typo. */
+        { "potion", "SPELL(potion)", 0 },
+        { "storm_bolt", "SPELL(storm_bolt)", 0 },
+        { "shockwave", "SPELL(shockwave)", 0 },
+        { "avatar", "SPELL(avatar)", 0 },
+        { "bladestorm", "SPELL(bladestorm)", 0 },
+        { "thorasus_the_stone_heart_of_draenor", "SPELL(thorasus_the_stone_heart_of_draenor)", 0 },
+        { "arcane_torrent", "SPELL(arcane_torrent)", 0 },
+        { "blood_fury", "SPELL(blood_fury)", 0 },
+        { "berserking", "SPELL(berserking)", 0 },
+        { "vial_of_convulsive_shadows", "SPELL(vial_of_convulsive_shadows)", 0 },
+        { "scabbard_of_kyanos", "SPELL(scabbard_of_kyanos)", 0 },
+        { "primal_gladiators_badge_of_victory", "SPELL(badge_of_victory)", 0 },
+        { "primal_combatants_badge_of_victory", "SPELL(badge_of_victory)", 0 },
+        { "wild_gladiators_badge_of_victory", "SPELL(badge_of_victory)", 0 },
+        { "wild_combatants_badge_of_victory", "SPELL(badge_of_victory)", 0 },
+        { "warmongering_gladiators_badge_of_victory", "SPELL(badge_of_victory)", 0 },
+        { "warmongering_combatants_badge_of_victory", "SPELL(badge_of_victory)", 0 },
+        { "bonemaws_big_toe", "SPELL(bonemaws_big_toe)", 0 },
+        { "emberscale_talisman", "SPELL(emberscale_talisman)", 0 },
+
         { "execute", "SPELL(execute)", 0 },
-        { "potion", "POTION(SPELL(potion),0)", 0 },
-        { "berserker_rage", "SPELL(berserkerrage)", 0 },
-        { "recklessness", "SPELL(recklessness)", 0 },
-        { "storm_bolt", "T41(SPELL(stormbolt),0)", 0 },
-        { "shockwave", "T42(SPELL(shockwave),0)", 0 },
-        { "dragon_roar", "T43(SPELL(dragonroar),0)", 0 },
-        { "ravager", "T72(SPELL(ravager),0)", 0 },
-        { "siegebreaker", "T73(SPELL(siegebreaker),0)", 0 },
-        { "bladestorm", "T63(SPELL(bladestorm),0)", 0 },
-        { "avatar", "T61(SPELL(avatar),0)", 0 },
-        { "bloodbath", "T62(SPELL(bloodbath),0)", 0 },
-        { "arcane_torrent", "BELF(SPELL(arcanetorrent),0)", 0 },
-        { "blood_fury", "ORC(SPELL(bloodfury),0)", 0 },
-        { "berserking", "TROLL(SPELL(berserking),0)", 0 },
-        { "thorasus_the_stone_heart_of_draenor", "LEGENDARY(SPELL(thorasus_the_stone_heart_of_draenor),0)", 0 },
-        { "vial_of_convulsive_shadows", "TRINKET_VIAL(SPELL(vial_of_convulsive_shadows),0)", 0 },
-        { "scabbard_of_kyanos", "TRINKET_KYANOS(SPELL(scabbard_of_kyanos),0)", 0 },
-        { "primal_gladiators_badge_of_victory", "TRINKET_PVP(SPELL(badge_of_victory),0)", 0 },
-        { "primal_combatants_badge_of_victory", "TRINKET_PVP(SPELL(badge_of_victory),0)", 0 },
-        { "wild_gladiators_badge_of_victory", "TRINKET_PVP(SPELL(badge_of_victory),0)", 0 },
-        { "wild_combatants_badge_of_victory", "TRINKET_PVP(SPELL(badge_of_victory),0)", 0 },
-        { "warmongering_gladiators_badge_of_victory", "TRINKET_PVP(SPELL(badge_of_victory),0)", 0 },
-        { "warmongering_combatants_badge_of_victory", "TRINKET_PVP(SPELL(badge_of_victory),0)", 0 },
-        { "bonemaws_big_toe", "TRINKET_TOE(SPELL(bonemaws_big_toe),0)", 0 },
-        { "emberscale_talisman", "TRINKET_EMBER(SPELL(emberscale_talisman),0)", 0 },
+        { "whirlwind", "SPELL(whirlwind)", 0 },
+
+        { "cleave", "SPELL(cleave)", 0 },
+        { "colossus_smash", "SPELL(colossus_smash)", 0 },
+        { "hamstring", "SPELL(hamstring)", 0 },
+        { "mortal_strike", "SPELL(mortal_strike)", 0 },
+        { "slam", "SPELL(slam)", 0 },
+        { "overpower", "SPELL(overpower)", 0 },
+        { "rend", "SPELL(rend)", 0 },
+        { "focused_rage", "SPELL(focused_rage)", 0 },
+        { "ravager", "SPELL(ravager)", 0 },
+
+        { "bloodthirst", "SPELL(bloodthirst)", 0 },
+        { "furious_slash", "SPELL(furious_slash)", 0 },
+        { "raging_blow", "SPELL(raging_blow)", 0 },
+        { "rampage", "SPELL(rampage)", 0 },
+        { "dragon_roar", "SPELL(dragon_roar)", 0 },
         { 0 }
     };
 }
@@ -199,102 +222,21 @@ namespace apltr {
     IC_LOCAL item_t var_list[] =
     {
         { "spell_targets.bladestorm_mh", "num_enemies", 0 },
+        { "spell_targets.cleave", "min(num_enemies,5)", 0 },
         { "spell_targets.whirlwind", "num_enemies", 0 },
         { "enemies", "num_enemies", 0 },
         { "active_enemies", "num_enemies", 0 },
         { "desired_targets", "num_enemies", 0 },
-        { "buff.enrage.down", "!UP(enrage.expire)", 0 },
-        { "buff.enrage.up", "UP(enrage.expire)", 0 },
-        { "buff.enrage.remains", "TO_SECONDS(REMAIN(enrage.expire))", 0 },
-        { "buff.enrage.react", "UP(enrage.expire)", 0 },
-        { "buff.raging_blow.down", "!UP(ragingblow.expire)", 0 },
-        { "buff.raging_blow.up", "UP(ragingblow.expire)", 0 },
-        { "buff.raging_blow.remains", "TO_SECONDS(REMAIN(ragingblow.expire))", 0 },
-        { "buff.raging_blow.react", "rti->player.ragingblow.stack", 0 },
-        { "buff.raging_blow.stack", "rti->player.ragingblow.stack", 0 },
-        { "cooldown.bloodthirst.up", "UP(bloodthirst.cd)", 0 },
-        { "cooldown.bloodthirst.down", "!UP(bloodthirst.cd)", 0 },
-        { "cooldown.bloodthirst.remains", "TO_SECONDS(REMAIN(bloodthirst.cd))", 0 },
-        { "buff.meat_cleaver.down", "!UP(meatcleaver.expire)", 0 },
-        { "buff.meat_cleaver.up", "UP(meatcleaver.expire)", 0 },
-        { "buff.meat_cleaver.remains", "TO_SECONDS(REMAIN(meatcleaver.expire))", 0 },
-        { "buff.meat_cleaver.react", "rti->player.meatcleaver.stack", 0 },
-        { "buff.meat_cleaver.stack", "rti->player.meatcleaver.stack", 0 },
-        { "buff.bloodsurge.down", "!UP(bloodsurge.expire)", 0 },
-        { "buff.bloodsurge.up", "UP(bloodsurge.expire)", 0 },
-        { "buff.bloodsurge.remains", "TO_SECONDS(REMAIN(bloodsurge.expire))", 0 },
-        { "buff.bloodsurge.react", "rti->player.bloodsurge.stack", 0 },
-        { "buff.bloodsurge.stack", "rti->player.bloodsurge.stack", 0 },
         { "target.time_to_die", "TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))", 0 },
         { "target.health.pct", "enemy_health_percent(rti)", 0 },
         { "rage", "rti->player.power", 0 },
         { "rage.max", "power_max", 0 },
-        { "buff.sudden_death.down", "T32(!UP(suddendeath.expire),0)", 0 },
-        { "buff.sudden_death.up", "T32(UP(suddendeath.expire),0)", 0 },
-        { "buff.sudden_death.remains", "T32(TO_SECONDS(REMAIN(suddendeath.expire)),0)", 0 },
-        { "buff.sudden_death.react", "T32(UP(suddendeath.expire),0)", 0 },
-        { "talent.unquenchable_thirst.enabled", "T33(1,0)", 0 },
-        { "talent.sudden_death.enabled", "T32(1,0)", 0 },
-        { "talent.furious_strike.enabled", "T31(1,0)", 0 },
-        { "talent.storm_bolt.enabled", "T41(1,0)", 0 },
-        { "talent.shockwave.enabled", "T42(1,0)", 0 },
-        { "talent.dragon_roar.enabled", "T43(1,0)", 0 },
-        { "talent.avatar.enabled", "T61(1,0)", 0 },
-        { "talent.bloodbath.enabled", "T62(1,0)", 0 },
-        { "talent.bladestorm.enabled", "T63(1,0)", 0 },
-        { "talent.anger_management.enabled", "T71(1,0)", 0 },
-        { "talent.ravager.enabled", "T72(1,0)", 0 },
-        { "talent.siegebreaker.enabled", "T73(1,0)", 0 },
-        { "cooldown.berserker_rage.up", "UP(berserkerrage.cd)", 0 },
-        { "cooldown.berserker_rage.down", "!UP(berserkerrage.cd)", 0 },
-        { "cooldown.berserker_rage.remains", "TO_SECONDS(REMAIN(berserkerrage.cd))", 0 },
-        { "cooldown.recklessness.up", "UP(recklessness.cd)", 0 },
-        { "cooldown.recklessness.down", "!UP(recklessness.cd)", 0 },
-        { "cooldown.recklessness.remains", "TO_SECONDS(REMAIN(recklessness.cd))", 0 },
-        { "buff.recklessness.down", "!UP(recklessness.expire)", 0 },
-        { "buff.recklessness.up", "UP(recklessness.expire)", 0 },
-        { "buff.recklessness.remains", "TO_SECONDS(REMAIN(recklessness.expire))", 0 },
-        { "buff.recklessness.react", "UP(recklessness.expire)", 0 },
-        { "cooldown.storm_bolt.up", "T41(UP(stormbolt.cd),0)", 0 },
-        { "cooldown.storm_bolt.down", "T41(!UP(stormbolt.cd),0)", 0 },
-        { "cooldown.storm_bolt.remains", "T41(TO_SECONDS(REMAIN(stormbolt.cd)),0)", 0 },
-        { "cooldown.shockwave.up", "T42(UP(shockwave.cd),0)", 0 },
-        { "cooldown.shockwave.down", "T42(!UP(shockwave.cd),0)", 0 },
-        { "cooldown.shockwave.remains", "T42(TO_SECONDS(REMAIN(shockwave.cd)),0)", 0 },
-        { "cooldown.dragon_roar.up", "T43(UP(dragonroar.cd),0)", 0 },
-        { "cooldown.dragon_roar.down", "T43(!UP(dragonroar.cd),0)", 0 },
-        { "cooldown.dragon_roar.remains", "T43(TO_SECONDS(REMAIN(dragonroar.cd)),0)", 0 },
-        { "cooldown.avatar.up", "T61(UP(avatar.cd),0)", 0 },
-        { "cooldown.avatar.down", "T61(!UP(avatar.cd),0)", 0 },
-        { "cooldown.avatar.remains", "T61(TO_SECONDS(REMAIN(avatar.cd)),0)", 0 },
-        { "buff.avatar.down", "T61(!UP(avatar.expire),0)", 0 },
-        { "buff.avatar.up", "T61(UP(avatar.expire),0)", 0 },
-        { "buff.avatar.remains", "T61(TO_SECONDS(REMAIN(avatar.expire)),0)", 0 },
-        { "buff.avatar.react", "T61(UP(avatar.expire),0)", 0 },
-        { "cooldown.bloodbath.up", "T62(UP(bloodbath.cd),0)", 0 },
-        { "cooldown.bloodbath.down", "T62(!UP(bloodbath.cd),0)", 0 },
-        { "cooldown.bloodbath.remains", "T62(TO_SECONDS(REMAIN(bloodbath.cd)),0)", 0 },
-        { "buff.bloodbath.down", "T62(!UP(bloodbath.expire),0)", 0 },
-        { "buff.bloodbath.up", "T62(UP(bloodbath.expire),0)", 0 },
-        { "buff.bloodbath.remains", "T62(TO_SECONDS(REMAIN(bloodbath.expire)),0)", 0 },
-        { "buff.bloodbath.react", "T62(UP(bloodbath.expire),0)", 0 },
-        { "cooldown.bladestorm.up", "T63(UP(bladestorm.cd),0)", 0 },
-        { "cooldown.bladestorm.down", "T63(!UP(bladestorm.cd),0)", 0 },
-        { "cooldown.bladestorm.remains", "T63(TO_SECONDS(REMAIN(bladestorm.cd)),0)", 0 },
-        { "buff.bladestorm.down", "T63(!UP(bladestorm.expire),0)", 0 },
-        { "buff.bladestorm.up", "T63(UP(bladestorm.expire),0)", 0 },
-        { "buff.bladestorm.remains", "T63(TO_SECONDS(REMAIN(bladestorm.expire)),0)", 0 },
-        { "buff.bladestorm.react", "T63(UP(bladestorm.expire),0)", 0 },
-        { "cooldown.ravager.up", "T72(UP(ravager.cd),0)", 0 },
-        { "cooldown.ravager.down", "T72(!UP(ravager.cd),0)", 0 },
-        { "cooldown.ravager.remains", "T72(TO_SECONDS(REMAIN(ravager.cd)),0)", 0 },
-        { "buff.ravager.down", "T72(!UP(ravager.expire),0)", 0 },
-        { "buff.ravager.up", "T72(UP(ravager.expire),0)", 0 },
-        { "buff.ravager.remains", "T72(TO_SECONDS(REMAIN(ravager.expire)),0)", 0 },
-        { "buff.ravager.react", "T72(UP(ravager.expire),0)", 0 },
-        { "cooldown.siegebreaker.up", "T73(UP(siegebreaker.cd),0)", 0 },
-        { "cooldown.siegebreaker.down", "T73(!UP(siegebreaker.cd),0)", 0 },
-        { "cooldown.siegebreaker.remains", "T73(TO_SECONDS(REMAIN(siegebreaker.cd)),0)", 0 },
+        { "rage.deficit", "(power_max-rti->player.power)", 0 },
+        { "gcd", "TO_SECONDS(REMAIN(rti->player.gcd))", 0 },
+        { "set_bonus.tier18_4pc", "t18_4pc", 0 },
+        { "set_bonus.tier18_2pc", "t18_2pc", 0 },
+        { "set_bonus.tier17_4pc", "t17_4pc", 0 },
+        { "set_bonus.tier17_2pc", "t17_2pc", 0 },
         { "raid_event.adds.in", "0", 0 },
         { "raid_event.adds.exists", "0", 0 },
         { "raid_event.adds.count", "0", 0 },
@@ -302,10 +244,220 @@ namespace apltr {
         { "raid_event.movement.in", "0", 0 },
         { "raid_event.movement.exists", "0", 0 },
         { "raid_event.movement.cooldown", "65535", 0 },
-        { "set_bonus.tier18_4pc", "t18_4pc", 0 },
-        { "set_bonus.tier18_2pc", "t18_2pc", 0 },
-        { "set_bonus.tier17_4pc", "t17_4pc", 0 },
-        { "set_bonus.tier17_2pc", "t17_2pc", 0 },
+
+        { "cooldown.bloodthirst.up", "UP(bloodthirst_cd)", 0 },
+        { "cooldown.bloodthirst.down", "!UP(bloodthirst_cd)", 0 },
+        { "cooldown.bloodthirst.remains", "TO_SECONDS(REMAIN(bloodthirst_cd))", 0 },
+        { "buff.enrage.down", "!UP(enrage_expire)", 0 },
+        { "buff.enrage.up", "UP(enrage_expire)", 0 },
+        { "buff.enrage.remains", "TO_SECONDS(REMAIN(enrage_expire))", 0 },
+        { "buff.enrage.react", "UP(enrage_expire)", 0 },
+        { "buff.taste_for_blood.down", "!UP(taste_for_blood_expire)", 0 },
+        { "buff.taste_for_blood.up", "UP(taste_for_blood_expire)", 0 },
+        { "buff.taste_for_blood.remains", "TO_SECONDS(REMAIN(taste_for_blood_expire))", 0 },
+        { "buff.taste_for_blood.react", "taste_for_blood_stack", 0 },
+        { "buff.taste_for_blood.stack", "taste_for_blood_stack", 0 },
+        { "buff.meat_cleaver.down", "!UP(meat_cleaver_expire)", 0 },
+        { "buff.meat_cleaver.up", "UP(meat_cleaver_expire)", 0 },
+        { "buff.meat_cleaver.remains", "TO_SECONDS(REMAIN(meat_cleaver_expire))", 0 },
+        { "buff.meat_cleaver.react", "UP(meat_cleaver_expire)", 0 },
+        { "buff.wrecking_ball.down", "!UP(wrecking_ball_expire)", 0 },
+        { "buff.wrecking_ball.up", "UP(wrecking_ball_expire)", 0 },
+        { "buff.wrecking_ball.remains", "TO_SECONDS(REMAIN(wrecking_ball_expire))", 0 },
+        { "buff.wrecking_ball.react", "UP(wrecking_ball_expire)", 0 },
+        { "buff.massacre.down", "!UP(massacre_expire)", 0 },
+        { "buff.massacre.up", "UP(massacre_expire)", 0 },
+        { "buff.massacre.remains", "TO_SECONDS(REMAIN(massacre_expire))", 0 },
+        { "buff.massacre.react", "UP(massacre_expire)", 0 },
+        { "buff.frothing_berserker.down", "!UP(frothing_berserker_expire)", 0 },
+        { "buff.frothing_berserker.up", "UP(frothing_berserker_expire)", 0 },
+        { "buff.frothing_berserker.remains", "TO_SECONDS(REMAIN(frothing_berserker_expire))", 0 },
+        { "buff.frothing_berserker.react", "UP(frothing_berserker_expire)", 0 },
+        { "buff.meat_grinder.down", "!UP(meat_grinder_expire)", 0 },
+        { "buff.meat_grinder.up", "UP(meat_grinder_expire)", 0 },
+        { "buff.meat_grinder.remains", "TO_SECONDS(REMAIN(meat_grinder_expire))", 0 },
+        { "buff.meat_grinder.react", "UP(meat_grinder_expire)", 0 },
+        { "buff.frenzy.down", "!UP(frenzy_expire)", 0 },
+        { "buff.frenzy.up", "UP(frenzy_expire)", 0 },
+        { "buff.frenzy.remains", "TO_SECONDS(REMAIN(frenzy_expire))", 0 },
+        { "buff.frenzy.react", "frenzy_stack", 0 },
+        { "buff.frenzy.stack", "frenzy_stack", 0 },
+        { "cooldown.raging_blow.up", "UP(raging_blow_cd)", 0 },
+        { "cooldown.raging_blow.down", "!UP(raging_blow_cd)", 0 },
+        { "cooldown.raging_blow.remains", "TO_SECONDS(REMAIN(raging_blow_cd))", 0 },
+        { "buff.dragon_roar.down", "!UP(dragon_roar_expire)", 0 },
+        { "buff.dragon_roar.up", "UP(dragon_roar_expire)", 0 },
+        { "buff.dragon_roar.remains", "TO_SECONDS(REMAIN(dragon_roar_expire))", 0 },
+        { "buff.dragon_roar.react", "UP(dragon_roar_expire)", 0 },
+        { "cooldown.dragon_roar.up", "UP(dragon_roar_cd)", 0 },
+        { "cooldown.dragon_roar.down", "!UP(dragon_roar_cd)", 0 },
+        { "cooldown.dragon_roar.remains", "TO_SECONDS(REMAIN(dragon_roar_cd))", 0 },
+        { "buff.rampage.down", "!UP(rampage_expire)", 0 },
+        { "buff.rampage.up", "UP(rampage_expire)", 0 },
+        { "buff.rampage.remains", "TO_SECONDS(REMAIN(rampage_expire))", 0 },
+        { "buff.rampage.react", "rampage_stack", 0 },
+        { "buff.rampage.stack", "rampage_stack", 0 },
+        { "buff.worldbreakers_resolve.down", "!UP(worldbreakers_resolve_expire)", 0 },
+        { "buff.worldbreakers_resolve.up", "UP(worldbreakers_resolve_expire)", 0 },
+        { "buff.worldbreakers_resolve.remains", "TO_SECONDS(REMAIN(worldbreakers_resolve_expire))", 0 },
+        { "buff.worldbreakers_resolve.react", "worldbreakers_resolve_stack", 0 },
+        { "buff.worldbreakers_resolve.stack", "worldbreakers_resolve_stack", 0 },
+
+        { "cooldown.cleave.up", "UP(cleave_cd)", 0 },
+        { "cooldown.cleave.down", "!UP(cleave_cd)", 0 },
+        { "cooldown.cleave.remains", "TO_SECONDS(REMAIN(cleave_cd))", 0 },
+        { "buff.cleave.down", "!UP(cleave_expire)", 0 },
+        { "buff.cleave.up", "UP(cleave_expire)", 0 },
+        { "buff.cleave.remains", "TO_SECONDS(REMAIN(cleave_expire))", 0 },
+        { "buff.cleave.react", "cleave_stack", 0 },
+        { "buff.cleave.stack", "cleave_stack", 0 },
+        { "cooldown.colossus_smash.up", "UP(colossus_smash_cd)", 0 },
+        { "cooldown.colossus_smash.down", "!UP(colossus_smash_cd)", 0 },
+        { "cooldown.colossus_smash.remains", "TO_SECONDS(REMAIN(colossus_smash_cd))", 0 },
+        { "cooldown.hamstring.up", "UP(hamstring_cd)", 0 },
+        { "cooldown.hamstring.down", "!UP(hamstring_cd)", 0 },
+        { "cooldown.hamstring.remains", "TO_SECONDS(REMAIN(hamstring_cd))", 0 },
+        { "cooldown.mortal_strike.up", "UP(mortal_strike_cd)", 0 },
+        { "cooldown.mortal_strike.down", "!UP(mortal_strike_cd)", 0 },
+        { "cooldown.mortal_strike.remains", "TO_SECONDS(REMAIN(mortal_strike_cd))", 0 },
+        { "buff.overpower.down", "!UP(overpower_expire)", 0 },
+        { "buff.overpower.up", "UP(overpower_expire)", 0 },
+        { "buff.overpower.remains", "TO_SECONDS(REMAIN(overpower_expire))", 0 },
+        { "buff.overpower.react", "UP(overpower_expire)", 0 },
+        { "cooldown.focused_rage.up", "UP(focused_rage_cd)", 0 },
+        { "cooldown.focused_rage.down", "!UP(focused_rage_cd)", 0 },
+        { "cooldown.focused_rage.remains", "TO_SECONDS(REMAIN(focused_rage_cd))", 0 },
+        { "buff.focused_rage.down", "!(focused_rage_stack)", 0 },
+        { "buff.focused_rage.up", "!!(focused_rage_stack)", 0 },
+        { "buff.focused_rage.react", "focused_rage_stack", 0 },
+        { "buff.focused_rage.stack", "focused_rage_stack", 0 },
+        { "cooldown.ravager.up", "UP(ravager_cd)", 0 },
+        { "cooldown.ravager.down", "!UP(ravager_cd)", 0 },
+        { "cooldown.ravager.remains", "TO_SECONDS(REMAIN(ravager_cd))", 0 },
+        { "buff.ravager.down", "!UP(ravager_expire)", 0 },
+        { "buff.ravager.up", "UP(ravager_expire)", 0 },
+        { "buff.ravager.remains", "TO_SECONDS(REMAIN(ravager_expire))", 0 },
+        { "buff.ravager.react", "UP(ravager_expire)", 0 },
+        { "debuff.colossus_smash.down", "!UP(colossus_smash_expire(rti->player.target))", 0 },
+        { "debuff.colossus_smash.up", "UP(colossus_smash_expire(rti->player.target))", 0 },
+        { "debuff.colossus_smash.remains", "TO_SECONDS(REMAIN(colossus_smash_expire(rti->player.target)))", 0 },
+        { "debuff.colossus_smash.react", "UP(colossus_smash_expire(rti->player.target))", 0 },
+        /* wtf are you doing dear collision... */
+        { "buff.colossus_smash_up.down", "!UP(colossus_smash_expire(rti->player.target))", 0 },
+        { "buff.colossus_smash_up.up", "UP(colossus_smash_expire(rti->player.target))", 0 },
+        { "buff.colossus_smash_up.remains", "TO_SECONDS(REMAIN(colossus_smash_expire(rti->player.target)))", 0 },
+        { "buff.colossus_smash_up.react", "UP(colossus_smash_expire(rti->player.target))", 0 },
+        { "dot.rend.down", "!UP(rend_expire(rti->player.target))", 0 },
+        { "dot.rend.up", "UP(rend_expire(rti->player.target))", 0 },
+        { "dot.rend.remains", "TO_SECONDS(REMAIN(rend_expire(rti->player.target)))", 0 },
+        { "dot.rend.duration", "15", 0 },
+
+        { "talent.war_machine.enabled", "TALENT_WAR_MACHINE", 0 },
+        { "talent.endless_rage.enabled", "TALENT_ENDLESS_RAGE", 0 },
+        { "talent.fresh_meat.enabled", "TALENT_FRESH_MEAT", 0 },
+        { "talent.dauntless.enabled", "TALENT_DAUNTLESS", 0 },
+        { "talent.overpower.enabled", "TALENT_OVERPOWER", 0 },
+        { "talent.sweeping_strikes.enabled", "TALENT_SWEEPING_STRIKES", 0 },
+        { "talent.shockwave.enabled", "TALENT_SHOCKWAVE", 0 },
+        { "talent.storm_bolt.enabled", "TALENT_STORM_BOLT", 0 },
+        { "talent.double_time.enabled", "TALENT_DOUBLE_TIME", 0 },
+        { "talent.fervor_of_battle.enabled", "TALENT_FERVOR_OF_BATTLE", 0 },
+        { "talent.rend.enabled", "TALENT_REND", 0 },
+        { "talent.wrecking_ball.enabled", "TALENT_WRECKING_BALL", 0 },
+        { "talent.outburst.enabled", "TALENT_OUTBURST", 0 },
+        { "talent.avatar.enabled", "TALENT_AVATAR", 0 },
+        { "talent.furious_charge.enabled", "TALENT_FURIOUS_CHARGE", 0 },
+        { "talent.warpaint.enabled", "TALENT_WARPAINT", 0 },
+        { "talent.second_wind.enabled", "TALENT_SECOND_WIND", 0 },
+        { "talent.die_by_the_sword.enabled", "TALENT_DIE_BY_THE_SWORD", 0 },
+        { "talent.bounding_stride.enabled", "TALENT_BOUNDING_STRIDE", 0 },
+        { "talent.in_for_the_kill.enabled", "TALENT_IN_FOR_THE_KILL", 0 },
+        { "talent.mortal_combo.enabled", "TALENT_MORTAL_COMBO", 0 },
+        { "talent.massacre.enabled", "TALENT_MASSACRE", 0 },
+        { "talent.frothing_berserker.enabled", "TALENT_FROTHING_BERSERKER", 0 },
+        { "talent.bladestorm.enabled", "TALENT_BLADESTORM", 0 },
+        { "talent.meat_grinder.enabled", "TALENT_MEAT_GRINDER", 0 },
+        { "talent.frenzy.enabled", "TALENT_FRENZY", 0 },
+        { "talent.inner_rage.enabled", "TALENT_INNER_RAGE", 0 },
+        { "talent.focused_rage.enabled", "TALENT_FOCUSED_RAGE", 0 },
+        { "talent.trauma.enabled", "TALENT_TRAUMA", 0 },
+        { "talent.titanic_might.enabled", "TALENT_TITANIC_MIGHT", 0 },
+        { "talent.carnage.enabled", "TALENT_CARNAGE", 0 },
+        { "talent.reckless_abandon.enabled", "TALENT_RECKLESS_ABANDON", 0 },
+        { "talent.dragon_roar.enabled", "TALENT_DRAGON_ROAR", 0 },
+        { "talent.anger_management.enabled", "TALENT_ANGER_MANAGEMENT", 0 },
+        { "talent.opportunity_strikes.enabled", "TALENT_OPPORTUNITY_STRIKES", 0 },
+        { "talent.ravager.enabled", "TALENT_RAVAGER", 0 },
+        { "cooldown.battle_cry.up", "UP(battle_cry_cd)", 0 },
+        { "cooldown.battle_cry.down", "!UP(battle_cry_cd)", 0 },
+        { "cooldown.battle_cry.remains", "TO_SECONDS(REMAIN(battle_cry_cd))", 0 },
+        { "buff.battle_cry.down", "!UP(battle_cry_expire)", 0 },
+        { "buff.battle_cry.up", "UP(battle_cry_expire)", 0 },
+        { "buff.battle_cry.remains", "TO_SECONDS(REMAIN(battle_cry_expire))", 0 },
+        { "buff.battle_cry.react", "UP(battle_cry_expire)", 0 },
+        { "cooldown.berserker_rage.up", "UP(berserker_rage_cd)", 0 },
+        { "cooldown.berserker_rage.down", "!UP(berserker_rage_cd)", 0 },
+        { "cooldown.berserker_rage.remains", "TO_SECONDS(REMAIN(berserker_rage_cd))", 0 },
+        { "cooldown.heroic_leap.up", "UP(heroic_leap_cd)", 0 },
+        { "cooldown.heroic_leap.down", "!UP(heroic_leap_cd)", 0 },
+        { "cooldown.heroic_leap.remains", "TO_SECONDS(REMAIN(heroic_leap_cd))", 0 },
+        { "cooldown.potion.up", "UP(potion_cd)", 0 },
+        { "cooldown.potion.down", "!UP(potion_cd)", 0 },
+        { "cooldown.potion.remains", "TO_SECONDS(REMAIN(potion_cd))", 0 },
+        { "buff.potion.down", "!UP(potion_expire)", 0 },
+        { "buff.potion.up", "UP(potion_expire)", 0 },
+        { "buff.potion.remains", "TO_SECONDS(REMAIN(potion_expire))", 0 },
+        { "buff.potion.react", "UP(potion_expire)", 0 },
+        { "cooldown.shockwave.up", "UP(shockwave_cd)", 0 },
+        { "cooldown.shockwave.down", "!UP(shockwave_cd)", 0 },
+        { "cooldown.shockwave.remains", "TO_SECONDS(REMAIN(shockwave_cd))", 0 },
+        { "cooldown.storm_bolt.up", "UP(storm_bolt_cd)", 0 },
+        { "cooldown.storm_bolt.down", "!UP(storm_bolt_cd)", 0 },
+        { "cooldown.storm_bolt.remains", "TO_SECONDS(REMAIN(storm_bolt_cd))", 0 },
+        { "cooldown.avatar.up", "UP(avatar_cd)", 0 },
+        { "cooldown.avatar.down", "!UP(avatar_cd)", 0 },
+        { "cooldown.avatar.remains", "TO_SECONDS(REMAIN(avatar_cd))", 0 },
+        { "buff.avatar.down", "!UP(avatar_expire)", 0 },
+        { "buff.avatar.up", "UP(avatar_expire)", 0 },
+        { "buff.avatar.remains", "TO_SECONDS(REMAIN(avatar_expire))", 0 },
+        { "buff.avatar.react", "UP(avatar_expire)", 0 },
+        { "cooldown.bladestorm.up", "UP(bladestorm_cd)", 0 },
+        { "cooldown.bladestorm.down", "!UP(bladestorm_cd)", 0 },
+        { "cooldown.bladestorm.remains", "TO_SECONDS(REMAIN(bladestorm_cd))", 0 },
+        { "buff.bladestorm.down", "!UP(bladestorm_expire)", 0 },
+        { "buff.bladestorm.up", "UP(bladestorm_expire)", 0 },
+        { "buff.bladestorm.remains", "TO_SECONDS(REMAIN(bladestorm_expire))", 0 },
+        { "buff.bladestorm.react", "UP(bladestorm_expire)", 0 },
+        { "cooldown.arcane_torrent.up", "UP(arcane_torrent_cd)", 0 },
+        { "cooldown.arcane_torrent.down", "!UP(arcane_torrent_cd)", 0 },
+        { "cooldown.arcane_torrent.remains", "TO_SECONDS(REMAIN(arcane_torrent_cd))", 0 },
+        { "cooldown.berserking.up", "UP(berserking_cd)", 0 },
+        { "cooldown.berserking.down", "!UP(berserking_cd)", 0 },
+        { "cooldown.berserking.remains", "TO_SECONDS(REMAIN(berserking_cd))", 0 },
+        { "buff.berserking.down", "!UP(berserking_expire)", 0 },
+        { "buff.berserking.up", "UP(berserking_expire)", 0 },
+        { "buff.berserking.remains", "TO_SECONDS(REMAIN(berserking_expire))", 0 },
+        { "buff.berserking.react", "UP(berserking_expire)", 0 },
+        { "cooldown.blood_fury.up", "UP(blood_fury_cd)", 0 },
+        { "cooldown.blood_fury.down", "!UP(blood_fury_cd)", 0 },
+        { "cooldown.blood_fury.remains", "TO_SECONDS(REMAIN(blood_fury_cd))", 0 },
+        { "buff.blood_fury.down", "!UP(blood_fury_expire)", 0 },
+        { "buff.blood_fury.up", "UP(blood_fury_expire)", 0 },
+        { "buff.blood_fury.remains", "TO_SECONDS(REMAIN(blood_fury_expire))", 0 },
+        { "buff.blood_fury.react", "UP(blood_fury_expire)", 0 },
+        { 0 }
+    };
+    IC_LOCAL item_context_dependent_t var_cd_list[] = {
+        { "mortal_strike", "charges", "mortal_strike_charge", 0 },
+        { "rend", "remains", "TO_SECONDS(REMAIN(rend_expire(rti->player.target)))", 0 },
+        { "rend", "duration", "15", 0 },
+        { 0 }
+    };
+    IC_LOCAL item_t sync_cond_list[] = {
+        { "colossus_smash", "(colossus_smash_cd==TIME_OFFSET(FROM_SECONDS(45)))", 0 },
+        { "avatar", "(avatar_expire==TIME_OFFSET(FROM_SECONDS(20)))", 0 },
+        { "battle_cry", "(battle_cry_expire==TIME_OFFSET(FROM_SECONDS(5)))", 0 },
+        { "bladestorm", "(bladestorm_cd==TIME_OFFSET(FROM_SECONDS(60)))", 0 },
         { 0 }
     };
 }
@@ -313,6 +465,20 @@ namespace apltr {
 IC_LOCAL int lookup_var( std::string name ) {
     for (int i = 0; var_list[i].simc; i++) {
         if (0 == name.compare( var_list[i].simc )) return i;
+    }
+    return -1;
+}
+
+IC_LOCAL int lookup_var_context_dependent( std::string context, std::string name ) {
+    for (int i = 0; var_cd_list[i].simc1; i++) {
+        if (0 == context.compare( var_cd_list[i].simc1 ) && 0 == name.compare( var_cd_list[i].simc2 )) return i;
+    }
+    return -1;
+}
+
+IC_LOCAL int lookup_sync( std::string name ) {
+    for (int i = 0; sync_cond_list[i].simc; i++) {
+        if (0 == name.compare( sync_cond_list[i].simc )) return i;
     }
     return -1;
 }
@@ -408,6 +574,9 @@ struct cond_node_t {
         case VAR:
             str.append( var_list[( int ) value].ic );
             break;
+        case VAR_CD:
+            str.append( var_cd_list[( int ) value].ic );
+            break;
         case CONST:
         {
             char buf[32];
@@ -415,6 +584,9 @@ struct cond_node_t {
             str.append( buf );
         }
         break;
+        case SYNC:
+            str.append( sync_cond_list[( int ) value].ic );
+            break;
         case AND:
             str.append( "(" );
             lvalue->dump( str );
@@ -518,12 +690,16 @@ struct rule_t {
     int action;
     apl_t* run_list;
     int ret_on_call;
+    int sync;
+    int cycle_targets;
     void dump( std::string& str );
     rule_t() {
         cond = 0;
         action = 0;
         run_list = 0;
         ret_on_call = 0;
+        sync = -1;
+        cycle_targets = 0;
     }
 };
 
@@ -539,6 +715,23 @@ struct apl_t {
 
 void rule_t::dump( std::string& str ) {
     if (action < 0) return;
+    if (sync >= 0){
+        cond_node_t* sync_cond = new cond_node_t();
+        sync_cond->op = SYNC;
+        sync_cond->value = sync;
+        if (cond){
+            cond_node_t* sync_cond_and = new cond_node_t();
+            sync_cond_and->op = AND;
+            sync_cond_and->lvalue = sync_cond;
+            sync_cond_and->rvalue = cond;
+            cond = sync_cond_and;
+        } else {
+            cond = sync_cond;
+        }
+    }
+    if (cycle_targets) {
+        str.append( "cycle_targets(\r\n" );
+    }
     if (run_list && cond) {
         str.append( "if(" );
         cond->dump( str );
@@ -566,6 +759,9 @@ void rule_t::dump( std::string& str ) {
         str.append( ";" );
     }
     str.append( "\r\n" );
+    if (cycle_targets) {
+        str.append( ");\r\n" );
+    }
 }
 void apl_t::dump( std::string& str ) {
     if (item) {
@@ -703,6 +899,7 @@ namespace apltr {
     IC_LOCAL std::stack<int> mark_stack;
     IC_LOCAL int pos;
     IC_LOCAL int last;
+    IC_LOCAL std::string processing_action;
     IC_LOCAL std::vector<token_t>* working;
     IC_LOCAL std::map<std::string, apl_t> ic_apls;
 }
@@ -728,6 +925,10 @@ IC_LOCAL cond_node_t* variable() {
         auto node = new cond_node_t;
         node->op = VAR;
         node->value = lookup_var( t.value );
+        if (node->value < 0) {
+            node->op = VAR_CD;
+            node->value = lookup_var_context_dependent( processing_action, t.value );
+        }
         if (node->value < 0) {
             if (!t.suppress) eprintf( t, 0, "unknown variable '%s', assumed as constant false", t.value.c_str() );
             node->op = CONST;
@@ -913,7 +1114,7 @@ IC_LOCAL int kv_pair( std::string& key, int& vpos ) {
         if (get().value == "=") {
             tvpos = pos++;
             if (tvpos >= working->size() || working->at( tvpos ).value == "/" || working->at( tvpos ).value == ",") return 0;
-            if (tkey == "name" || tkey == "if") {
+            if (tkey == "name" || tkey == "if" || tkey == "cycle_targets" || tkey == "sync") {
 
             } else {
                 if (!t.suppress) {
@@ -947,6 +1148,7 @@ IC_LOCAL rule_t* rule_item() {
                     t.suppress = 1;
                 }
                 node->action = lookup_act( working->at( vpos ).value );
+                processing_action = working->at( vpos ).value;
                 if (node->action < 0) {
                     token_t& t = working->at( vpos );
                     if (!t.suppress) eprintf( t, 0, "unknown item '%s', ignored", t.value.c_str() );
@@ -967,6 +1169,20 @@ IC_LOCAL rule_t* rule_item() {
                     t.suppress = 1;
                 }
                 processed_if = 1;
+            } else if (key == "cycle_targets") {
+                token_t& t = working->at( vpos );
+                if (!t.value.empty()) {
+                    if (!t.suppress) eprintf( t, 1, "expected constant number for cycle_targets" );
+                    t.suppress = 1;
+                }
+                node->cycle_targets = t.valuef;
+            } else if (key == "sync") {
+                token_t& t = working->at( vpos );
+                node->sync = lookup_sync( t.value );
+                if (node->sync < 0) {
+                    if (!t.suppress) eprintf( t, 0, "sync ability not supported, ignored" );
+                    t.suppress = 1;
+                }
             }
             unmark();
             mark();
@@ -982,6 +1198,7 @@ IC_LOCAL rule_t* rule_item() {
         int vpos;
         int processed_if = 0;
         int processed_name = 0;
+        processing_action = "";
         mark();
         while (kv_pair( key, vpos )) {
             if (key == "name") {
@@ -1013,6 +1230,20 @@ IC_LOCAL rule_t* rule_item() {
                     t.suppress = 1;
                 }
                 processed_if = 1;
+            }  else if (key == "cycle_targets") {
+                token_t& t = working->at( vpos );
+                if (!t.value.empty()) {
+                    if (!t.suppress) eprintf( t, 1, "expected constant number for cycle_targets" );
+                    t.suppress = 1;
+                }
+                node->cycle_targets = t.valuef;
+            } else if (key == "sync") {
+                token_t& t = working->at( vpos );
+                node->sync = lookup_sync( t.value );
+                if (node->sync < 0) {
+                    if (!t.suppress) eprintf( t, 0, "sync ability not supported, ignored" );
+                    t.suppress = 1;
+                }
             }
             unmark();
             mark();
@@ -1029,6 +1260,7 @@ IC_LOCAL rule_t* rule_item() {
             if (!t.suppress) eprintf( t, 0, "unknown action '%s', ignored", t.value.c_str() );
             t.suppress = 1;
         }
+        processing_action = action;
         std::string key;
         int vpos;
         int processed_if = 0;
@@ -1052,6 +1284,20 @@ IC_LOCAL rule_t* rule_item() {
                     t.suppress = 1;
                 }
                 processed_if = 1;
+            }  else if (key == "cycle_targets") {
+                token_t& t = working->at( vpos );
+                if (!t.value.empty()) {
+                    if (!t.suppress) eprintf( t, 1, "expected constant number for cycle_targets" );
+                    t.suppress = 1;
+                }
+                node->cycle_targets = t.valuef;
+            } else if (key == "sync") {
+                token_t& t = working->at( vpos );
+                node->sync = lookup_sync( t.value );
+                if (node->sync < 0) {
+                    if (!t.suppress) eprintf( t, 0, "sync ability not supported, ignored" );
+                    t.suppress = 1;
+                }
             }
             unmark();
             mark();
@@ -1118,6 +1364,7 @@ IC_LOCAL void reset_gv() {
     apltr::simc_apls.clear();
     apltr::source.clear();
     apltr::working = 0;
+    apltr::processing_action.clear();
 }
 
 IC_LOCAL int fapltr( std::string& input_file, std::string& output ) {

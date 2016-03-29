@@ -83,6 +83,7 @@ enum { NSPEC_ARMS, NSPEC_FURY, };
 
 /* class-spec state infos. */
 struct class_state_t {
+    int placeholder;
     struct {
         time_t expire;
         time_t cd;
@@ -396,6 +397,7 @@ struct class_state_t {
 #endif
 };
 struct class_debuff_t {
+    int placeholder;
 #if (shatteredhand_mh)
     struct {
         time_t expire;
@@ -727,10 +729,7 @@ DECL_EVENT( battle_cry_expire ) {
     lprintf( ( "battle_cry expire" ) );
 }
 DECL_EVENT( battle_cry_start ) {
-    battle_cry_expire = TIME_OFFSET( FROM_SECONDS( 5 ) );
-    eq_enqueue( rti, battle_cry_expire, routnum_battle_cry_expire, target_id );
-    if ( TALENT_RECKLESS_ABANDON )
-        power_gain( rti, 100.0f );
+    if ( TALENT_RECKLESS_ABANDON ) power_gain( rti, 100.0f );
     lprintf( ( "battle_cry start" ) );
 }
 void spec_spell_battle_cry( rtinfo_t* rti );
@@ -738,6 +737,8 @@ DECL_SPELL( battle_cry ) {
     if ( battle_cry_cd > rti->timestamp ) return 0;
     if ( UP( bladestorm_expire ) ) return 0;
     eq_enqueue( rti, rti->timestamp, routnum_battle_cry_start, 0 );
+    battle_cry_expire = TIME_OFFSET( FROM_SECONDS( 5 ) );
+    eq_enqueue( rti, battle_cry_expire, routnum_battle_cry_expire, 0 );
     battle_cry_cd = TIME_OFFSET( FROM_SECONDS( 60 ) ); // TODO: some traits would decrease cd?
     spec_spell_battle_cry( rti ); // this may modify cd!
     if ( !TALENT_ANGER_MANAGEMENT ) eq_enqueue( rti, battle_cry_cd, routnum_battle_cry_cd, 0 ); // with anger management enabled it doesn't worth to track exact cd.
@@ -829,6 +830,10 @@ DECL_SPELL( potion ) {
     }
     return 1;
 }
+#else
+DECL_SPELL( potion ) {
+    return 0;
+}
 #endif
 
 // === shockwave ==============================================================
@@ -853,6 +858,10 @@ DECL_SPELL( shockwave ) {
     eq_enqueue( rti, shockwave_cd, routnum_shockwave_cd, 0 );
     return 1;
 }
+#else
+DECL_SPELL( shockwave ) {
+    return 0;
+}
 #endif
 
 // === storm bolt =============================================================
@@ -875,6 +884,10 @@ DECL_SPELL( storm_bolt ) {
     eq_enqueue( rti, storm_bolt_cd, routnum_storm_bolt_cd, 0 );
     return 1;
 }
+#else
+DECL_SPELL( storm_bolt ) {
+    return 0;
+}
 #endif
 
 // === avatar =================================================================
@@ -886,17 +899,21 @@ DECL_EVENT( avatar_expire ) {
     lprintf( ( "avatar expire" ) );
 }
 DECL_EVENT( avatar_start ) {
-    avatar_expire = TIME_OFFSET( FROM_SECONDS( 20 ) );
-    eq_enqueue( rti, avatar_expire, routnum_avatar_expire, target_id );
     lprintf( ( "avatar start" ) );
 }
 DECL_SPELL( avatar ) {
     if ( avatar_cd > rti->timestamp ) return 0;
     if ( UP( bladestorm_expire ) ) return 0;
+    avatar_expire = TIME_OFFSET( FROM_SECONDS( 20 ) );
+    eq_enqueue( rti, avatar_expire, routnum_avatar_expire, target_id );
     eq_enqueue( rti, rti->timestamp, routnum_avatar_start, 0 );
     avatar_cd = TIME_OFFSET( FROM_SECONDS( 90 ) );
     eq_enqueue( rti, avatar_cd, routnum_avatar_cd, 0 );
     return 1;
+}
+#else
+DECL_SPELL( avatar ) {
+    return 0;
 }
 #endif
 
@@ -924,6 +941,10 @@ DECL_SPELL( bladestorm ) {
     eq_enqueue( rti, rti->timestamp, routnum_bladestorm_tick, 0 );
     lprintf( ( "cast bladestorm" ) );
     return 1;
+}
+#else
+DECL_SPELL( bladestorm ) {
+    return 0;
 }
 #endif
 
@@ -970,6 +991,10 @@ DECL_SPELL( thorasus_the_stone_heart_of_draenor ) {
     eq_enqueue( rti, rti->timestamp, routnum_thorasus_the_stone_heart_of_draenor_start, 0 );
     lprintf( ( "cast thorasus the stone heart of draenor" ) );
     return 1;
+}
+#else
+DECL_SPELL( thorasus_the_stone_heart_of_draenor ) {
+    return 0;
 }
 #endif
 
@@ -1086,6 +1111,10 @@ DECL_SPELL( arcane_torrent ) {
     lprintf( ( "cast arcane_torrent" ) );
     return 1;
 }
+#else
+DECL_SPELL( arcane_torrent ) {
+    return 0;
+}
 #endif
 
 #if (RACE == RACE_TROLL)
@@ -1112,6 +1141,10 @@ DECL_SPELL( berserking ) {
     lprintf( ( "cast berserking" ) );
     return 1;
 }
+#else
+DECL_SPELL( berserking ) {
+    return 0;
+}
 #endif
 
 #if (RACE == RACE_ORC)
@@ -1137,6 +1170,10 @@ DECL_SPELL( blood_fury ) {
     eq_enqueue( rti, blood_fury_cd, routnum_blood_fury_cd, 0 );
     lprintf( ( "cast blood_fury" ) );
     return 1;
+}
+#else
+DECL_SPELL( blood_fury ) {
+    return 0;
 }
 #endif
 #if (RACE == RACE_UNDEAD)
@@ -1180,6 +1217,10 @@ DECL_SPELL( vial_of_convulsive_shadows ) {
     eq_enqueue( rti, vial_of_convulsive_shadows_cd, routnum_vial_of_convulsive_shadows_cd, 0 );
     lprintf( ( "cast vial_of_convulsive_shadows" ) );
     return 1;
+}
+#else
+DECL_SPELL( vial_of_convulsive_shadows ) {
+    return 0;
 }
 #endif
 
@@ -1251,6 +1292,10 @@ DECL_SPELL( scabbard_of_kyanos ) {
     lprintf( ( "cast scabbard_of_kyanos" ) );
     return 1;
 }
+#else
+DECL_SPELL( scabbard_of_kyanos ) {
+    return 0;
+}
 #endif
 
 #if defined(trinket_emberscale_talisman)
@@ -1282,6 +1327,10 @@ DECL_SPELL( emberscale_talisman ) {
     eq_enqueue( rti, emberscale_talisman_cd, routnum_emberscale_talisman_cd, 0 );
     lprintf( ( "cast emberscale_talisman" ) );
     return 1;
+}
+#else
+DECL_SPELL( emberscale_talisman ) {
+    return 0;
 }
 #endif
 
@@ -1315,6 +1364,10 @@ DECL_SPELL( bonemaws_big_toe ) {
     lprintf( ( "cast bonemaws_big_toe" ) );
     return 1;
 }
+#else
+DECL_SPELL( bonemaws_big_toe ) {
+    return 0;
+}
 #endif
 
 
@@ -1347,6 +1400,10 @@ DECL_SPELL( badge_of_victory ) {
     eq_enqueue( rti, badge_of_victory_cd, routnum_badge_of_victory_cd, 0 );
     lprintf( ( "cast badge_of_victory" ) );
     return 1;
+}
+#else
+DECL_SPELL( badge_of_victory ) {
+    return 0;
 }
 #endif
 

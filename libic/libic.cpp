@@ -449,7 +449,7 @@ const char* ic_getparam( const char* key ) {
     GETI( opencl_device_id );
     GETI( developer_debug );
     if (0 == strcmp( key, "spec" )) {
-        switch(config().spec) {
+        switch (config().spec) {
         case SPEC_ARMS_WARRIOR:
             return "arms";
             break;
@@ -517,102 +517,134 @@ void ic_resetparam( void ) {
 // API: default apl.
 const char* ic_defaultapl( void ) {
     static std::string apl;
-    apl = "if(!UP(enrage.expire)||(REMAIN(bloodthirst.cd)>FROM_SECONDS(3)&&rti->player.ragingblow.stack<2))SPELL(berserkerrage);\n";
-    apl.append( "if((((num_enemies>1.000000f)||!0)&&(((T63(1,0)&&(T63(TO_SECONDS(REMAIN(bladestorm.cd)),0)==0.000000f))||UP(recklessness.expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<25.000000f))))LEGENDARY(SPELL(thorasus_the_stone_heart_of_draenor),0);\n" );
-    apl.append( "if((((enemy_health_percent(rti)<20.000000f)&&UP(recklessness.expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<=30.000000f)))POTION(SPELL(potion),0);\n" );
+    apl = "";
 
-    if (0 == strcmp( trinket_list[config().trinket1], "vial_of_convulsive_shadows" ) || 0 == strcmp( trinket_list[config().trinket2], "vial_of_convulsive_shadows" ))
-        if (TALENT_TIER( 7 ) == 1) apl.append( "if(UP(recklessness.expire)||TIME_DISTANT(rti->expected_combat_length)<FROM_SECONDS(25))SPELL(vial_of_convulsive_shadows);\n" );
-        else apl.append( "SPELL(vial_of_convulsive_shadows);\n" );
-        if (0 == strcmp( trinket_list[config().trinket1], "bonemaws_big_toe" ) || 0 == strcmp( trinket_list[config().trinket2], "bonemaws_big_toe" ))
-            if (TALENT_TIER( 7 ) == 1) apl.append( "if(UP(recklessness.expire)||TIME_DISTANT(rti->expected_combat_length)<FROM_SECONDS(25))SPELL(bonemaws_big_toe);\n" );
-            else apl.append( "SPELL(bonemaws_big_toe);\n" );
-            if (0 == strcmp( trinket_list[config().trinket1], "scabbard_of_kyanos" ) || 0 == strcmp( trinket_list[config().trinket2], "scabbard_of_kyanos" )) apl.append( "SPELL(scabbard_of_kyanos);\n" );
-            if (0 == strcmp( trinket_list[config().trinket1], "emberscale_talisman" ) || 0 == strcmp( trinket_list[config().trinket2], "emberscale_talisman" )) apl.append( "SPELL(emberscale_talisman);\n" );
-            if (0 == strcmp( trinket_list[config().trinket1], "badge_of_victory" ) || 0 == strcmp( trinket_list[config().trinket2], "badge_of_victory" )) apl.append( "SPELL(badge_of_victory);\n" );
+    if (0 == strcmp( trinket_list[config().trinket1], "vial_of_convulsive_shadows" ) || 0 == strcmp( trinket_list[config().trinket2], "vial_of_convulsive_shadows" )) apl.append( "SPELL(vial_of_convulsive_shadows);\n" );
+    if (0 == strcmp( trinket_list[config().trinket1], "bonemaws_big_toe" ) || 0 == strcmp( trinket_list[config().trinket2], "bonemaws_big_toe" )) apl.append( "SPELL(bonemaws_big_toe);\n" );
+    if (0 == strcmp( trinket_list[config().trinket1], "scabbard_of_kyanos" ) || 0 == strcmp( trinket_list[config().trinket2], "scabbard_of_kyanos" )) apl.append( "SPELL(scabbard_of_kyanos);\n" );
+    if (0 == strcmp( trinket_list[config().trinket1], "emberscale_talisman" ) || 0 == strcmp( trinket_list[config().trinket2], "emberscale_talisman" )) apl.append( "SPELL(emberscale_talisman);\n" );
+    if (0 == strcmp( trinket_list[config().trinket1], "badge_of_victory" ) || 0 == strcmp( trinket_list[config().trinket2], "badge_of_victory" )) apl.append( "SPELL(badge_of_victory);\n" );
 
-            apl.append( "if((((((T62(UP(bloodbath.expire),0)||(T62(TO_SECONDS(REMAIN(bloodbath.cd)),0)>25.000000f))||!T62(1,0))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<15.000000f))&&((T63(1,0)&&(!0||(num_enemies==1.000000f)))||!T63(1,0)))&&t18_4pc))SPELL(recklessness);\n" );
-            apl.append( "if(((T71(1,0)&&((T63(1,0)&&(!0||(num_enemies==1.000000f)))||!T63(1,0)))&&!t18_4pc)){\n" );
-            apl.append( "if((((TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))>140.000000f)||(enemy_health_percent(rti)<20.000000f))&&((T62(UP(bloodbath.expire),0)||!T62(1,0))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<15.000000f))))SPELL(recklessness);\n" );
-            apl.append( "}\n" );
-            apl.append( "if(((!T71(1,0)&&((T63(1,0)&&(!0||(num_enemies==1.000000f)))||!T63(1,0)))&&!t18_4pc)){\n" );
-            apl.append( "if((((TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))>190.000000f)||(enemy_health_percent(rti)<20.000000f))&&((T62(UP(bloodbath.expire),0)||!T62(1,0))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<15.000000f))))SPELL(recklessness);\n" );
-            apl.append( "}\n" );
-            apl.append( "if(((UP(recklessness.expire)||(TO_SECONDS(REMAIN(recklessness.cd))>60.000000f))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<30.000000f)))T61(SPELL(avatar),0);\n" );
-            apl.append( "if(((T62(UP(bloodbath.expire),0)||!T62(1,0))||UP(recklessness.expire)))ORC(SPELL(bloodfury),0);\n" );
-            apl.append( "if(((T62(UP(bloodbath.expire),0)||!T62(1,0))||UP(recklessness.expire)))TROLL(SPELL(berserking),0);\n" );
-            apl.append( "if((rti->player.power<(power_max-40.000000f)))BELF(SPELL(arcanetorrent),0);\n" );
-            apl.append( "if((num_enemies==2.000000f)){\n" );
-            apl.append( "T62(SPELL(bloodbath),0);\n" );
-            apl.append( "if((T62(UP(bloodbath.expire),0)||!T62(1,0)))T72(SPELL(ravager),0);\n" );
-            apl.append( "if((T62(UP(bloodbath.expire),0)||!T62(1,0)))T43(SPELL(dragonroar),0);\n" );
-            apl.append( "{\n" );
-            apl.append( "if(((TO_SECONDS(REMAIN(enrage.expire))>6.000000f)&&((((T71(1,0)&&(0>45.000000f))||(!T71(1,0)&&(0>60.000000f)))||!0)||(num_enemies>num_enemies))))SPELL(recklessness);\n" );
-            apl.append( "if(((TO_SECONDS(REMAIN(enrage.expire))>6.000000f)&&((((T71(1,0)&&(0>45.000000f))||(!T71(1,0)&&(0>60.000000f)))||!0)||(num_enemies>num_enemies))))T63(SPELL(bladestorm),0);\n" );
-            apl.append( "}\n" );
-            apl.append( "if(((!UP(enrage.expire)||(rti->player.power<40.000000f))||!UP(ragingblow.expire)))SPELL(bloodthirst);\n" );
-            apl.append( "T73(SPELL(siegebreaker),0);\n" );
-            apl.append( "SPELL(execute);\n" );
-            apl.append( "if((UP(meatcleaver.expire)||(enemy_health_percent(rti)<20.000000f)))SPELL(ragingblow);\n" );
-            apl.append( "if((!UP(meatcleaver.expire)&&(enemy_health_percent(rti)>20.000000f)))SPELL(whirlwind);\n" );
-            apl.append( "if(UP(bloodsurge.expire))SPELL(wildstrike);\n" );
-            apl.append( "SPELL(bloodthirst);\n" );
-            apl.append( "SPELL(whirlwind);\n" );
-            apl.append( "}\n" );
-            apl.append( "if((num_enemies==3.000000f)){\n" );
-            apl.append( "T62(SPELL(bloodbath),0);\n" );
-            apl.append( "if((T62(UP(bloodbath.expire),0)||!T62(1,0)))T72(SPELL(ravager),0);\n" );
-            apl.append( "{\n" );
-            apl.append( "if(((TO_SECONDS(REMAIN(enrage.expire))>6.000000f)&&((((T71(1,0)&&(0>45.000000f))||(!T71(1,0)&&(0>60.000000f)))||!0)||(num_enemies>num_enemies))))SPELL(recklessness);\n" );
-            apl.append( "if(((TO_SECONDS(REMAIN(enrage.expire))>6.000000f)&&((((T71(1,0)&&(0>45.000000f))||(!T71(1,0)&&(0>60.000000f)))||!0)||(num_enemies>num_enemies))))T63(SPELL(bladestorm),0);\n" );
-            apl.append( "}\n" );
-            apl.append( "if(((!UP(enrage.expire)||(rti->player.power<50.000000f))||!UP(ragingblow.expire)))SPELL(bloodthirst);\n" );
-            apl.append( "if((rti->player.meatcleaver.stack>=2.000000f))SPELL(ragingblow);\n" );
-            apl.append( "T73(SPELL(siegebreaker),0);\n" );
-            apl.append( "SPELL(execute);\n" );
-            apl.append( "if((T62(UP(bloodbath.expire),0)||!T62(1,0)))T43(SPELL(dragonroar),0);\n" );
-            apl.append( "if((enemy_health_percent(rti)>20.000000f))SPELL(whirlwind);\n" );
-            apl.append( "SPELL(bloodthirst);\n" );
-            apl.append( "if(UP(bloodsurge.expire))SPELL(wildstrike);\n" );
-            apl.append( "SPELL(ragingblow);\n" );
-            apl.append( "}\n" );
-            apl.append( "if((num_enemies>3.000000f)){\n" );
-            apl.append( "T62(SPELL(bloodbath),0);\n" );
-            apl.append( "if((T62(UP(bloodbath.expire),0)||!T62(1,0)))T72(SPELL(ravager),0);\n" );
-            apl.append( "if(((rti->player.meatcleaver.stack>=3.000000f)&&UP(enrage.expire)))SPELL(ragingblow);\n" );
-            apl.append( "if(((!UP(enrage.expire)||(rti->player.power<50.000000f))||!UP(ragingblow.expire)))SPELL(bloodthirst);\n" );
-            apl.append( "if((rti->player.meatcleaver.stack>=3.000000f))SPELL(ragingblow);\n" );
-            apl.append( "{\n" );
-            apl.append( "if(((TO_SECONDS(REMAIN(enrage.expire))>6.000000f)&&((((T71(1,0)&&(0>45.000000f))||(!T71(1,0)&&(0>60.000000f)))||!0)||(num_enemies>num_enemies))))SPELL(recklessness);\n" );
-            apl.append( "if(((TO_SECONDS(REMAIN(enrage.expire))>6.000000f)&&((((T71(1,0)&&(0>45.000000f))||(!T71(1,0)&&(0>60.000000f)))||!0)||(num_enemies>num_enemies))))T63(SPELL(bladestorm),0);\n" );
-            apl.append( "}\n" );
-            apl.append( "SPELL(whirlwind);\n" );
-            apl.append( "T73(SPELL(siegebreaker),0);\n" );
-            apl.append( "if(T32(UP(suddendeath.expire),0))SPELL(execute);\n" );
-            apl.append( "if((T62(UP(bloodbath.expire),0)||!T62(1,0)))T43(SPELL(dragonroar),0);\n" );
-            apl.append( "SPELL(bloodthirst);\n" );
-            apl.append( "if(UP(bloodsurge.expire))SPELL(wildstrike);\n" );
-            apl.append( "}\n" );
-            apl.append( "{\n" );
-            apl.append( "T62(SPELL(bloodbath),0);\n" );
-            apl.append( "if(((enemy_health_percent(rti)<20.000000f)&&0))SPELL(recklessness);\n" );
-            apl.append( "if(((rti->player.power>(power_max-20.000000f))&&(enemy_health_percent(rti)>20.000000f)))SPELL(wildstrike);\n" );
-            apl.append( "if((((!T33(1,0)&&(rti->player.power<(power_max-40.000000f)))||!UP(enrage.expire))||(rti->player.ragingblow.stack<2.000000f)))SPELL(bloodthirst);\n" );
-            apl.append( "if((T62(UP(bloodbath.expire),0)||(!T62(1,0)&&((!0||(0>60.000000f))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<40.000000f)))))T72(SPELL(ravager),0);\n" );
-            apl.append( "T73(SPELL(siegebreaker),0);\n" );
-            apl.append( "if(T32(UP(suddendeath.expire),0))SPELL(execute);\n" );
-            apl.append( "T41(SPELL(stormbolt),0);\n" );
-            apl.append( "if(UP(bloodsurge.expire))SPELL(wildstrike);\n" );
-            apl.append( "if((UP(enrage.expire)||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<12.000000f)))SPELL(execute);\n" );
-            apl.append( "if((T62(UP(bloodbath.expire),0)||!T62(1,0)))T43(SPELL(dragonroar),0);\n" );
-            apl.append( "SPELL(ragingblow);\n" );
-            apl.append( "if(((TO_SECONDS(REMAIN(bloodthirst.cd))<0.500000f)&&(rti->player.power<50.000000f)))return;\n" );
-            apl.append( "if((UP(enrage.expire)&&(enemy_health_percent(rti)>20.000000f)))SPELL(wildstrike);\n" );
-            apl.append( "if(!0)T63(SPELL(bladestorm),0);\n" );
-            apl.append( "if(!T33(1,0))T42(SPELL(shockwave),0);\n" );
-            apl.append( "SPELL(bloodthirst);\n" );
-            apl.append( "}\n" );
-            return apl.c_str();
+    if (config().spec == SPEC_ARMS_WARRIOR) {
+        apl.append("SPELL(thorasus_the_stone_heart_of_draenor);\n");
+        apl.append( "if((min(num_enemies,5)>1.000000f)){" );
+        apl.append( "if(!UP(cleave_expire))SPELL(cleave);" );
+        apl.append( "SPELL(whirlwind);" );
+        apl.append( "cycle_targets(" );
+        apl.append( "if(!UP(colossus_smash_expire(rti->player.target)))SPELL(colossus_smash);" );
+        apl.append( ");" );
+        apl.append( "return;" );
+        apl.append( "}" );
+        apl.append( "{" );
+        apl.append( "if((TO_SECONDS(REMAIN(rend_expire(rti->player.target)))<TO_SECONDS(REMAIN(rti->player.gcd))))SPELL(rend);" );
+        apl.append( "if((colossus_smash_cd==TIME_OFFSET(FROM_SECONDS(45))))SPELL(battle_cry);" );
+        apl.append( "if(((TO_SECONDS(REMAIN(colossus_smash_expire(rti->player.target)))>=5.000000f)||(UP(colossus_smash_expire(rti->player.target))&&(TO_SECONDS(REMAIN(colossus_smash_cd))==0.000000f))))SPELL(battle_cry);" );
+        apl.append( "if((colossus_smash_cd==TIME_OFFSET(FROM_SECONDS(45))))SPELL(avatar);" );
+        apl.append( "if(((TO_SECONDS(REMAIN(colossus_smash_expire(rti->player.target)))>=5.000000f)||(UP(colossus_smash_expire(rti->player.target))&&(TO_SECONDS(REMAIN(colossus_smash_cd))==0.000000f))))SPELL(avatar);" );
+        apl.append( "if(!UP(colossus_smash_expire(rti->player.target)))SPELL(colossus_smash);" );
+        apl.append( "if(UP(battle_cry_expire))SPELL(bladestorm);" );
+        apl.append( "SPELL(overpower);" );
+        apl.append( "if(UP(colossus_smash_expire(rti->player.target)))SPELL(execute);" );
+        apl.append( "if(((enemy_health_percent(rti)>20.000000f)&&(!TALENT_MORTAL_COMBO||((mortal_strike_charge==2.000000f)||UP(colossus_smash_expire(rti->player.target))))))SPELL(mortal_strike);" );
+        apl.append( "if(((power_max-rti->player.power)<50.000000f))SPELL(execute);" );
+        apl.append( "SPELL(storm_bolt);" );
+        apl.append( "SPELL(colossus_smash);" );
+        apl.append( "if(((enemy_health_percent(rti)>20.000000f)&&(UP(colossus_smash_expire(rti->player.target))||((power_max-rti->player.power)<50.000000f))))SPELL(slam);" );
+        apl.append( "if((TO_SECONDS(REMAIN(rend_expire(rti->player.target)))<=(15*0.300000f)))SPELL(rend);" );
+        apl.append( "SPELL(execute);" );
+        apl.append( "if((enemy_health_percent(rti)>20.000000f))SPELL(slam);" );
+        apl.append( "SPELL(shockwave);" );
+        apl.append( "return;" );
+        apl.append( "}" );
+        apl.append( "if((((enemy_health_percent(rti)<20.000000f)&&UP(battle_cry_expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<25.000000f)))SPELL(potion);" );
+        apl.append( "if((UP(colossus_smash_expire(rti->player.target))||UP(battle_cry_expire)))SPELL(blood_fury);" );
+        apl.append( "if((UP(colossus_smash_expire(rti->player.target))||UP(battle_cry_expire)))SPELL(berserking);" );
+        apl.append( "if((rti->player.power<(power_max-40.000000f)))SPELL(arcane_torrent);" );
+    }
+    if ( config().spec == SPEC_FURY_WARRIOR ) {
+        apl.append("if(!UP(enrage_expire))SPELL(berserker_rage);");
+        apl.append("if((((0.000000f>25.000000f)&&(0>45.000000f))||!0))SPELL(heroic_leap);");
+        apl.append("if((((num_enemies>1.000000f)||!0)&&(((TALENT_BLADESTORM&&(TO_SECONDS(REMAIN(bladestorm_cd))==0.000000f))||UP(battle_cry_expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<25.000000f))))SPELL(thorasus_the_stone_heart_of_draenor);");
+        apl.append("if((((enemy_health_percent(rti)<20.000000f)&&UP(battle_cry_expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<=30.000000f)))SPELL(potion);");
+        apl.append("if(((((65535<60.000000f)&&(0>2.000000f))&&(num_enemies==1.000000f))||(65535<5.000000f))){");
+        apl.append("if(((enemy_health_percent(rti)<20.000000f)&&0))SPELL(battle_cry);");
+        apl.append("if(!UP(enrage_expire))SPELL(bloodthirst);");
+        apl.append("SPELL(storm_bolt);");
+        apl.append("if((UP(enrage_expire)||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<12.000000f)))SPELL(execute);");
+        apl.append("SPELL(dragon_roar);");
+        apl.append("SPELL(raging_blow);");
+        apl.append("if(!0)SPELL(bladestorm);");
+        apl.append("if(!0.000000f)SPELL(shockwave);");
+        apl.append("SPELL(bloodthirst);");
+        apl.append("return;");
+        apl.append("}");
+        apl.append("if((((TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<15.000000f)&&(TALENT_BLADESTORM&&(!0||(num_enemies==1.000000f))))||!TALENT_BLADESTORM))SPELL(battle_cry);");
+        apl.append("if((TALENT_ANGER_MANAGEMENT&&((TALENT_BLADESTORM&&(!0||(num_enemies==1.000000f)))||!TALENT_BLADESTORM))){");
+        apl.append("if(((TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))>140.000000f)||(enemy_health_percent(rti)<20.000000f)))SPELL(battle_cry);");
+        apl.append("}");
+        apl.append("if((!TALENT_ANGER_MANAGEMENT&&((TALENT_BLADESTORM&&(!0||(num_enemies==1.000000f)))||!TALENT_BLADESTORM))){");
+        apl.append("if(((TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))>190.000000f)||(enemy_health_percent(rti)<20.000000f)))SPELL(battle_cry);");
+        apl.append("}");
+        apl.append("if(((UP(battle_cry_expire)||(TO_SECONDS(REMAIN(battle_cry_cd))>60.000000f))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<30.000000f)))SPELL(avatar);");
+        apl.append("if(UP(battle_cry_expire))SPELL(blood_fury);");
+        apl.append("if(UP(battle_cry_expire))SPELL(berserking);");
+        apl.append("if((rti->player.power<(power_max-40.000000f)))SPELL(arcane_torrent);");
+        apl.append("if((num_enemies==2.000000f)){");
+        apl.append("SPELL(dragon_roar);");
+        apl.append("{");
+        apl.append("if(((bladestorm_cd==TIME_OFFSET(FROM_SECONDS(60)))&&((TO_SECONDS(REMAIN(enrage_expire))>4.000000f)&&(((0>60.000000f)||!0)||(num_enemies>num_enemies)))))SPELL(battle_cry);");
+        apl.append("if(((TO_SECONDS(REMAIN(enrage_expire))>4.000000f)&&(((0>60.000000f)||!0)||(num_enemies>num_enemies))))SPELL(bladestorm);");
+        apl.append("}");
+        apl.append("if((!UP(enrage_expire)||(rti->player.power<40.000000f)))SPELL(bloodthirst);");
+        apl.append("cycle_targets(");
+        apl.append("SPELL(execute);");
+        apl.append(");");
+        apl.append("if((UP(meat_cleaver_expire)||(enemy_health_percent(rti)<20.000000f)))SPELL(raging_blow);");
+        apl.append("if((!UP(meat_cleaver_expire)&&(enemy_health_percent(rti)>20.000000f)))SPELL(whirlwind);");
+        apl.append("SPELL(bloodthirst);");
+        apl.append("SPELL(whirlwind);");
+        apl.append("}");
+        apl.append("if((num_enemies==3.000000f)){");
+        apl.append("{");
+        apl.append("if(((bladestorm_cd==TIME_OFFSET(FROM_SECONDS(60)))&&((bladestorm_cd==TIME_OFFSET(FROM_SECONDS(60)))&&((TO_SECONDS(REMAIN(enrage_expire))>4.000000f)&&(((0>60.000000f)||!0)||(num_enemies>num_enemies))))))SPELL(battle_cry);");
+        apl.append("if(((TO_SECONDS(REMAIN(enrage_expire))>4.000000f)&&(((0>60.000000f)||!0)||(num_enemies>num_enemies))))SPELL(bladestorm);");
+        apl.append("}");
+        apl.append("if((!UP(enrage_expire)||(rti->player.power<50.000000f)))SPELL(bloodthirst);");
+        apl.append("if(UP(meat_cleaver_expire))SPELL(raging_blow);");
+        apl.append("cycle_targets(");
+        apl.append("SPELL(execute);");
+        apl.append(");");
+        apl.append("SPELL(dragon_roar);");
+        apl.append("if((enemy_health_percent(rti)>20.000000f))SPELL(whirlwind);");
+        apl.append("SPELL(bloodthirst);");
+        apl.append("SPELL(raging_blow);");
+        apl.append("}");
+        apl.append("if((num_enemies>3.000000f)){");
+        apl.append("if((UP(meat_cleaver_expire)&&UP(enrage_expire)))SPELL(raging_blow);");
+        apl.append("if((!UP(enrage_expire)||(rti->player.power<50.000000f)))SPELL(bloodthirst);");
+        apl.append("{");
+        apl.append("if(((bladestorm_cd==TIME_OFFSET(FROM_SECONDS(60)))&&((bladestorm_cd==TIME_OFFSET(FROM_SECONDS(60)))&&((bladestorm_cd==TIME_OFFSET(FROM_SECONDS(60)))&&((TO_SECONDS(REMAIN(enrage_expire))>4.000000f)&&(((0>60.000000f)||!0)||(num_enemies>num_enemies)))))))SPELL(battle_cry);");
+        apl.append("if(((TO_SECONDS(REMAIN(enrage_expire))>4.000000f)&&(((0>60.000000f)||!0)||(num_enemies>num_enemies))))SPELL(bladestorm);");
+        apl.append("}");
+        apl.append("SPELL(whirlwind);");
+        apl.append("SPELL(dragon_roar);");
+        apl.append("SPELL(bloodthirst);");
+        apl.append("}");
+        apl.append("{");
+        apl.append("if(((enemy_health_percent(rti)<20.000000f)&&0))SPELL(battle_cry);");
+        apl.append("if(!UP(enrage_expire))SPELL(bloodthirst);");
+        apl.append("SPELL(storm_bolt);");
+        apl.append("if((UP(enrage_expire)||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<12.000000f)))SPELL(execute);");
+        apl.append("SPELL(dragon_roar);");
+        apl.append("SPELL(raging_blow);");
+        apl.append("if(!0)SPELL(bladestorm);");
+        apl.append("if(!0.000000f)SPELL(shockwave);");
+        apl.append("SPELL(bloodthirst);");
+        apl.append("}");
+    }
+
+
+    return apl.c_str();
 }
 
 // parameter validation.
@@ -741,7 +773,7 @@ IC_LOCAL std::string generate_predef( config_t& blank ) {
     };
     std::string predef = "";
 
-    switch( blank.spec ){
+    switch (blank.spec) {
     case SPEC_ARMS_WARRIOR:
         predef.append( "#define CLASS_WARRIOR\r\n" );
         predef.append( "#define SPEC_ARMS\r\n" );
@@ -1007,7 +1039,7 @@ int ic_runsim( float* dps, float* dpsr, float* dpse, float* sim_time ) {
         // compile kernel
         cbprintf( "JIT ...\n" );
         std::string source( config().kernel_str );
-        switch( blank.spec ) {
+        switch (blank.spec) {
         case SPEC_ARMS_WARRIOR:
             source += config().kernel_warrior_str;
             source += config().kernel_arms_str;
