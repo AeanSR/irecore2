@@ -79,7 +79,7 @@
     <ClCompile Include="battlenet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dbc.c">
+    <ClCompile Include="..\util\dbc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -118,6 +118,9 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_charts.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\util\dbc.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

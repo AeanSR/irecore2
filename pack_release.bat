@@ -1,5 +1,5 @@
 :: Update the qt_dir as necessary
-set qt_dir=E:\Qt\5.5\msvc2013
+set qt_dir=E:\Qt\5.6\msvc2015
 
 rd /S /Q release
 rd /S /Q release_nolib

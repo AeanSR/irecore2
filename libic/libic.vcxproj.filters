@@ -28,6 +28,9 @@
     <ClCompile Include="apltr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\util\dbc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libic.h">
@@ -41,6 +44,9 @@
     </ClInclude>
     <ClInclude Include="..\util\VersionNo.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\util\dbc.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

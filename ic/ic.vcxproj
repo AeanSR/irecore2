@@ -41,14 +41,14 @@
     <OutDir>$(SolutionDir)</OutDir>
     <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(SolutionDir)\rapidjson;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\qcplib;$(LibraryPath)</LibraryPath>
-    <IntDir>$(SolutionDir)\ic\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)\intm\vc120\ic\</IntDir>
     <TargetName>irecore</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)</OutDir>
     <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(SolutionDir)\rapidjson;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\qcplib;$(LibraryPath)</LibraryPath>
-    <IntDir>$(SolutionDir)\ic\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)\intm\vc120\ic\</IntDir>
     <TargetName>irecore</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -93,11 +93,11 @@ pack_release.bat</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\util\dbc.c" />
     <ClCompile Include="..\util\util.cpp" />
     <ClCompile Include="battlenet.cpp" />
     <ClCompile Include="charts.cpp" />
     <ClCompile Include="clic.cpp" />
-    <ClCompile Include="dbc.c" />
     <ClCompile Include="GeneratedFiles\Debug\moc_gic.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
@@ -143,6 +143,7 @@ pack_release.bat</Command>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\libic\libic.h" />
+    <ClInclude Include="..\util\dbc.h" />
     <ClInclude Include="..\util\util.h" />
     <ClInclude Include="GeneratedFiles\ui_charts.h" />
     <ClInclude Include="GeneratedFiles\ui_gic.h" />
@@ -192,7 +193,7 @@ pack_release.bat</Command>
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MocDir=".\GeneratedFiles\$(ConfigurationName)" UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" lupdateOptions="" lupdateOnBuild="0" lreleaseOptions="" Qt5Version_x0020_Win32="msvc2013_opengl" MocOptions="" />
+      <UserProperties MocDir=".\GeneratedFiles\$(ConfigurationName)" UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" lupdateOptions="" lupdateOnBuild="0" lreleaseOptions="" Qt5Version_x0020_Win32="vc120qt5.5" MocOptions="" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

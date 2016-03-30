@@ -11,11 +11,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\util\dbc.c" />
     <ClCompile Include="..\util\util.cpp" />
     <ClCompile Include="apltr.cpp" />
     <ClCompile Include="libic.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\util\dbc.h" />
     <ClInclude Include="..\util\util.h" />
     <ClInclude Include="..\util\VersionNo.h" />
     <ClInclude Include="libic.h" />
@@ -54,13 +56,13 @@
     <IncludePath>$(CUDA_PATH)\include\;$(AMDAPPSDKROOT)\include\;$(SolutionDir)\util\;$(IncludePath)</IncludePath>
     <LibraryPath>$(CUDA_PATH)\lib\$(PlatformName)\;$(AMDAPPSDKROOT)\lib\x86\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\libic\</OutDir>
-    <IntDir>$(SolutionDir)\libic\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)\intm\vc120\libic\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(CUDA_PATH)\include\;$(AMDAPPSDKROOT)\include\;$(SolutionDir)\util\;$(IncludePath)</IncludePath>
     <LibraryPath>$(CUDA_PATH)\lib\$(PlatformName)\;$(AMDAPPSDKROOT)\lib\x86\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\libic\</OutDir>
-    <IntDir>$(SolutionDir)\libic\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)\intm\vc120\libic\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

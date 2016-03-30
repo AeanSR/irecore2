@@ -50,7 +50,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>6</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tabCompute">
         <attribute name="title">
@@ -567,7 +567,7 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
          <widget class="QComboBox" name="comboRegion">
           <property name="geometry">
            <rect>
-            <x>20</x>
+            <x>50</x>
             <y>20</y>
             <width>71</width>
             <height>22</height>
@@ -577,7 +577,7 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
          <widget class="QPushButton" name="btnImport">
           <property name="geometry">
            <rect>
-            <x>560</x>
+            <x>540</x>
             <y>20</y>
             <width>75</width>
             <height>23</height>
@@ -590,7 +590,7 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
          <widget class="QLineEdit" name="txtRealm">
           <property name="geometry">
            <rect>
-            <x>120</x>
+            <x>130</x>
             <y>20</y>
             <width>141</width>
             <height>20</height>
@@ -616,7 +616,7 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
          <widget class="QComboBox" name="comboImportActive">
           <property name="geometry">
            <rect>
-            <x>440</x>
+            <x>430</x>
             <y>20</y>
             <width>101</width>
             <height>22</height>
@@ -626,7 +626,7 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
          <widget class="QPushButton" name="btnResetBuild">
           <property name="geometry">
            <rect>
-            <x>650</x>
+            <x>620</x>
             <y>20</y>
             <width>75</width>
             <height>23</height>

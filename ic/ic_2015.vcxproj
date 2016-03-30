@@ -23,7 +23,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -42,14 +42,14 @@
     <OutDir>$(SolutionDir)</OutDir>
     <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(SolutionDir)\rapidjson;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\qcplib;$(LibraryPath)</LibraryPath>
-    <IntDir>$(SolutionDir)\ic\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)\intm\vc140\ic\</IntDir>
     <TargetName>irecore</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)</OutDir>
     <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(SolutionDir)\rapidjson;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\qcplib;$(LibraryPath)</LibraryPath>
-    <IntDir>$(SolutionDir)\ic\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)\intm\vc140\ic\</IntDir>
     <TargetName>irecore</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -194,7 +194,7 @@ pack_release.bat</Command>
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MocDir=".\GeneratedFiles\$(ConfigurationName)" UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" lupdateOptions="" lupdateOnBuild="0" lreleaseOptions="" Qt5Version_x0020_Win32="msvc2013_opengl" MocOptions="" />
+      <UserProperties MocDir=".\GeneratedFiles\$(ConfigurationName)" UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" lupdateOptions="" lupdateOnBuild="0" lreleaseOptions="" Qt5Version_x0020_Win32="vc140qt5.6" MocOptions="" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>
