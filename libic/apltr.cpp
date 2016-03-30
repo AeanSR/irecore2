@@ -445,6 +445,9 @@ namespace apltr {
         { "buff.blood_fury.up", "UP(blood_fury_expire)", 0 },
         { "buff.blood_fury.remains", "TO_SECONDS(REMAIN(blood_fury_expire))", 0 },
         { "buff.blood_fury.react", "UP(blood_fury_expire)", 0 },
+
+        { "buff.shattered_defenses.down", "1", 0 },
+        { "buff.precise_strikes.down", "1", 0 },
         { 0 }
     };
     IC_LOCAL item_context_dependent_t var_cd_list[] = {

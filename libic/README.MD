@@ -4,7 +4,7 @@ this is a static library edition of irecore, to embed the simulator into your ap
 
 opencl sdk is not required to build your application with libic. but to run your application with libic, an opencl runtime is required.
 
-don't forget to put kernel source file `kernel.c` (at the root dir of this repo) under the same folder of your application executable.
+don't forget to put kernel source file folder (at the root dir of this repo) under the path of your application executable.
 
 ## API
 

@@ -117,80 +117,6 @@ gic::gic( QWidget *parent )
     ui.comboEnemyClass->addItem( QApplication::translate( "gicClass", "Uncategorized" ), 0 );
     ui.comboEnemyClass->setCurrentIndex( 6 );
 
-    // Policy Action List.
-    QStringList lists;
-    lists << "SPELL(bloodthirst);"
-        << "SPELL(ragingblow);"
-        << "SPELL(wildstrike);"
-        << "SPELL(whirlwind);"
-        << "SPELL(execute);"
-        << "SPELL(potion);"
-        << "SPELL(berserkerrage);"
-        << "SPELL(recklessness);"
-        << "SPELL(stormbolt);"
-        << "SPELL(shockwave);"
-        << "SPELL(dragonroar);"
-        << "SPELL(ravager);"
-        << "SPELL(siegebreaker);"
-        << "SPELL(bladestorm);"
-        << "SPELL(avatar);"
-        << "SPELL(bloodbath);"
-        << "SPELL(arcanetorrent);"
-        << "SPELL(berserking);"
-        << "SPELL(bloodfury);"
-        << "SPELL(thorasus_the_stone_heart_of_draenor);"
-        << "SPELL(vial_of_convulsive_shadows);"
-        << "SPELL(scabbard_of_kyanos);"
-        << "SPELL(badge_of_victory);"
-        << "SPELL(bonemaws_big_toe);"
-        << "SPELL(emberscale_talisman);";
-    ui.listActions->addItems( lists );
-    lists.clear();
-    lists << "FROM_SECONDS()"
-        << "rti->player.target"
-        << "enemy_health_percent(rti)"
-        << "rti->player.power"
-        << "power_max"
-        << "TIME_DISTANT(rti->expected_combat_length)"
-        << "UP(bloodthirst.cd)"
-        << "REMAIN(bloodthirst.cd)"
-        << "rti->player.ragingblow.stack"
-        << "REMAIN(ragingblow.expire)"
-        << "rti->player.meatcleaver.stack"
-        << "REMAIN(meatcleaver.expire)"
-        << "REMAIN(enrage.expire)"
-        << "rti->player.bloodsurge.stack"
-        << "REMAIN(bloodsurge.expire)"
-        << "UP(suddendeath.expire)"
-        << "REMAIN(suddendeath.expire)"
-        << "REMAIN(berserkerrage.cd)"
-        << "UP(recklessness.expire)"
-        << "REMAIN(recklessness.expire)"
-        << "REMAIN(recklessness.cd)"
-        << "REMAIN(stormbolt.cd)"
-        << "REMAIN(shockwave.cd)"
-        << "REMAIN(dragonroar.cd)"
-        << "UP(avatar.expire)"
-        << "REMAIN(avatar.expire)"
-        << "REMAIN(avatar.cd)"
-        << "UP(bloodbath.expire)"
-        << "REMAIN(bloodbath.expire)"
-        << "REMAIN(bloodbath.cd)"
-        << "UP(bladestorm.expire)"
-        << "REMAIN(bladestorm.expire)"
-        << "REMAIN(bladestorm.cd)"
-        << "UP(ravager.expire)"
-        << "REMAIN(ravager.expire)"
-        << "REMAIN(ravager.cd)"
-        << "REMAIN(siegebreaker.cd)"
-        << "UP(potion.expire)"
-        << "REMAIN(potion.expire)"
-        << "REMAIN(potion.cd)"
-        << "UP(thorasus_the_stone_heart_of_draenor.expire)"
-        << "REMAIN(thorasus_the_stone_heart_of_draenor.expire)"
-        << "REMAIN(thorasus_the_stone_heart_of_draenor.cd)";
-    ui.listConditions->addItems( lists );
-    lists.clear();
     ui.txtAPL->setPlainText( QString( std::string( ic_defaultapl() ).c_str() ) );
 
     // bn import region.
@@ -229,6 +155,7 @@ gic::gic( QWidget *parent )
     ui.comboOHEnchant->addItem( QApplication::translate( "gicClass", "Shattered Hand" ) );
 
     // trinket list.
+    QStringList lists;
     lists <<
         QApplication::translate( "gicClass", "No Trinket Special." ) <<
         QApplication::translate( "gicClass", "Vial of Convulsive Shadows" ) <<
@@ -451,7 +378,7 @@ void gic::set_parameters() {
     ic_setparam( "raidbuff_food", ui.checkRaidBuffFood->isChecked() ? "1" : "0" );
     ic_setparam( "raidbuff_potion", ui.checkRaidBuffPotion->isChecked() ? "1" : "0" );
 
-    switch( ui.comboSpec->currentIndex() ) {
+    switch (ui.comboSpec->currentIndex()) {
     case SPEC_ARMS_WARRIOR:
         ic_setparam( "spec", "arms" );
         break;
@@ -483,7 +410,7 @@ void gic::set_parameters() {
     ic_setparam( "mh_speed", ui.txtMHSpeed->text().toLocal8Bit() );
     ic_setparam( "oh_speed", ui.txtOHSpeed->text().toLocal8Bit() );
 
-    const char* weapon_type[] = { 
+    const char* weapon_type[] = {
         "1h", // WEAPONSUBCLASS_AXE_1H = 0,
         "2h", // WEAPONSUBCLASS_AXE_2H = 1,
         "2h", // WEAPONSUBCLASS_BOW = 2,
@@ -632,6 +559,119 @@ void gic::on_comboSpec_currentIndexChanged( int idx ) {
         ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Carnage" ) );
         ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Reckless Abandon" ) );
         ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Dragon Roar" ) );
+    }
+    // Policy Action List.
+    QStringList listWarrior, listArms, listFury;
+    listWarrior << "SPELL(battle_cry);"
+        << "SPELL(berserker_rage);"
+        << "SPELL(heroic_leap)"
+        << "SPELL(whirlwind);"
+        << "SPELL(execute);"
+        << "SPELL(potion);"
+        << "SPELL(storm_bolt);"
+        << "SPELL(shockwave);"
+        << "SPELL(avatar);"
+        << "SPELL(bladestorm);"
+        << "SPELL(arcane_torrent);"
+        << "SPELL(berserking);"
+        << "SPELL(blood_fury);"
+        << "SPELL(thorasus_the_stone_heart_of_draenor);"
+        << "SPELL(vial_of_convulsive_shadows);"
+        << "SPELL(scabbard_of_kyanos);"
+        << "SPELL(badge_of_victory);"
+        << "SPELL(bonemaws_big_toe);"
+        << "SPELL(emberscale_talisman);";
+    listFury << "SPELL(bloodthirst);"
+        << "SPELL(raging_blow);"
+        << "SPELL(furious_slash);"
+        << "SPELL(rampage);"
+        << "SPELL(dragon_roar);";
+    listArms << "SPELL(cleave);"
+        << "SPELL(colossus_smash);"
+        << "SPELL(hamstring);"
+        << "SPELL(mortal_strike);"
+        << "SPELL(slam);"
+        << "SPELL(overpower);"
+        << "SPELL(rend);"
+        << "SPELL(focused_rage);"
+        << "SPELL(ravager);";
+    ui.listActions->clear();
+    if ( idx == SPEC_FURY_WARRIOR ) {
+        ui.listActions->addItems( listFury );
+    }
+    if ( idx == SPEC_ARMS_WARRIOR ) {
+        ui.listActions->addItems( listArms );
+    }
+    ui.listActions->addItems( listWarrior );
+    listWarrior.clear();
+    listArms.clear();
+    listFury.clear();
+    listWarrior << "FROM_SECONDS()"
+        << "rti->player.target"
+        << "enemy_health_percent(rti)"
+        << "rti->player.power"
+        << "power_max"
+        << "TIME_DISTANT(rti->expected_combat_length)"
+        << "UP()"
+        << "REMAIN()"
+        << "battle_cry_expire"
+        << "battle_cry_cd"
+        << "berserker_rage_cd"
+        << "heroic_leap_cd"
+        << "potion_expire"
+        << "potion_cd"
+        << "shockwave_cd"
+        << "storm_bolt_cd"
+        << "avatar_expire"
+        << "avatar_cd"
+        << "bladestorm_expire"
+        << "bladestorm_cd"
+        << "incandescence_expire"
+        << "thorasus_the_stone_heart_of_draenor_cd"
+        << "thorasus_the_stone_heart_of_draenor_expire"
+        << "arcane_torrent_cd"
+        << "berserking_cd"
+        << "berserking_expire"
+        << "blood_fury_cd"
+        << "blood_fury_expire";
+    listArms << "cleave_cd"
+        << "cleave_expire"
+        << "cleave_stack"
+        << "colossus_smash_cd"
+        << "hamstring_cd"
+        << "mortal_strike_cd"
+        << "mortal_strike_charge"
+        << "mortal_strike_maxcharge"
+        << "overpower_expire"
+        << "focused_rage_cd"
+        << "focused_rage_stack"
+        << "ravager_cd"
+        << "ravager_expire"
+        << "colossus_smash_expire(rti->player.target)"
+        << "rend_expire(rti->player.target)";
+    listFury << "bloodthirst_cd"
+        << "enrage_expire"
+        << "taste_for_blood_expire"
+        << "taste_for_blood_stack"
+        << "meat_cleaver_expire"
+        << "wrecking_ball_expire"
+        << "massacre_expire"
+        << "frothing_berserker_expire"
+        << "meat_grinder_expire"
+        << "frenzy_expire"
+        << "frenzy_stack"
+        << "raging_blow_cd"
+        << "dragon_roar_cd"
+        << "dragon_roar_expire"
+        << "rampage_expire"
+        << "rampage_stack";
+    ui.listConditions->clear();
+    ui.listConditions->addItems( listWarrior );
+    if ( idx == SPEC_FURY_WARRIOR ) {
+        ui.listConditions->addItems( listFury );
+    }
+    if ( idx == SPEC_ARMS_WARRIOR ) {
+        ui.listConditions->addItems( listArms );
     }
     ui.comboTalent1->setCurrentIndex( std::max( t1, 0 ) );
     ui.comboTalent2->setCurrentIndex( std::max( t2, 0 ) );
