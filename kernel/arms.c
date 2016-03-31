@@ -240,7 +240,7 @@ DECL_EVENT( auto_attack ) {
     lprintf( ( "mh hit" ) );
 
 #if defined(trinket_worldbreakers_resolve)
-    if ( UP( colossus_smash_cd ) && uni_rng( rti ) < trinket_worldbreakers_resolve * 0.001f ) {
+    if ( UP( colossus_smash_cd ) && uni_rng( rti ) < trinket_worldbreakers_resolve * 0.0001f ) {
         colossus_smash_cd = rti->timestamp;
         eq_enqueue( rti, rti->timestamp, routnum_colossus_smash_cd, 0 );
     }
