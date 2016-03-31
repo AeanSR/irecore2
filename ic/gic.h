@@ -63,8 +63,6 @@ struct contour_data_t {
     bool operator<( const contour_data_t& rhs ) { return value < rhs.value; }
 };
 
-enum { SPEC_ARMS_WARRIOR, SPEC_FURY_WARRIOR };
-
 class gic : public QMainWindow {
     Q_OBJECT
 

@@ -53,41 +53,41 @@ IC_LOCAL const char* race_str_param[] = {
     0
 };
 
-IC_LOCAL int trinket_scaling( int trinket, int itemlvl ) {
+IC_LOCAL int trinket_scaling( int trinket, int itemlvl, int spec ) {
     if (trinket == 1) {
         switch (itemlvl) {
-        case 670: return 1537;
-        case 676: return 1627;
-        case 685: return 1767;
-        case 691: return 1870;
-        case 700: return 2033;
-        case 706: return 2150;
-        default:  return ( int ) ( 2033.0 * approx_scale_coeff_cr( 700, itemlvl ) );
+        case 670: return 1229;
+        case 676: return 1301;
+        case 685: return 1413;
+        case 691: return 1496;
+        case 700: return 1627;
+        case 706: return 1720;
+        default:  return ( int ) ( 1627.0 * approx_scale_coeff_cr( 700, itemlvl ) );
         }
     } else if (trinket == 2) {
         switch (itemlvl) {
-        case 670: return 137;
-        case 676: return 145;
-        case 685: return 157;
-        case 691: return 167;
-        case 700: return 181;
-        case 706: return 192;
-        default:  return ( int ) ( 181.0 * approx_scale_coeff_cr( 700, itemlvl ) );
+        case 670: return 105;
+        case 676: return 111;
+        case 685: return 121;
+        case 691: return 128;
+        case 700: return 139;
+        case 706: return 147;
+        default:  return ( int ) ( 139.0 * approx_scale_coeff_cr( 700, itemlvl ) );
         }
     } else if (trinket == 3) {
         switch (itemlvl) {
-        case 670: return 2004;
-        case 676: return 2122;
-        case 685: return 2304;
-        case 691: return 2439;
-        case 700: return 2652;
-        case 706: return 2804;
-        default:  return ( int ) ( 2652.0 * approx_scale_coeff_cr( 700, itemlvl ) );
+        case 670: return 1603;
+        case 676: return 1697;
+        case 685: return 1843;
+        case 691: return 1951;
+        case 700: return 2122;
+        case 706: return 2243;
+        default:  return ( int ) ( 2122.0 * approx_scale_coeff_cr( 700, itemlvl ) );
         }
     } else if (trinket == 4) {
         switch (itemlvl) {
-        case 665: return 2200;
-        default:  return ( int ) ( 2200.0 * approx_scale_coeff( 665, itemlvl ) );
+        case 665: return 1571;
+        default:  return ( int ) ( 1571.0 * approx_scale_coeff( 665, itemlvl ) );
         }
     } else if (trinket == 5) {
         switch (itemlvl) {
@@ -113,13 +113,13 @@ IC_LOCAL int trinket_scaling( int trinket, int itemlvl ) {
         }
     } else if (trinket == 7) {
         switch (itemlvl) {
-        case 655: return 1743;
-        case 661: return 1843;
-        case 670: return 2004;
-        case 676: return 2122;
-        case 685: return 2304;
-        case 691: return 2439;
-        default:  return ( int ) ( 2304.0 * approx_scale_coeff_cr( 685, itemlvl ) );
+        case 655: return 1395;
+        case 661: return 1475;
+        case 670: return 1603;
+        case 676: return 1697;
+        case 685: return 1843;
+        case 691: return 1951;
+        default:  return ( int ) ( 1843.0 * approx_scale_coeff_cr( 685, itemlvl ) );
         }
     } else if (trinket == 8) {
         switch (itemlvl) {
@@ -149,50 +149,30 @@ IC_LOCAL int trinket_scaling( int trinket, int itemlvl ) {
         }
     } else if (trinket == 11) {
         switch (itemlvl) {
-        case 640: return 1517;
-        case 646: return 1604;
-        default:  return ( int ) ( 1517.0 * approx_scale_coeff_cr( 640, itemlvl ) );
+        case 640: return 1214;
+        case 646: return 1283;
+        default:  return ( int ) ( 1214.0 * approx_scale_coeff_cr( 640, itemlvl ) );
         }
     } else if (trinket == 12) {
         itemlvl -= 15; /** Due to blizzard's bug! */
         switch (itemlvl) {
-        case 705: return 220;
-        case 711: return 232;
-        case 720: return 253;
-        case 726: return 267;
-        case 735: return 290;
-        case 741: return 307;
-        default:  return ( int ) ( 290.0 * approx_scale_coeff( 735, itemlvl ) );
+        case 705: return ( spec == SPEC_FURY_WARRIOR ? 157 : 2443 );
+        default:  return ( int ) ( ( spec == SPEC_FURY_WARRIOR ? 157.0 : 2443.0 ) * approx_scale_coeff( 705, itemlvl ) );
         }
     } else if (trinket == 13) {
         switch (itemlvl) {
-        case 700: return 20564;
-        case 706: return 21744;
-        case 715: return 23632;
-        case 721: return 24981;
-        case 730: return 27172;
-        case 736: return 28757;
-        default:  return ( int ) ( 27172.0 * approx_scale_coeff( 730, itemlvl ) );
+        case 700: return 7344;
+        default:  return ( int ) ( 7344.0 * approx_scale_coeff( 700, itemlvl ) );
         }
     } else if (trinket == 14) {
         switch (itemlvl) {
-        case 700: return 259;
-        case 706: return 274;
-        case 715: return 298;
-        case 721: return 315;
-        case 730: return 342;
-        case 736: return 362;
-        default:  return ( int ) ( 342.0 * approx_scale_coeff( 730, itemlvl ) );
+        case 700: return 92.0;
+        default:  return ( int ) ( 92.0 * approx_scale_coeff( 700, itemlvl ) );
         }
     } else if (trinket == 15) {
         switch (itemlvl) {
-        case 695: return 54;
-        case 701: return 57;
-        case 710: return 62;
-        case 716: return 65;
-        case 725: return 71;
-        case 731: return 75;
-        default:  return ( int ) ( 71.0 * approx_scale_coeff( 725, itemlvl ) );
+        case 695: return 38;
+        default:  return ( int ) ( 38.0 * approx_scale_coeff( 695, itemlvl ) );
         }
     } else if (trinket == 16) {
         switch (itemlvl) {

@@ -1521,7 +1521,7 @@ DECL_EVENT( discordant_chorus_trigger ) {
     lprintf( ( "discordant chorus trigger" ) );
     for ( int i = 0; i != num_enemies; i++ ) {
         k32u dice = round_table_dice( rti, i, ATYPE_SPELL, 0 );
-        deal_damage( rti, i, 0.5 * trinket_discordant_chorus, DTYPE_PHYSICAL, dice, 0, 0 );
+        deal_damage( rti, i, trinket_discordant_chorus, DTYPE_PHYSICAL, dice, 0, 0 );
     }
 }
 #endif
@@ -1545,7 +1545,7 @@ DECL_EVENT( empty_drinking_horn_expire ) {
     lprintf( ( "empty_drinking_horn stack %d @tar%d", rti->enemy[target_id].class->empty_drinking_horn.stack, target_id ) );
 }
 DECL_EVENT( empty_drinking_horn_tick ) {
-    float dmg = trinket_empty_drinking_horn * 0.5; /* Nerfed to half. */
+    float dmg = trinket_empty_drinking_horn;
     dmg *= rti->enemy[target_id].class->empty_drinking_horn.stack;
     deal_damage( rti, target_id, dmg, DTYPE_FIRE, DICE_HIT, 0, 0 );
     time_t next_tick = TIME_OFFSET( FROM_SECONDS( 1 ) );

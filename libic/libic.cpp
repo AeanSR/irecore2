@@ -964,7 +964,7 @@ IC_LOCAL std::string generate_predef( config_t& blank ) {
         predef.append( "#define trinket_" );
         predef.append( trinket_list[blank.trinket1] );
         predef.append( " " );
-        sprintf( buffer, "%d", trinket_scaling( blank.trinket1, blank.trinket1_ilvl ) );
+        sprintf( buffer, "%d", trinket_scaling( blank.trinket1, blank.trinket1_ilvl, blank.spec ) );
         predef.append( buffer );
         predef.append( "\r\n" );
     }
@@ -972,7 +972,7 @@ IC_LOCAL std::string generate_predef( config_t& blank ) {
         predef.append( "#define trinket_" );
         predef.append( trinket_list[blank.trinket2] );
         predef.append( " " );
-        sprintf( buffer, "%d", trinket_scaling( blank.trinket2, blank.trinket2_ilvl ) );
+        sprintf( buffer, "%d", trinket_scaling( blank.trinket2, blank.trinket2_ilvl, blank.spec ) );
         predef.append( buffer );
         predef.append( "\r\n" );
     }

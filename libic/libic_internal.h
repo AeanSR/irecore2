@@ -45,8 +45,6 @@ struct ic_computedevice_t {
     ic_computedevice_t() : platform_name( 0 ), device_name( 0 ), context( 0 ), queue( 0 ) { }
 };
 
-enum { SPEC_ARMS_WARRIOR, SPEC_FURY_WARRIOR };
-
 struct config_t {
     cl_uint gear_str;
     cl_uint gear_crit;
