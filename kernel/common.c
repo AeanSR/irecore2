@@ -1,5 +1,5 @@
 /**
-    IreCore kernel - Warrior Class Abstraction
+    IreCore kernel - Common Abstraction
 
     *** EDIT AT YOUR OWN RISK! ***
     All kernel source goes here exposed to the air, for your convenience to edit.
@@ -13,455 +13,420 @@
     If not, see <http://opensource.org/licenses/mit-license.php>.
 */
 
-#if defined(SPEC_FURY)
-#undef SPEC_FURY
-#undef SPEC_ARMS
-#define SPEC_FURY 1
+/* race list */
+#define RACE_NONE 0
+#define RACE_HUMAN 1
+#define RACE_DWARF 2
+#define RACE_GNOME 3
+#define RACE_NIGHTELF_DAY 4
+#define RACE_NIGHTELF_NIGHT 5
+#define RACE_DRAENEI 6
+#define RACE_WORGEN 7
+#define RACE_ORC 8
+#define RACE_TROLL 9
+#define RACE_TAUREN 10
+#define RACE_UNDEAD 11
+#define RACE_BLOODELF 12
+#define RACE_GOBLIN 13
+#define RACE_PANDAREN 14
+
+/* class list */
+#define CLASS_WARRIOR 0
+#define CLASS_DEATHKNIGHT 1
+
 #define SPEC_ARMS 0
-#elif defined(SPEC_ARMS)
-#undef SPEC_FURY
-#undef SPEC_ARMS
-#define SPEC_FURY 0
-#define SPEC_ARMS 1
-#else
-#undef SPEC_FURY
-#undef SPEC_ARMS
-#define SPEC_FURY 0
-#define SPEC_ARMS 1
-#endif
+#define SPEC_FURY 1
+#define SPEC_FROST_DK 2
+#define SPEC_UNHOLY 3
 
-/* Tier 1 */
-#define TALENT_WAR_MACHINE         (SPEC_FURY && (TALENT_TIER1 == 1))
-#define TALENT_ENDLESS_RAGE        (SPEC_FURY && (TALENT_TIER1 == 2))
-#define TALENT_FRESH_MEAT          (SPEC_FURY && (TALENT_TIER1 == 3))
-#define TALENT_DAUNTLESS           (SPEC_ARMS && (TALENT_TIER1 == 1))
-#define TALENT_OVERPOWER           (SPEC_ARMS && (TALENT_TIER1 == 2))
-#define TALENT_SWEEPING_STRIKES    (SPEC_ARMS && (TALENT_TIER1 == 3))
+/* race base strength */
+deviceonly( __constant ) k32s racial_base_str[] = {
+    0, 0, 5, -5, -4, -4, 66, 3, 3, 1, 5, -1, -3, -3, 0,
+};
 
-/* Tier 2 */
-#define TALENT_SHOCKWAVE           (TALENT_TIER2 == 1)
-#define TALENT_STORM_BOLT          (TALENT_TIER2 == 2)
-#define TALENT_DOUBLE_TIME         (TALENT_TIER2 == 3)
+/* proc state. */
+typedef struct {
+    time_t cd;
+} ICD_t;
+typedef struct {
+    time_t lasttimeattemps;
+    time_t lasttimeprocs;
+} RPPM_t;
 
-/* Tier 3 */
-#define TALENT_FERVOR_OF_BATTLE    (SPEC_ARMS && (TALENT_TIER3 == 1))
-#define TALENT_REND                (SPEC_ARMS && (TALENT_TIER3 == 2))
-#define TALENT_WRECKING_BALL       (SPEC_FURY && (TALENT_TIER3 == 1))
-#define TALENT_OUTBURST            (SPEC_FURY && (TALENT_TIER3 == 2))
-#define TALENT_AVATAR              (TALENT_TIER3 == 3)
+/* weapon type list */
+#define WEAPON_2H 0
+#define WEAPON_1H 1
+#define WEAPON_DAGGER 2
 
-/* Tier 4 */
-#define TALENT_FURIOUS_CHARGE      (SPEC_FURY && (TALENT_TIER4 == 1))
-#define TALENT_WARPAINT            (SPEC_FURY && (TALENT_TIER4 == 3))
-#define TALENT_SECOND_WIND         (SPEC_ARMS && (TALENT_TIER4 == 1))
-#define TALENT_DIE_BY_THE_SWORD    (SPEC_ARMS && (TALENT_TIER4 == 3))
-#define TALENT_BOUNDING_STRIDE     (TALENT_TIER4 == 2)
+/* weapon info */
+typedef struct weapon_t {
+    float speed;
+    k32u low;
+    k32u high;
+    k32u type;
+} weapon_t;
+deviceonly( __constant ) weapon_t weapon[] = {
+    {
+        MH_SPEED,
+        MH_LOW,
+        MH_HIGH,
+        MH_TYPE,
+    },
+    {
+        OH_SPEED,
+        OH_LOW,
+        OH_HIGH,
+        OH_TYPE,
+    },
+};
 
-/* Tier 5 */
-#define TALENT_IN_FOR_THE_KILL     (SPEC_ARMS && (TALENT_TIER5 == 1))
-#define TALENT_MORTAL_COMBO        (SPEC_ARMS && (TALENT_TIER5 == 2))
-#define TALENT_MASSACRE            (SPEC_FURY && (TALENT_TIER5 == 1))
-#define TALENT_FROTHING_BERSERKER  (SPEC_FURY && (TALENT_TIER5 == 2))
-#define TALENT_BLADESTORM          (TALENT_TIER5 == 3)
+/* normalized weapon speed lut */
+deviceonly( __constant ) float normalized_weapon_speed[] = {
+    3.3f,
+    2.4f,
+    1.7f,
+};
 
-/* Tier 6 */
-#define TALENT_MEAT_GRINDER        (SPEC_FURY && (TALENT_TIER6 == 1))
-#define TALENT_FRENZY              (SPEC_FURY && (TALENT_TIER6 == 2))
-#define TALENT_INNER_RAGE          (SPEC_FURY && (TALENT_TIER6 == 3))
-#define TALENT_FOCUSED_RAGE        (SPEC_ARMS && (TALENT_TIER6 == 1))
-#define TALENT_TRAUMA              (SPEC_ARMS && (TALENT_TIER6 == 2))
-#define TALENT_TITANIC_MIGHT       (SPEC_ARMS && (TALENT_TIER6 == 3))
 
-/* Tier 7 */
-#define TALENT_CARNAGE             (SPEC_FURY && (TALENT_TIER7 == 1))
-#define TALENT_RECKLESS_ABANDON    (SPEC_FURY && (TALENT_TIER7 == 2))
-#define TALENT_DRAGON_ROAR         (SPEC_FURY && (TALENT_TIER7 == 3))
-#define TALENT_ANGER_MANAGEMENT    (SPEC_ARMS && (TALENT_TIER7 == 1))
-#define TALENT_OPPORTUNITY_STRIKES (SPEC_ARMS && (TALENT_TIER7 == 2))
-#define TALENT_RAVAGER             (SPEC_ARMS && (TALENT_TIER7 == 3))
-
-/* class-spec state infos. */
-struct class_state_t {
-    int placeholder;
-    struct {
-        time_t expire;
-        time_t cd;
-    } battle_cry;
-    #define battle_cry_expire (rti->player.class->battle_cry.expire)
-    #define battle_cry_cd     (rti->player.class->battle_cry.cd)
-    struct {
-        time_t cd;
-    } berserker_rage;
-    #define berserker_rage_cd (rti->player.class->berserker_rage.cd)
-    struct {
-        time_t cd;
-    } heroic_leap;
-    #define heroic_leap_cd (rti->player.class->heroic_leap.cd)
-#if (BUFF_POTION == 1)
+/* common state infos. */
+struct common_state_t {
+    #if (BUFF_POTION == 1)
     struct {
         time_t expire;
         time_t cd;
     } potion;
-    #define potion_expire (rti->player.class->potion.expire)
-    #define potion_cd     (rti->player.class->potion.cd)
-#else
+    #define potion_expire (rti->player.common->potion.expire)
+    #define potion_cd     (rti->player.common->potion.cd)
+    #else
     #define potion_expire (0)
     #define potion_cd     (0)
-#endif
-#if (TALENT_SHOCKWAVE)
-    struct {
-        time_t cd;
-    } shockwave;
-    #define shockwave_cd (rti->player.class->shockwave.cd)
-#else
-    #define shockwave_cd (0)
-#endif
-#if (TALENT_STORM_BOLT)
-    struct {
-        time_t cd;
-    } storm_bolt;
-    #define storm_bolt_cd (rti->player.class->storm_bolt.cd)
-#else
-    #define storm_bolt_cd (0)
-#endif
-#if (TALENT_AVATAR)
-    struct {
-        time_t expire;
-        time_t cd;
-    } avatar;
-    #define avatar_expire (rti->player.class->avatar.expire)
-    #define avatar_cd     (rti->player.class->avatar.cd)
-#else
-    #define avatar_expire (0)
-    #define avatar_cd     (0)
-#endif
-#if (TALENT_BLADESTORM)
-    struct {
-        time_t cd;
-        time_t expire;
-        time_t tick_interval;
-    } bladestorm;
-    #define bladestorm_expire (rti->player.class->bladestorm.expire)
-    #define bladestorm_cd     (rti->player.class->bladestorm.cd)
-#else
-    #define bladestorm_expire (0)
-    #define bladestorm_cd     (0)
-#endif
-#if (archmages_incandescence || archmages_greater_incandescence)
+    #endif
+    #if (archmages_incandescence || archmages_greater_incandescence)
     struct {
         time_t expire;
         RPPM_t proc;
     } incandescence;
-    #define incandescence_expire (rti->player.class->expire)
-#else
+    #define incandescence_expire (rti->player.common->expire)
+    #else
     #define incandescence_expire (0)
-#endif
-#if (legendary_ring)
+    #endif
+    #if (legendary_ring)
     struct {
         time_t expire;
         time_t cd;
         float dmg_snapshot;
     } thorasus_the_stone_heart_of_draenor;
-    #define thorasus_the_stone_heart_of_draenor_cd     (rti->player.class->thorasus_the_stone_heart_of_draenor.cd)
-    #define thorasus_the_stone_heart_of_draenor_expire (rti->player.class->thorasus_the_stone_heart_of_draenor.expire)
-#else
+    #define thorasus_the_stone_heart_of_draenor_cd     (rti->player.common->thorasus_the_stone_heart_of_draenor.cd)
+    #define thorasus_the_stone_heart_of_draenor_expire (rti->player.common->thorasus_the_stone_heart_of_draenor.expire)
+    #else
     #define thorasus_the_stone_heart_of_draenor_cd     (0)
     #define thorasus_the_stone_heart_of_draenor_expire (0)
-#endif
-#if (thunderlord_mh)
+    #endif
+    #if (thunderlord_mh)
     struct {
         time_t expire;
         k32u extend;
         RPPM_t proc;
     } enchant_mh;
-#endif
-#if (thunderlord_oh)
+    #endif
+    #if (thunderlord_oh)
     struct {
         time_t expire;
         k32u extend;
         RPPM_t proc;
     } enchant_oh;
-#endif
-#if (bleedinghollow_mh)
+    #endif
+    #if (bleedinghollow_mh)
     struct {
         time_t expire;
         RPPM_t proc;
     } enchant_mh;
-#endif
-#if (bleedinghollow_oh)
+    #endif
+    #if (bleedinghollow_oh)
     struct {
         time_t expire;
         RPPM_t proc;
     } enchant_oh;
-#endif
-#if (shatteredhand_mh)
+    #endif
+    #if (shatteredhand_mh)
     RPPM_t enchant_mh;
-#endif
-#if (shatteredhand_oh)
+    #endif
+    #if (shatteredhand_oh)
     RPPM_t enchant_oh;
-#endif
-#if (RACE == RACE_BLOODELF)
+    #endif
+    #if (RACE == RACE_BLOODELF)
     time_t arcane_torrent;
-    #define arcane_torrent_cd (rti->player.class->arcane_torrent)
-#else
+    #define arcane_torrent_cd (rti->player.common->arcane_torrent)
+    #else
     #define arcane_torrent_cd (0)
-#endif
-#if (RACE == RACE_TROLL)
+    #endif
+    #if (RACE == RACE_TROLL)
     struct {
         time_t cd;
         time_t expire;
     } berserking;
-    #define berserking_cd     (rti->player.class->berserking.cd)
-    #define berserking_expire (rti->player.class->berserking.expire)
-#else
+    #define berserking_cd     (rti->player.common->berserking.cd)
+    #define berserking_expire (rti->player.common->berserking.expire)
+    #else
     #define berserking_cd     (0)
     #define berserking_expire (0)
-#endif
-#if (RACE == RACE_ORC)
+    #endif
+    #if (RACE == RACE_ORC)
     struct {
         time_t cd;
         time_t expire;
     } blood_fury;
-    #define blood_fury_cd     (rti->player.class->blood_fury.cd)
-    #define blood_fury_expire (rti->player.class->blood_fury.expire)
-#else
+    #define blood_fury_cd     (rti->player.common->blood_fury.cd)
+    #define blood_fury_expire (rti->player.common->blood_fury.expire)
+    #else
     #define blood_fury_cd     (0)
     #define blood_fury_expire (0)
-#endif
-#if (RACE == RACE_UNDEAD)
+    #endif
+    #if (RACE == RACE_UNDEAD)
     ICD_t           touch_of_the_grave;
-#endif
-#if defined(trinket_vial_of_convulsive_shadows)
+    #endif
+    #if defined(trinket_vial_of_convulsive_shadows)
     struct {
         time_t cd;
         time_t expire;
     } vial_of_convulsive_shadows;
-    #define vial_of_convulsive_shadows_cd     (rti->player.class->vial_of_convulsive_shadows.cd)
-    #define vial_of_convulsive_shadows_expire (rti->player.class->vial_of_convulsive_shadows.expire)
-#else
+    #define vial_of_convulsive_shadows_cd     (rti->player.common->vial_of_convulsive_shadows.cd)
+    #define vial_of_convulsive_shadows_expire (rti->player.common->vial_of_convulsive_shadows.expire)
+    #else
     #define vial_of_convulsive_shadows_cd     (0)
     #define vial_of_convulsive_shadows_expire (0)
-#endif
-#if defined(trinket_forgemasters_insignia)
+    #endif
+    #if defined(trinket_forgemasters_insignia)
     struct {
         time_t expire;
         k32u stack;
         RPPM_t proc;
     } forgemasters_insignia;
-    #define forgemasters_insignia_expire (rti->player.class->forgemasters_insignia.expire)
-    #define forgemasters_insignia_stack  (rti->player.class->forgemasters_insignia.stack)
-#else
+    #define forgemasters_insignia_expire (rti->player.common->forgemasters_insignia.expire)
+    #define forgemasters_insignia_stack  (rti->player.common->forgemasters_insignia.stack)
+    #else
     #define forgemasters_insignia_expire (0)
     #define forgemasters_insignia_stack  (0)
-#endif
-#if defined(trinket_horn_of_screaming_spirits)
+    #endif
+    #if defined(trinket_horn_of_screaming_spirits)
     struct {
         time_t expire;
         RPPM_t proc;
     } horn_of_screaming_spirits;
-    #define horn_of_screaming_spirits_expire (rti->player.class->horn_of_screaming_spirits.expire)
-#else
+    #define horn_of_screaming_spirits_expire (rti->player.common->horn_of_screaming_spirits.expire)
+    #else
     #define horn_of_screaming_spirits_expire (0)
-#endif
-#if defined(trinket_scabbard_of_kyanos)
+    #endif
+    #if defined(trinket_scabbard_of_kyanos)
     struct {
         time_t cd;
         time_t expire;
     } scabbard_of_kyanos;
-    #define scabbard_of_kyanos_cd     (rti->player.class->scabbard_of_kyanos.cd)
-    #define scabbard_of_kyanos_expire (rti->player.class->scabbard_of_kyanos.expire)
-#else
+    #define scabbard_of_kyanos_cd     (rti->player.common->scabbard_of_kyanos.cd)
+    #define scabbard_of_kyanos_expire (rti->player.common->scabbard_of_kyanos.expire)
+    #else
     #define scabbard_of_kyanos_cd     (0)
     #define scabbard_of_kyanos_expire (0)
-#endif
-#if defined(trinket_badge_of_victory)
+    #endif
+    #if defined(trinket_badge_of_victory)
     struct {
         time_t cd;
         time_t expire;
     } badge_of_victory;
-    #define badge_of_victory_cd     (rti->player.class->badge_of_victory.cd)
-    #define badge_of_victory_expire (rti->player.class->badge_of_victory.expire)
-#else
+    #define badge_of_victory_cd     (rti->player.common->badge_of_victory.cd)
+    #define badge_of_victory_expire (rti->player.common->badge_of_victory.expire)
+    #else
     #define badge_of_victory_cd     (0)
     #define badge_of_victory_expire (0)
-#endif
-#if defined(trinket_insignia_of_victory)
+    #endif
+    #if defined(trinket_insignia_of_victory)
     struct {
         time_t expire;
         ICD_t proc;
     } insignia_of_victory;
-    #define insignia_of_victory_expire (rti->player.class->insignia_of_victory.expire)
-#else
+    #define insignia_of_victory_expire (rti->player.common->insignia_of_victory.expire)
+    #else
     #define insignia_of_victory_expire (0)
-#endif
-#if defined(trinket_tectus_beating_heart)
+    #endif
+    #if defined(trinket_tectus_beating_heart)
     struct {
         time_t expire;
         RPPM_t proc;
     } tectus_beating_heart;
-    #define tectus_beating_heart_expire (rti->player.class->tectus_beating_heart.expire)
-#else
+    #define tectus_beating_heart_expire (rti->player.common->tectus_beating_heart.expire)
+    #else
     #define tectus_beating_heart_expire (0)
-#endif
-#if defined(trinket_formidable_fang)
+    #endif
+    #if defined(trinket_formidable_fang)
     struct {
         time_t expire;
         RPPM_t proc;
     } formidable_fang;
-    #define formidable_fang_expire (rti->player.class->formidable_fang.expire)
-#else
+    #define formidable_fang_expire (rti->player.common->formidable_fang.expire)
+    #else
     #define formidable_fang_expire (0)
-#endif
-#if defined(trinket_draenic_stone)
+    #endif
+    #if defined(trinket_draenic_stone)
     struct {
         time_t expire;
         ICD_t proc;
     } draenic_stone;
-    #define draenic_stone_expire (rti->player.class->draenic_stone.expire)
-#else
+    #define draenic_stone_expire (rti->player.common->draenic_stone.expire)
+    #else
     #define draenic_stone_expire (0)
-#endif
-#if defined(trinket_skull_of_war)
+    #endif
+    #if defined(trinket_skull_of_war)
     struct {
         time_t expire;
         ICD_t proc;
     } skull_of_war;
-    #define skull_of_war_expire (rti->player.class->skull_of_war.expire)
-#else
+    #define skull_of_war_expire (rti->player.common->skull_of_war.expire)
+    #else
     #define skull_of_war_expire (0)
-#endif
-#if defined(trinket_mote_of_the_mountain)
+    #endif
+    #if defined(trinket_mote_of_the_mountain)
     struct {
         time_t expire;
         RPPM_t proc;
     } mote_of_the_mountain;
-    #define mote_of_the_mountain_expire (rti->player.class->mote_of_the_mountain.expire)
-#else
+    #define mote_of_the_mountain_expire (rti->player.common->mote_of_the_mountain.expire)
+    #else
     #define mote_of_the_mountain_expire (0)
-#endif
-#if defined(trinket_discordant_chorus)
+    #endif
+    #if defined(trinket_discordant_chorus)
     RPPM_t discordant_chorus;
-#endif
-#if defined(trinket_unending_hunger)
+    #endif
+    #if defined(trinket_unending_hunger)
     struct {
         time_t expire;
         k32u stack;
         RPPM_t proc;
     } unending_hunger;
-    #define unending_hunger_expire (rti->player.class->unending_hunger.expire)
-    #define unending_hunger_stack  (rti->player.class->unending_hunger.stack)
-#else
+    #define unending_hunger_expire (rti->player.common->unending_hunger.expire)
+    #define unending_hunger_stack  (rti->player.common->unending_hunger.stack)
+    #else
     #define unending_hunger_expire (0)
     #define unending_hunger_stack  (0)
-#endif
-#if defined(trinket_spores_of_alacrity)
+    #endif
+    #if defined(trinket_spores_of_alacrity)
     struct {
         time_t expire;
         RPPM_t proc;
     } spores_of_alacrity;
-    #define spores_of_alacrity_expire (rti->player.class->spores_of_alacrity.expire)
-#else
+    #define spores_of_alacrity_expire (rti->player.common->spores_of_alacrity.expire)
+    #else
     #define spores_of_alacrity_expire (0)
-#endif
-#if defined(trinket_bonemaws_big_toe)
+    #endif
+    #if defined(trinket_bonemaws_big_toe)
     struct {
         time_t cd;
         time_t expire;
     } bonemaws_big_toe;
-    #define bonemaws_big_toe_cd     (rti->player.class->bonemaws_big_toe.cd)
-    #define bonemaws_big_toe_expire (rti->player.class->bonemaws_big_toe.expire)
-#else
+    #define bonemaws_big_toe_cd     (rti->player.common->bonemaws_big_toe.cd)
+    #define bonemaws_big_toe_expire (rti->player.common->bonemaws_big_toe.expire)
+    #else
     #define bonemaws_big_toe_cd     (0)
     #define bonemaws_big_toe_expire (0)
-#endif
-#if defined(trinket_emberscale_talisman)
+    #endif
+    #if defined(trinket_emberscale_talisman)
     struct {
         time_t cd;
         time_t expire;
     } emberscale_talisman;
-    #define emberscale_talisman_cd     (rti->player.class->emberscale_talisman.cd)
-    #define emberscale_talisman_expire (rti->player.class->emberscale_talisman.expire)
-#else
+    #define emberscale_talisman_cd     (rti->player.common->emberscale_talisman.cd)
+    #define emberscale_talisman_expire (rti->player.common->emberscale_talisman.expire)
+    #else
     #define emberscale_talisman_cd     (0)
     #define emberscale_talisman_expire (0)
-#endif
-#if defined(trinket_gronntooth_war_horn)
+    #endif
+    #if defined(trinket_gronntooth_war_horn)
     struct {
         time_t expire;
         RPPM_t proc;
     } gronntooth_war_horn;
-    #define gronntooth_war_horn_expire (rti->player.class->gronntooth_war_horn.expire)
-#else
+    #define gronntooth_war_horn_expire (rti->player.common->gronntooth_war_horn.expire)
+    #else
     #define gronntooth_war_horn_expire (0)
-#endif
+    #endif
 };
-struct class_debuff_t {
-    int placeholder;
-#if (shatteredhand_mh)
+struct common_debuff_t {
+    #if (shatteredhand_mh)
     struct {
         time_t expire;
         float ticks;
     } enchant_mh;
-#endif
-#if (shatteredhand_oh)
+    #endif
+    #if (shatteredhand_oh)
     struct {
         time_t expire;
         float ticks;
     } enchant_oh;
-#endif
-#if defined(trinket_empty_drinking_horn)
+    #endif
+    #if defined(trinket_empty_drinking_horn)
     struct {
         time_t expire;
         k32u stack;
     } empty_drinking_horn;
-#endif
+    #endif
 };
 
-#if (TALENT_ANGER_MANAGEMENT)
-void anger_management_count( rtinfo_t* rti, float rage );
-#endif
-
-#if (TALENT_FROTHING_BERSERKER)
-void frothing_berserker_trigger( rtinfo_t* rti );
-#endif
+/* proc rate processor */
+void proc_ICD( rtinfo_t* rti, ICD_t* state, float chance, time_t cooldown, k32u routnum, k32u target_id ) {
+    if (( !state->cd || state->cd <= rti->timestamp ) && uni_rng( rti ) < chance) {
+        state->cd = TIME_OFFSET( cooldown );
+        eq_enqueue( rti, rti->timestamp, routnum, target_id );
+    }
+}
+void proc_PPM( rtinfo_t* rti, float PPM, weapon_t* weapon, k32u routnum, k32u target_id ) {
+    if (uni_rng( rti ) < ( PPM * weapon->speed / 60.0f )) {
+        eq_enqueue( rti, rti->timestamp, routnum, target_id );
+    }
+}
+void proc_RPPM( rtinfo_t* rti, RPPM_t* state, float RPPM, k32u routnum, k32u target_id ) {
+    if (state->lasttimeattemps == rti->timestamp) return;
+    float proc = RPPM * min( TO_SECONDS( rti->timestamp - state->lasttimeattemps ), 10.0f ) / 60.0f;
+    state->lasttimeattemps = rti->timestamp;
+    proc *= max( 1.0f, 1.0f + ( min( TO_SECONDS( rti->timestamp - state->lasttimeprocs ), 1000.0f ) / ( 60.0f / RPPM ) - 1.5f ) * 3.0f );
+    if (uni_rng( rti ) < proc) {
+        eq_enqueue( rti, rti->timestamp, routnum, target_id );
+        state->lasttimeprocs = rti->timestamp;
+    }
+}
 
 /* Power gain. */
+float spec_power_gain( rtinfo_t* rti, float power );
 void power_gain( rtinfo_t* rti, float power ) {
-    int frothing = 1;
-    frothing &= rti->player.power < power_max;
+    power = spec_power_gain( rti, power );
     rti->player.power = min( power_max, rti->player.power + power );
-    frothing &= rti->player.power == power_max;
-#if (TALENT_FROTHING_BERSERKER)
-    if( frothing ) frothing_berserker_trigger( rti );
-#endif
 }
 
 /* Power check. */
+float spec_power_check( rtinfo_t* rti, float cost );
 kbool power_check( rtinfo_t* rti, float cost ) {
-    if ( cost <= rti->player.power ) return 1;
+    cost = spec_power_check( rti, cost );
+    if (cost <= rti->player.power) return 1;
     return 0;
 }
 
 /* Power consume. */
+float spec_power_consume( rtinfo_t* rti, float cost );
 void power_consume( rtinfo_t* rti, float cost ) {
     assert( power_check( rti, cost ) ); /* Power should suffice. */
+    cost = spec_power_consume( rti, cost );
     rti->player.power -= cost;
-#if (TALENT_ANGER_MANAGEMENT)
-    anger_management_count( rti, cost );
-#endif
 }
 
 /* stat processor */
 void refresh_str( rtinfo_t* rti ) {
-    float fstr = ( float )rti->player.stat.gear_str;
+    float fstr = ( float ) rti->player.stat.gear_str;
     k32u str;
     float coeff = 1.0f;
-    if ( PLATE_SPECIALIZATION ) coeff *= 1.05f;
-#if (archmages_incandescence || archmages_greater_incandescence)
-    if ( UP( incandescence_expire ) ) coeff *= archmages_greater_incandescence ? 1.15f : 1.1f;
-#endif
+    if (PLATE_SPECIALIZATION) coeff *= 1.05f;
+    #if (archmages_incandescence || archmages_greater_incandescence)
+    if (UP( incandescence_expire )) coeff *= archmages_greater_incandescence ? 1.15f : 1.1f;
+    #endif
     str = convert_uint_rtz( fstr * coeff );
-    fstr = 1455; /* Base str @lvl 100. */
+    fstr = 1455; /* Base str @lvl 100. */ // TODO: this may vary between classes.
     fstr += racial_base_str[RACE]; /* Racial str. */
     str += convert_uint_rtz( fstr * coeff );
     rti->player.stat.str = str;
@@ -469,7 +434,7 @@ void refresh_str( rtinfo_t* rti ) {
 
 void refresh_ap( rtinfo_t* rti ) {
     k32u ap = rti->player.stat.str;
-    if ( UP( blood_fury_expire ) ) ap += 345;
+    if (UP( blood_fury_expire )) ap += 345;
     rti->player.stat.ap = ap;
 }
 
@@ -477,13 +442,13 @@ float spec_mastery_coefficient( rtinfo_t* rti );
 float spec_mastery_increament( rtinfo_t* rti );
 
 void refresh_mastery( rtinfo_t* rti ) {
-    float mastery = ( float )rti->player.stat.gear_mastery;
-#if (bleedinghollow_mh)
-    if ( UP( rti->player.class->enchant_mh.expire ) ) mastery += 500.0f;
-#endif
-#if (bleedinghollow_oh)
-    if ( UP( rti->player.class->enchant_oh.expire ) ) mastery += 500.0f;
-#endif
+    float mastery = ( float ) rti->player.stat.gear_mastery;
+    #if (bleedinghollow_mh)
+    if (UP( rti->player.common->enchant_mh.expire )) mastery += 500.0f;
+    #endif
+    #if (bleedinghollow_oh)
+    if (UP( rti->player.common->enchant_oh.expire )) mastery += 500.0f;
+    #endif
     mastery = spec_mastery_coefficient( rti ) * ( 0.08f + mastery / 11000 ) + spec_mastery_increament( rti );
     rti->player.stat.mastery = mastery;
 }
@@ -491,16 +456,15 @@ void refresh_mastery( rtinfo_t* rti ) {
 float spec_crit_increament( rtinfo_t* rti );
 
 void refresh_crit( rtinfo_t* rti ) {
-    float crit = ( float )rti->player.stat.gear_crit;
-#if (thunderlord_mh)
-    if ( UP( rti->player.class->enchant_mh.expire ) ) crit += 500.0f;
-#endif
-#if (thunderlord_oh)
-    if ( UP( rti->player.class->enchant_oh.expire ) ) crit += 500.0f;
-#endif
-    // crit *= 1.05f; // TODO: does this increase still exists in legion?
+    float crit = ( float ) rti->player.stat.gear_crit;
+    #if (thunderlord_mh)
+    if (UP( rti->player.common->enchant_mh.expire )) crit += 500.0f;
+    #endif
+    #if (thunderlord_oh)
+    if (UP( rti->player.common->enchant_oh.expire )) crit += 500.0f;
+    #endif
     crit = 0.05f + crit / 11000 + spec_crit_increament( rti );
-    if ( ( RACE == RACE_NIGHTELF_DAY ) || ( RACE == RACE_BLOODELF ) || ( RACE == RACE_WORGEN ) )
+    if (( RACE == RACE_NIGHTELF_DAY ) || ( RACE == RACE_BLOODELF ) || ( RACE == RACE_WORGEN ))
         crit += 0.01f;
     rti->player.stat.crit = crit;
 }
@@ -508,19 +472,19 @@ void refresh_crit( rtinfo_t* rti ) {
 float spec_haste_coefficient( rtinfo_t* rti );
 
 void refresh_haste( rtinfo_t* rti ) {
-    float haste = ( float )rti->player.stat.gear_haste;
+    float haste = ( float ) rti->player.stat.gear_haste;
     haste = 1.0f + haste / 10000;
-    if ( ( RACE == RACE_NIGHTELF_NIGHT ) || ( RACE == RACE_GOBLIN ) || ( RACE == RACE_GNOME ) )
+    if (( RACE == RACE_NIGHTELF_NIGHT ) || ( RACE == RACE_GOBLIN ) || ( RACE == RACE_GNOME ))
         haste *= 1.01f;
-    if ( UP( berserking_expire ) ) haste *= 1.15f;
-    if ( BUFF_BLOODLUST hostonly( && rti->timestamp ) ) if ( ( rti->timestamp % FROM_SECONDS( 600 ) ) < FROM_SECONDS( 30 ) ) haste *= 1.3f;
+    if (UP( berserking_expire )) haste *= 1.15f;
+    if (BUFF_BLOODLUST hostonly( && rti->timestamp )) if (( rti->timestamp % FROM_SECONDS( 600 ) ) < FROM_SECONDS( 30 )) haste *= 1.3f;
     haste *= spec_haste_coefficient( rti );
     rti->player.stat.haste = haste - 1.0f;
 }
 
 void refresh_vers( rtinfo_t* rti ) {
-    float vers = ( float )rti->player.stat.gear_vers;
-    if ( RACE == RACE_HUMAN ) vers += 100;
+    float vers = ( float ) rti->player.stat.gear_vers;
+    if (RACE == RACE_HUMAN) vers += 100;
     vers = vers / 13000;
     rti->player.stat.vers = vers;
 }
@@ -547,6 +511,7 @@ enum {
 void special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id );
 
 k32u round_table_dice( rtinfo_t* rti, k32u target_id, k32u attacktype, float extra_crit_rate );
+k32u round_table_dice2( rtinfo_t* rti, k32u target_id, k32u attacktype, float extra_crit_rate );
 
 float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u dice, float extra_crit_bonus, kbool ignore_armor );
 
@@ -557,227 +522,143 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
 #define SPELL( name ) safemacro(if(spell_##name ( rti )) return;)
 enum {
     routnum_gcd_expire,
-    routnum_battle_cry_start,
-    routnum_battle_cry_expire,
-    routnum_battle_cry_cd,
-    routnum_berserker_rage_cd,
-    routnum_heroic_leap_cast,
-    routnum_heroic_leap_cd,
-#if (BUFF_BLOODLUST == 1)
+    #if (BUFF_BLOODLUST == 1)
     routnum_bloodlust_start,
     routnum_bloodlust_end,
-#endif
-#if (BUFF_POTION == 1)
+    #endif
+    #if (BUFF_POTION == 1)
     routnum_potion_start,
     routnum_potion_cd,
     routnum_potion_expire,
-#endif
-#if (TALENT_SHOCKWAVE)
-    routnum_shockwave_cd,
-    routnum_shockwave_cast,
-#endif
-#if (TALENT_STORM_BOLT)
-    routnum_storm_bolt_cd,
-    routnum_storm_bolt_cast,
-#endif
-#if (TALENT_AVATAR)
-    routnum_avatar_start,
-    routnum_avatar_expire,
-    routnum_avatar_cd,
-#endif
-#if (TALENT_BLADESTORM)
-    routnum_bladestorm_tick,
-    routnum_bladestorm_cd,
-#endif
-#if (archmages_incandescence || archmages_greater_incandescence)
+    #endif
+    #if (archmages_incandescence || archmages_greater_incandescence)
     routnum_incandescence_trigger,
     routnum_incandescence_expire,
-#endif
-#if (legendary_ring)
+    #endif
+    #if (legendary_ring)
     routnum_thorasus_the_stone_heart_of_draenor_start,
     routnum_thorasus_the_stone_heart_of_draenor_expire,
     routnum_thorasus_the_stone_heart_of_draenor_cd,
-#endif
-#if (thunderlord_mh || bleedinghollow_mh || shatteredhand_mh)
+    #endif
+    #if (thunderlord_mh || bleedinghollow_mh || shatteredhand_mh)
     routnum_enchant_mh_trigger,
     routnum_enchant_mh_expire,
-#endif
-#if (shatteredhand_mh)
+    #endif
+    #if (shatteredhand_mh)
     routnum_enchant_mh_tick,
-#endif
-#if (thunderlord_oh || bleedinghollow_oh || shatteredhand_oh)
+    #endif
+    #if (thunderlord_oh || bleedinghollow_oh || shatteredhand_oh)
     routnum_enchant_oh_trigger,
     routnum_enchant_oh_expire,
-#endif
-#if (shatteredhand_oh)
+    #endif
+    #if (shatteredhand_oh)
     routnum_enchant_oh_tick,
-#endif
-#if (RACE == RACE_BLOODELF)
+    #endif
+    #if (RACE == RACE_BLOODELF)
     routnum_arcane_torrent_cd,
     routnum_arcane_torrent_execute,
-#endif
-#if (RACE == RACE_TROLL)
+    #endif
+    #if (RACE == RACE_TROLL)
     routnum_berserking_start,
     routnum_berserking_expire,
     routnum_berserking_cd,
-#endif
-#if (RACE == RACE_ORC)
+    #endif
+    #if (RACE == RACE_ORC)
     routnum_blood_fury_start,
     routnum_blood_fury_expire,
     routnum_blood_fury_cd,
-#endif
-#if (RACE == RACE_UNDEAD)
+    #endif
+    #if (RACE == RACE_UNDEAD)
     routnum_touch_of_the_grave_trigger,
-#endif
-#if defined(trinket_vial_of_convulsive_shadows)
+    #endif
+    #if defined(trinket_vial_of_convulsive_shadows)
     routnum_vial_of_convulsive_shadows_expire,
     routnum_vial_of_convulsive_shadows_start,
     routnum_vial_of_convulsive_shadows_cd,
-#endif
-#if defined(trinket_forgemasters_insignia)
+    #endif
+    #if defined(trinket_forgemasters_insignia)
     routnum_forgemasters_insignia_tick,
-#endif
-#if defined(trinket_horn_of_screaming_spirits)
+    #endif
+    #if defined(trinket_horn_of_screaming_spirits)
     routnum_horn_of_screaming_spirits_trigger,
     routnum_horn_of_screaming_spirits_expire,
-#endif
-#if defined(trinket_scabbard_of_kyanos)
+    #endif
+    #if defined(trinket_scabbard_of_kyanos)
     routnum_scabbard_of_kyanos_expire,
     routnum_scabbard_of_kyanos_start,
     routnum_scabbard_of_kyanos_cd,
-#endif
-#if defined(trinket_badge_of_victory)
+    #endif
+    #if defined(trinket_badge_of_victory)
     routnum_badge_of_victory_expire,
     routnum_badge_of_victory_start,
     routnum_badge_of_victory_cd,
-#endif
-#if defined(trinket_insignia_of_victory)
+    #endif
+    #if defined(trinket_insignia_of_victory)
     routnum_insignia_of_victory_expire,
     routnum_insignia_of_victory_trigger,
-#endif
-#if defined(trinket_tectus_beating_heart)
+    #endif
+    #if defined(trinket_tectus_beating_heart)
     routnum_tectus_beating_heart_trigger,
     routnum_tectus_beating_heart_expire,
-#endif
-#if defined(trinket_formidable_fang)
+    #endif
+    #if defined(trinket_formidable_fang)
     routnum_formidable_fang_trigger,
     routnum_formidable_fang_expire,
-#endif
-#if defined(trinket_draenic_stone)
+    #endif
+    #if defined(trinket_draenic_stone)
     routnum_draenic_stone_expire,
     routnum_draenic_stone_trigger,
-#endif
-#if defined(trinket_skull_of_war)
+    #endif
+    #if defined(trinket_skull_of_war)
     routnum_skull_of_war_expire,
     routnum_skull_of_war_trigger,
-#endif
-#if defined(trinket_mote_of_the_mountain)
+    #endif
+    #if defined(trinket_mote_of_the_mountain)
     routnum_mote_of_the_mountain_trigger,
     routnum_mote_of_the_mountain_expire,
-#endif
-#if defined(trinket_discordant_chorus)
+    #endif
+    #if defined(trinket_discordant_chorus)
     routnum_discordant_chorus_trigger,
-#endif
-#if defined(trinket_empty_drinking_horn)
+    #endif
+    #if defined(trinket_empty_drinking_horn)
     routnum_empty_drinking_horn_trigger,
     routnum_empty_drinking_horn_expire,
     routnum_empty_drinking_horn_tick,
-#endif
-#if defined(trinket_unending_hunger)
+    #endif
+    #if defined(trinket_unending_hunger)
     routnum_unending_hunger_trigger,
     routnum_unending_hunger_expire,
-#endif
-#if defined(trinket_spores_of_alacrity)
+    #endif
+    #if defined(trinket_spores_of_alacrity)
     routnum_spores_of_alacrity_trigger,
     routnum_spores_of_alacrity_expire,
-#endif
-#if defined(trinket_bonemaws_big_toe)
+    #endif
+    #if defined(trinket_bonemaws_big_toe)
     routnum_bonemaws_big_toe_expire,
     routnum_bonemaws_big_toe_start,
     routnum_bonemaws_big_toe_cd,
-#endif
-#if defined(trinket_emberscale_talisman)
+    #endif
+    #if defined(trinket_emberscale_talisman)
     routnum_emberscale_talisman_expire,
     routnum_emberscale_talisman_start,
     routnum_emberscale_talisman_cd,
-#endif
-#if defined(trinket_gronntooth_war_horn)
+    #endif
+    #if defined(trinket_gronntooth_war_horn)
     routnum_gronntooth_war_horn_trigger,
     routnum_gronntooth_war_horn_expire,
-#endif
-    START_OF_SPEC_ROUTNUM,
+    #endif
+    START_OF_CLASS_ROUTNUM,
 };
 
 // === General Cooldown =======================================================
-void gcd_start ( rtinfo_t* rti, time_t length ) {
+void gcd_start( rtinfo_t* rti, time_t length, kbool scale_haste ) {
+    if (scale_haste) length = length / ( 1.0f + rti->player.stat.haste );
     rti->player.gcd = TIME_OFFSET( max( length, FROM_SECONDS( 1 ) ) );
     eq_enqueue( rti, rti->player.gcd, routnum_gcd_expire, 0 );
 }
 
 DECL_EVENT( gcd_expire ) {
     /* Do nothing. */
-}
-
-// === battle cry =============================================================
-DECL_EVENT( battle_cry_cd ) {
-    if ( battle_cry_cd == rti->timestamp ) {
-        lprintf( ( "battle_cry cd" ) );
-    }
-}
-DECL_EVENT( battle_cry_expire ) {
-    lprintf( ( "battle_cry expire" ) );
-}
-DECL_EVENT( battle_cry_start ) {
-    if ( TALENT_RECKLESS_ABANDON ) power_gain( rti, 100.0f );
-    lprintf( ( "battle_cry start" ) );
-}
-void spec_spell_battle_cry( rtinfo_t* rti );
-DECL_SPELL( battle_cry ) {
-    if ( battle_cry_cd > rti->timestamp ) return 0;
-    if ( UP( bladestorm_expire ) ) return 0;
-    eq_enqueue( rti, rti->timestamp, routnum_battle_cry_start, 0 );
-    battle_cry_expire = TIME_OFFSET( FROM_SECONDS( 5 ) );
-    eq_enqueue( rti, battle_cry_expire, routnum_battle_cry_expire, 0 );
-    battle_cry_cd = TIME_OFFSET( FROM_SECONDS( 60 ) ); // TODO: some traits would decrease cd?
-    spec_spell_battle_cry( rti ); // this may modify cd!
-    if ( !TALENT_ANGER_MANAGEMENT ) eq_enqueue( rti, battle_cry_cd, routnum_battle_cry_cd, 0 ); // with anger management enabled it doesn't worth to track exact cd.
-    return 1;
-}
-
-// === berserker rage =========================================================
-DECL_EVENT( berserker_rage_cd ) {
-    lprintf( ( "berserker_rage cd" ) );
-}
-void spec_berserker_rage_cast( rtinfo_t* rti );
-DECL_SPELL( berserker_rage ) {
-    if ( berserker_rage_cd > rti->timestamp ) return 0;
-    if ( UP( bladestorm_expire ) ) return 0;
-    spec_berserker_rage_cast( rti );
-    berserker_rage_cd = TIME_OFFSET( FROM_SECONDS( (TALENT_OUTBURST) ? 90 : 60 ) );
-    eq_enqueue( rti, berserker_rage_cd, routnum_berserker_rage_cd, 0 );
-    lprintf( ( "cast berserker_rage" ) );
-    return 1;
-}
-
-// === heroic leap ============================================================
-DECL_EVENT( heroic_leap_cd ) {
-    lprintf( ( "heroic_leap cd" ) );
-}
-DECL_EVENT( heroic_leap_cast ) {
-    float d = ap_dmg( rti, 0.624f );
-    for ( int i = 0; i < num_enemies; i++ ) {
-        k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
-        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
-        lprintf( ( "heroic_leap hit" ) );
-    }
-}
-DECL_SPELL( heroic_leap ) {
-    if ( heroic_leap_cd > rti->timestamp ) return 0;
-    if ( UP( bladestorm_expire ) ) return 0;
-    eq_enqueue( rti, rti->timestamp, routnum_heroic_leap_cast, 0 );
-    heroic_leap_cd = TIME_OFFSET( FROM_SECONDS( (TALENT_BOUNDING_STRIDE) ? 30 : 45 ) );
-    eq_enqueue( rti, heroic_leap_cd, routnum_heroic_leap_cd, 0 );
-    return 1;
 }
 
 // === bloodlust ==============================================================
@@ -818,10 +699,9 @@ DECL_EVENT( potion_start ) {
 }
 
 DECL_SPELL( potion ) {
-    if ( potion_cd > rti->timestamp ) return 0;
-    if ( UP( bladestorm_expire ) ) return 0;
+    if (potion_cd > rti->timestamp) return 0;
     eq_enqueue( rti, rti->timestamp, routnum_potion_start, 0 );
-    if ( rti->timestamp == FROM_SECONDS( 0 ) ) {
+    if (rti->timestamp == FROM_SECONDS( 0 )) {
         potion_cd = TIME_OFFSET( FROM_SECONDS( 60 ) );
         eq_enqueue( rti, potion_cd, routnum_potion_cd, 0 );
     } else {
@@ -831,118 +711,6 @@ DECL_SPELL( potion ) {
 }
 #else
 DECL_SPELL( potion ) {
-    return 0;
-}
-#endif
-
-// === shockwave ==============================================================
-#if (TALENT_SHOCKWAVE)
-DECL_EVENT( shockwave_cd ) {
-    lprintf( ( "shockwave cd" ) );
-}
-DECL_EVENT( shockwave_cast ) {
-    float d = ap_dmg( rti, 0.95f );
-    for ( int i = 0; i < num_enemies; i++ ) {
-        k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
-        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
-        lprintf( ( "shockwave hit" ) );
-    }
-}
-DECL_SPELL( shockwave ) {
-    if ( shockwave_cd > rti->timestamp ) return 0;
-    if ( rti->player.gcd > rti->timestamp ) return 0;
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
-    eq_enqueue( rti, rti->timestamp, routnum_shockwave_cast, 0 );
-    shockwave_cd = TIME_OFFSET( FROM_SECONDS( ( num_enemies >= 3 ) ? 20 : 40 ) );
-    eq_enqueue( rti, shockwave_cd, routnum_shockwave_cd, 0 );
-    return 1;
-}
-#else
-DECL_SPELL( shockwave ) {
-    return 0;
-}
-#endif
-
-// === storm bolt =============================================================
-#if (TALENT_STORM_BOLT)
-DECL_EVENT( storm_bolt_cd ) {
-    lprintf( ( "storm_bolt cd" ) );
-}
-DECL_EVENT( storm_bolt_cast ) {
-    float d = ap_dmg( rti, 2.0f );
-    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
-    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
-    lprintf( ( "storm_bolt hit" ) );
-}
-DECL_SPELL( storm_bolt ) {
-    if ( storm_bolt_cd > rti->timestamp ) return 0;
-    if ( rti->player.gcd > rti->timestamp ) return 0;
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
-    eq_enqueue( rti, rti->timestamp, routnum_storm_bolt_cast, rti->player.target );
-    storm_bolt_cd = TIME_OFFSET( FROM_SECONDS( 30 ) );
-    eq_enqueue( rti, storm_bolt_cd, routnum_storm_bolt_cd, 0 );
-    return 1;
-}
-#else
-DECL_SPELL( storm_bolt ) {
-    return 0;
-}
-#endif
-
-// === avatar =================================================================
-#if (TALENT_AVATAR)
-DECL_EVENT( avatar_cd ) {
-    lprintf( ( "avatar cd" ) );
-}
-DECL_EVENT( avatar_expire ) {
-    lprintf( ( "avatar expire" ) );
-}
-DECL_EVENT( avatar_start ) {
-    lprintf( ( "avatar start" ) );
-}
-DECL_SPELL( avatar ) {
-    if ( avatar_cd > rti->timestamp ) return 0;
-    if ( UP( bladestorm_expire ) ) return 0;
-    avatar_expire = TIME_OFFSET( FROM_SECONDS( 20 ) );
-    eq_enqueue( rti, avatar_expire, routnum_avatar_expire, 0 );
-    eq_enqueue( rti, rti->timestamp, routnum_avatar_start, 0 );
-    avatar_cd = TIME_OFFSET( FROM_SECONDS( 90 ) );
-    eq_enqueue( rti, avatar_cd, routnum_avatar_cd, 0 );
-    return 1;
-}
-#else
-DECL_SPELL( avatar ) {
-    return 0;
-}
-#endif
-
-// === bladestorm =============================================================
-#if (TALENT_BLADESTORM)
-DECL_EVENT( bladestorm_cd ) {
-    if ( bladestorm_cd == rti->timestamp ) {
-        lprintf( ( "bladestorm ready" ) );
-    }
-}
-void spec_bladestorm_tick( rtinfo_t* rti );
-DECL_EVENT( bladestorm_tick ) {
-    spec_bladestorm_tick( rti );
-    if ( bladestorm_expire > rti->timestamp + FROM_MILLISECONDS( 6 ) )
-        eq_enqueue( rti, TIME_OFFSET( rti->player.class->bladestorm.tick_interval ), routnum_bladestorm_tick, target_id );
-}
-DECL_SPELL( bladestorm ) {
-    if ( rti->player.gcd > rti->timestamp ) return 0;
-    if ( bladestorm_cd > rti->timestamp ) return 0;
-    bladestorm_cd = TIME_OFFSET( FROM_SECONDS( 60 ) );
-    rti->player.class->bladestorm.tick_interval = FROM_SECONDS( 1.0f / ( 1.0f + rti->player.stat.haste ) );
-    bladestorm_expire = TIME_OFFSET( 6 * rti->player.class->bladestorm.tick_interval );
-    gcd_start( rti, 6 * rti->player.class->bladestorm.tick_interval ); /* stuck gcd during bladestorm to avoid additional checks. */
-    eq_enqueue( rti, bladestorm_cd, routnum_bladestorm_cd, 0 );
-    eq_enqueue( rti, rti->timestamp, routnum_bladestorm_tick, 0 );
-    lprintf( ( "cast bladestorm" ) );
-    return 1;
-}
-#else
-DECL_SPELL( bladestorm ) {
     return 0;
 }
 #endif
@@ -957,7 +725,7 @@ DECL_EVENT( incandescence_trigger ) {
     lprintf( ( "incandescence trigger" ) );
 }
 DECL_EVENT( incandescence_expire ) {
-    if ( incandescence_expire == rti->timestamp ) {
+    if (incandescence_expire == rti->timestamp) {
         lprintf( ( "incandescence expire" ) );
         refresh_str( rti );
         refresh_ap( rti );
@@ -968,13 +736,13 @@ DECL_EVENT( incandescence_expire ) {
 DECL_EVENT( thorasus_the_stone_heart_of_draenor_start ) {
     thorasus_the_stone_heart_of_draenor_expire = TIME_OFFSET( FROM_SECONDS( 15 ) );
     eq_enqueue( rti, thorasus_the_stone_heart_of_draenor_expire, routnum_thorasus_the_stone_heart_of_draenor_expire, target_id );
-    rti->player.class->thorasus_the_stone_heart_of_draenor.dmg_snapshot = rti->damage_collected;
+    rti->player.common->thorasus_the_stone_heart_of_draenor.dmg_snapshot = rti->damage_collected;
     lprintf( ( "thorasus the stone heart of draenor start" ) );
 }
 DECL_EVENT( thorasus_the_stone_heart_of_draenor_expire ) {
-    float dmg = rti->damage_collected - rti->player.class->thorasus_the_stone_heart_of_draenor.dmg_snapshot;
+    float dmg = rti->damage_collected - rti->player.common->thorasus_the_stone_heart_of_draenor.dmg_snapshot;
     dmg *= legendary_ring * 0.0001;
-    for ( int i = 0; i != num_enemies; i++ ) {
+    for (int i = 0; i != num_enemies; i++) {
         deal_damage( rti, i, dmg, DTYPE_DIRECT, DICE_HIT, 0, 0 );
     }
     lprintf( ( "thorasus the stone heart of draenor expire" ) );
@@ -983,8 +751,7 @@ DECL_EVENT( thorasus_the_stone_heart_of_draenor_cd ) {
     lprintf( ( "thorasus the stone heart of draenor cd" ) );
 }
 DECL_SPELL( thorasus_the_stone_heart_of_draenor ) {
-    if ( thorasus_the_stone_heart_of_draenor_cd > rti->timestamp ) return 0;
-    if ( UP( bladestorm_expire ) ) return 0;
+    if (thorasus_the_stone_heart_of_draenor_cd > rti->timestamp) return 0;
     thorasus_the_stone_heart_of_draenor_cd = TIME_OFFSET( FROM_SECONDS( 120 ) );
     eq_enqueue( rti, thorasus_the_stone_heart_of_draenor_cd, routnum_thorasus_the_stone_heart_of_draenor_cd, 0 );
     eq_enqueue( rti, rti->timestamp, routnum_thorasus_the_stone_heart_of_draenor_start, 0 );
@@ -1000,92 +767,92 @@ DECL_SPELL( thorasus_the_stone_heart_of_draenor ) {
 // === enchants ===============================================================
 #if (thunderlord_mh || bleedinghollow_mh || shatteredhand_mh)
 DECL_EVENT( enchant_mh_expire ) {
-#if (shatteredhand_mh)
-    if ( rti->enemy[target_id].class->enchant_mh.expire == rti->timestamp ) {
-#else
-    if ( rti->player.class->enchant_mh.expire == rti->timestamp ) {
-#endif
+    #if (shatteredhand_mh)
+    if (rti->enemy[target_id].common->enchant_mh.expire == rti->timestamp) {
+        #else
+    if (rti->player.common->enchant_mh.expire == rti->timestamp) {
+        #endif
         lprintf( ( "mh enchant expire" ) );
-        if ( thunderlord_mh ) refresh_crit( rti );
-        if ( bleedinghollow_mh ) refresh_mastery( rti );
+        if (thunderlord_mh) refresh_crit( rti );
+        if (bleedinghollow_mh) refresh_mastery( rti );
     }
-}
+    }
 
 DECL_EVENT( enchant_mh_trigger ) {
-#if (thunderlord_mh)
-    rti->player.class->enchant_mh.expire = TIME_OFFSET( FROM_SECONDS( 6 ) );
-    rti->player.class->enchant_mh.extend = 3;
+    #if (thunderlord_mh)
+    rti->player.common->enchant_mh.expire = TIME_OFFSET( FROM_SECONDS( 6 ) );
+    rti->player.common->enchant_mh.extend = 3;
     refresh_crit( rti );
-#endif
-#if (bleedinghollow_mh)
-    rti->player.class->enchant_mh.expire = TIME_OFFSET( FROM_SECONDS( 12 ) );
+    #endif
+    #if (bleedinghollow_mh)
+    rti->player.common->enchant_mh.expire = TIME_OFFSET( FROM_SECONDS( 12 ) );
     refresh_mastery( rti );
-#endif
-#if (shatteredhand_mh)
+    #endif
+    #if (shatteredhand_mh)
     k32u dice = round_table_dice( rti, target_id, ATYPE_SPELL, 0 );
     deal_damage( rti, target_id, 1500.0f, DTYPE_PHYSICAL, dice, 0, 0 );
-    rti->enemy[target_id].class->enchant_mh.expire = TIME_OFFSET( FROM_SECONDS( 6 ) );
-    rti->enemy[target_id].class->enchant_mh.ticks = 6.0f;
+    rti->enemy[target_id].common->enchant_mh.expire = TIME_OFFSET( FROM_SECONDS( 6 ) );
+    rti->enemy[target_id].common->enchant_mh.ticks = 6.0f;
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1 ) ), routnum_enchant_mh_tick, target_id );
-    eq_enqueue( rti, rti->enemy[target_id].class->enchant_mh.expire, routnum_enchant_mh_expire, target_id );
-#else
-    eq_enqueue( rti, rti->player.class->enchant_mh.expire, routnum_enchant_mh_expire, target_id );
-#endif
+    eq_enqueue( rti, rti->enemy[target_id].common->enchant_mh.expire, routnum_enchant_mh_expire, target_id );
+    #else
+    eq_enqueue( rti, rti->player.common->enchant_mh.expire, routnum_enchant_mh_expire, target_id );
+    #endif
 }
 #endif
 
 #if (thunderlord_oh || bleedinghollow_oh || shatteredhand_oh)
 DECL_EVENT( enchant_oh_expire ) {
-#if (shatteredhand_oh)
-    if ( rti->enemy[target_id].class->enchant_oh.expire == rti->timestamp ) {
-#else
-    if ( rti->player.class->enchant_oh.expire == rti->timestamp ) {
-#endif
+    #if (shatteredhand_oh)
+    if (rti->enemy[target_id].common->enchant_oh.expire == rti->timestamp) {
+        #else
+    if (rti->player.common->enchant_oh.expire == rti->timestamp) {
+        #endif
         lprintf( ( "oh enchant expire" ) );
-        if ( thunderlord_oh ) refresh_crit( rti );
-        if ( bleedinghollow_oh ) refresh_mastery( rti );
+        if (thunderlord_oh) refresh_crit( rti );
+        if (bleedinghollow_oh) refresh_mastery( rti );
     }
-}
+    }
 
 DECL_EVENT( enchant_oh_trigger ) {
-#if (thunderlord_oh)
-    rti->player.class->enchant_oh.expire = TIME_OFFSET( FROM_SECONDS( 6 ) );
-    rti->player.class->enchant_oh.extend = 3;
+    #if (thunderlord_oh)
+    rti->player.common->enchant_oh.expire = TIME_OFFSET( FROM_SECONDS( 6 ) );
+    rti->player.common->enchant_oh.extend = 3;
     refresh_crit( rti );
-#endif
-#if (bleedinghollow_oh)
-    rti->player.class->enchant_oh.expire = TIME_OFFSET( FROM_SECONDS( 12 ) );
+    #endif
+    #if (bleedinghollow_oh)
+    rti->player.common->enchant_oh.expire = TIME_OFFSET( FROM_SECONDS( 12 ) );
     refresh_mastery( rti );
-#endif
-#if (shatteredhand_oh)
+    #endif
+    #if (shatteredhand_oh)
     k32u dice = round_table_dice( rti, target_id, ATYPE_SPELL, 0 );
     deal_damage( rti, target_id, 1500.0f, DTYPE_PHYSICAL, dice, 0, 0 );
-    rti->enemy[target_id].class->enchant_oh.expire = TIME_OFFSET( FROM_SECONDS( 6 ) );
-    rti->enemy[target_id].class->enchant_oh.ticks = 6.0f;
+    rti->enemy[target_id].common->enchant_oh.expire = TIME_OFFSET( FROM_SECONDS( 6 ) );
+    rti->enemy[target_id].common->enchant_oh.ticks = 6.0f;
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1 ) ), routnum_enchant_oh_tick, target_id );
-    eq_enqueue( rti, rti->enemy[target_id].class->enchant_oh.expire, routnum_enchant_oh_expire, target_id );
-#else
-    eq_enqueue( rti, rti->player.class->enchant_oh.expire, routnum_enchant_oh_expire, target_id );
-#endif
+    eq_enqueue( rti, rti->enemy[target_id].common->enchant_oh.expire, routnum_enchant_oh_expire, target_id );
+    #else
+    eq_enqueue( rti, rti->player.common->enchant_oh.expire, routnum_enchant_oh_expire, target_id );
+    #endif
 }
 #endif
 
 #if (shatteredhand_mh)
 DECL_EVENT( enchant_mh_tick ) {
-    if ( TIME_OFFSET( FROM_SECONDS( rti->enemy[target_id].class->enchant_mh.ticks - 1.0f ) ) == rti->enemy[target_id].class->enchant_mh.expire ) {
-        rti->enemy[target_id].class->enchant_mh.ticks -= 1.0f;
+    if (TIME_OFFSET( FROM_SECONDS( rti->enemy[target_id].common->enchant_mh.ticks - 1.0f ) ) == rti->enemy[target_id].common->enchant_mh.expire) {
+        rti->enemy[target_id].common->enchant_mh.ticks -= 1.0f;
         deal_damage( rti, target_id, 750.0f, DTYPE_PHYSICAL, DICE_HIT, 0, 0 );
-        if ( rti->enemy[target_id].class->enchant_mh.ticks >= 1.0f )
+        if (rti->enemy[target_id].common->enchant_mh.ticks >= 1.0f)
             eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1 ) ), routnum_enchant_mh_tick, target_id );
     }
 }
 #endif
 #if (shatteredhand_oh)
 DECL_EVENT( enchant_oh_tick ) {
-    if ( TIME_OFFSET( FROM_SECONDS( rti->enemy[target_id].class->enchant_oh.ticks - 1.0f ) ) == rti->enemy[target_id].class->enchant_oh.expire ) {
-        rti->enemy[target_id].class->enchant_oh.ticks -= 1.0f;
+    if (TIME_OFFSET( FROM_SECONDS( rti->enemy[target_id].common->enchant_oh.ticks - 1.0f ) ) == rti->enemy[target_id].common->enchant_oh.expire) {
+        rti->enemy[target_id].common->enchant_oh.ticks -= 1.0f;
         deal_damage( rti, target_id, 750.0f, DTYPE_PHYSICAL, DICE_HIT, 0, 0 );
-        if ( rti->enemy[target_id].class->enchant_oh.ticks >= 1.0f )
+        if (rti->enemy[target_id].common->enchant_oh.ticks >= 1.0f)
             eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1 ) ), routnum_enchant_oh_tick, target_id );
     }
 }
@@ -1101,8 +868,7 @@ DECL_EVENT( arcane_torrent_execute ) {
 }
 
 DECL_SPELL( arcane_torrent ) {
-    if ( arcane_torrent_cd > rti->timestamp ) return 0;
-    if ( UP( bladestorm_expire ) ) return 0;
+    if (arcane_torrent_cd > rti->timestamp) return 0;
     arcane_torrent_cd = TIME_OFFSET( FROM_SECONDS( 90 ) ); // 120->90 patch 6.2.2
     eq_enqueue( rti, arcane_torrent_cd, routnum_arcane_torrent_cd, 0 );
     eq_enqueue( rti, rti->timestamp, routnum_arcane_torrent_execute, 0 );
@@ -1130,8 +896,7 @@ DECL_EVENT( berserking_expire ) {
 }
 
 DECL_SPELL( berserking ) {
-    if ( berserking_cd > rti->timestamp ) return 0;
-    if ( UP( bladestorm_expire ) ) return 0;
+    if (berserking_cd > rti->timestamp) return 0;
     eq_enqueue( rti, rti->timestamp, routnum_berserking_start, 0 );
     berserking_expire = TIME_OFFSET( FROM_SECONDS( 10 ) );
     eq_enqueue( rti, berserking_expire, routnum_berserking_expire, 0 );
@@ -1160,8 +925,7 @@ DECL_EVENT( blood_fury_expire ) {
 }
 
 DECL_SPELL( blood_fury ) {
-    if ( blood_fury_cd > rti->timestamp ) return 0;
-    if ( UP( bladestorm_expire ) ) return 0;
+    if (blood_fury_cd > rti->timestamp) return 0;
     eq_enqueue( rti, rti->timestamp, routnum_blood_fury_start, 0 );
     blood_fury_expire = TIME_OFFSET( FROM_SECONDS( 15 ) );
     eq_enqueue( rti, blood_fury_expire, routnum_blood_fury_expire, 0 );
@@ -1200,15 +964,13 @@ DECL_EVENT( vial_of_convulsive_shadows_expire ) {
     lprintf( ( "convulsiveshadows expire" ) );
     rti->player.stat.gear_haste -= trinket_vial_of_convulsive_shadows;
     refresh_haste( rti );
+    rti->player.trinket_active = 0;
 }
 
 DECL_SPELL( vial_of_convulsive_shadows ) {
-    if ( vial_of_convulsive_shadows_cd > rti->timestamp ) return 0;
-    if ( UP( scabbard_of_kyanos_expire ) ) return 0;
-    if ( UP( emberscale_talisman_expire ) ) return 0;
-    if ( UP( bonemaws_big_toe_expire ) ) return 0;
-    if ( UP( badge_of_victory_expire ) ) return 0;
-    if ( UP( bladestorm_expire ) ) return 0;
+    if (vial_of_convulsive_shadows_cd > rti->timestamp) return 0;
+    if (rti->player.trinket_active) return 0;
+    rti->player.trinket_active = 1;
     eq_enqueue( rti, rti->timestamp, routnum_vial_of_convulsive_shadows_start, 0 );
     vial_of_convulsive_shadows_expire = TIME_OFFSET( FROM_SECONDS( 20 ) );
     eq_enqueue( rti, vial_of_convulsive_shadows_expire, routnum_vial_of_convulsive_shadows_expire, 0 );
@@ -1225,8 +987,8 @@ DECL_SPELL( vial_of_convulsive_shadows ) {
 
 #if defined(trinket_forgemasters_insignia)
 DECL_EVENT( forgemasters_insignia_tick ) {
-    if ( forgemasters_insignia_stack < 20 ) {
-        if ( forgemasters_insignia_stack == 0 ) {
+    if (forgemasters_insignia_stack < 20) {
+        if (forgemasters_insignia_stack == 0) {
             forgemasters_insignia_expire = TIME_OFFSET( FROM_SECONDS( 10 ) );
             lprintf( ( "forgemasters_insignia start" ) );
         }
@@ -1274,15 +1036,13 @@ DECL_EVENT( scabbard_of_kyanos_expire ) {
     rti->player.stat.gear_str -= trinket_scabbard_of_kyanos;
     refresh_str( rti );
     refresh_ap( rti );
+    rti->player.trinket_active = 0;
 }
 
 DECL_SPELL( scabbard_of_kyanos ) {
-    if ( scabbard_of_kyanos_cd > rti->timestamp ) return 0;
-    if ( UP( vial_of_convulsive_shadows_expire ) ) return 0;
-    if ( UP( emberscale_talisman_expire ) ) return 0;
-    if ( UP( bonemaws_big_toe_expire ) ) return 0;
-    if ( UP( badge_of_victory_expire ) ) return 0;
-    if ( UP( bladestorm_expire ) ) return 0;
+    if (scabbard_of_kyanos_cd > rti->timestamp) return 0;
+    if (rti->player.trinket_active) return 0;
+    rti->player.trinket_active = 1;
     eq_enqueue( rti, rti->timestamp, routnum_scabbard_of_kyanos_start, 0 );
     scabbard_of_kyanos_expire = TIME_OFFSET( FROM_SECONDS( 15 ) );
     eq_enqueue( rti, scabbard_of_kyanos_expire, routnum_scabbard_of_kyanos_expire, 0 );
@@ -1310,15 +1070,13 @@ DECL_EVENT( emberscale_talisman_expire ) {
     lprintf( ( "emberscale_talisman expire" ) );
     rti->player.stat.gear_vers -= trinket_emberscale_talisman;
     refresh_vers( rti );
+    rti->player.trinket_active = 0;
 }
 
 DECL_SPELL( emberscale_talisman ) {
-    if ( emberscale_talisman_cd > rti->timestamp ) return 0;
-    if ( UP( vial_of_convulsive_shadows_expire ) ) return 0;
-    if ( UP( scabbard_of_kyanos_expire ) ) return 0;
-    if ( UP( bonemaws_big_toe_expire ) ) return 0;
-    if ( UP( badge_of_victory_expire ) ) return 0;
-    if ( UP( bladestorm_expire ) ) return 0;
+    if (emberscale_talisman_cd > rti->timestamp) return 0;
+    if (rti->player.trinket_active) return 0;
+    rti->player.trinket_active = 1;
     eq_enqueue( rti, rti->timestamp, routnum_emberscale_talisman_start, 0 );
     emberscale_talisman_expire = TIME_OFFSET( FROM_SECONDS( 15 ) );
     eq_enqueue( rti, emberscale_talisman_expire, routnum_emberscale_talisman_expire, 0 );
@@ -1346,15 +1104,13 @@ DECL_EVENT( bonemaws_big_toe_expire ) {
     lprintf( ( "bonemaws_big_toe expire" ) );
     rti->player.stat.gear_crit -= trinket_bonemaws_big_toe;
     refresh_crit( rti );
+    rti->player.trinket_active = 0;
 }
 
 DECL_SPELL( bonemaws_big_toe ) {
-    if ( bonemaws_big_toe_cd > rti->timestamp ) return 0;
-    if ( UP( vial_of_convulsive_shadows_expire ) ) return 0;
-    if ( UP( scabbard_of_kyanos_expire ) ) return 0;
-    if ( UP( emberscale_talisman_expire ) ) return 0;
-    if ( UP( badge_of_victory_expire ) ) return 0;
-    if ( UP( bladestorm_expire ) ) return 0;
+    if (bonemaws_big_toe_cd > rti->timestamp) return 0;
+    if (rti->player.trinket_active) return 0;
+    rti->player.trinket_active = 1;
     eq_enqueue( rti, rti->timestamp, routnum_bonemaws_big_toe_start, 0 );
     bonemaws_big_toe_expire = TIME_OFFSET( FROM_SECONDS( 20 ) );
     eq_enqueue( rti, bonemaws_big_toe_expire, routnum_bonemaws_big_toe_expire, 0 );
@@ -1383,15 +1139,13 @@ DECL_EVENT( badge_of_victory_expire ) {
     lprintf( ( "badge_of_victory expire" ) );
     rti->player.stat.gear_vers -= trinket_badge_of_victory;
     refresh_vers( rti );
+    rti->player.trinket_active = 0;
 }
 
 DECL_SPELL( badge_of_victory ) {
-    if ( badge_of_victory_cd > rti->timestamp ) return 0;
-    if ( UP( vial_of_convulsive_shadows_expire ) ) return 0;
-    if ( UP( scabbard_of_kyanos_expire ) ) return 0;
-    if ( UP( emberscale_talisman_expire ) ) return 0;
-    if ( UP( bonemaws_big_toe_expire ) ) return 0;
-    if ( UP( bladestorm_expire ) ) return 0;
+    if (badge_of_victory_cd > rti->timestamp) return 0;
+    if (rti->player.trinket_active) return 0;
+    rti->player.trinket_active = 1;
     eq_enqueue( rti, rti->timestamp, routnum_badge_of_victory_start, 0 );
     badge_of_victory_expire = TIME_OFFSET( FROM_SECONDS( 20 ) );
     eq_enqueue( rti, badge_of_victory_expire, routnum_badge_of_victory_expire, 0 );
@@ -1518,7 +1272,7 @@ DECL_EVENT( spores_of_alacrity_expire ) {
 #if defined(trinket_discordant_chorus)
 DECL_EVENT( discordant_chorus_trigger ) {
     lprintf( ( "discordant chorus trigger" ) );
-    for ( int i = 0; i != num_enemies; i++ ) {
+    for (int i = 0; i != num_enemies; i++) {
         k32u dice = round_table_dice( rti, i, ATYPE_SPELL, 0 );
         deal_damage( rti, i, trinket_discordant_chorus, DTYPE_PHYSICAL, dice, 0, 0 );
     }
@@ -1527,28 +1281,27 @@ DECL_EVENT( discordant_chorus_trigger ) {
 
 #if defined(trinket_empty_drinking_horn)
 DECL_EVENT( empty_drinking_horn_trigger ) {
-    if ( rti->enemy[target_id].class->empty_drinking_horn.expire >= rti->timestamp ) {
-        if ( rti->enemy[target_id].class->empty_drinking_horn.stack < 30 )
-            rti->enemy[target_id].class->empty_drinking_horn.stack++;
-    }
-    else {
-        rti->enemy[target_id].class->empty_drinking_horn.expire = TIME_OFFSET( FROM_SECONDS( 15 ) );
-        rti->enemy[target_id].class->empty_drinking_horn.stack = 1;
-        eq_enqueue( rti, rti->enemy[target_id].class->empty_drinking_horn.expire, routnum_empty_drinking_horn_expire, target_id );
+    if (rti->enemy[target_id].common->empty_drinking_horn.expire >= rti->timestamp) {
+        if (rti->enemy[target_id].common->empty_drinking_horn.stack < 30)
+            rti->enemy[target_id].common->empty_drinking_horn.stack++;
+    } else {
+        rti->enemy[target_id].common->empty_drinking_horn.expire = TIME_OFFSET( FROM_SECONDS( 15 ) );
+        rti->enemy[target_id].common->empty_drinking_horn.stack = 1;
+        eq_enqueue( rti, rti->enemy[target_id].common->empty_drinking_horn.expire, routnum_empty_drinking_horn_expire, target_id );
         eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1 ) ), routnum_empty_drinking_horn_tick, target_id );
     }
-    lprintf( ( "empty_drinking_horn stack %d @tar%d", rti->enemy[target_id].class->empty_drinking_horn.stack, target_id ) );
+    lprintf( ( "empty_drinking_horn stack %d @tar%d", rti->enemy[target_id].common->empty_drinking_horn.stack, target_id ) );
 }
 DECL_EVENT( empty_drinking_horn_expire ) {
-    rti->enemy[target_id].class->empty_drinking_horn.stack = 0;
-    lprintf( ( "empty_drinking_horn stack %d @tar%d", rti->enemy[target_id].class->empty_drinking_horn.stack, target_id ) );
+    rti->enemy[target_id].common->empty_drinking_horn.stack = 0;
+    lprintf( ( "empty_drinking_horn stack %d @tar%d", rti->enemy[target_id].common->empty_drinking_horn.stack, target_id ) );
 }
 DECL_EVENT( empty_drinking_horn_tick ) {
     float dmg = trinket_empty_drinking_horn;
-    dmg *= rti->enemy[target_id].class->empty_drinking_horn.stack;
+    dmg *= rti->enemy[target_id].common->empty_drinking_horn.stack;
     deal_damage( rti, target_id, dmg, DTYPE_FIRE, DICE_HIT, 0, 0 );
     time_t next_tick = TIME_OFFSET( FROM_SECONDS( 1 ) );
-    if ( next_tick <= rti->enemy[target_id].class->empty_drinking_horn.expire )
+    if (next_tick <= rti->enemy[target_id].common->empty_drinking_horn.expire)
         eq_enqueue( rti, next_tick, routnum_empty_drinking_horn_tick, target_id );
 }
 #endif
@@ -1558,7 +1311,7 @@ DECL_EVENT( unending_hunger_trigger ) {
     lprintf( ( "unending_hunger trigger" ) );
     unending_hunger_expire = TIME_OFFSET( FROM_SECONDS( 20 ) );
     eq_enqueue( rti, unending_hunger_expire, routnum_unending_hunger_expire, target_id );
-    if ( !UP( unending_hunger_expire ) ) {
+    if (!UP( unending_hunger_expire )) {
         unending_hunger_stack = 1;
         rti->player.stat.gear_str += trinket_unending_hunger;
         refresh_str( rti );
@@ -1566,7 +1319,7 @@ DECL_EVENT( unending_hunger_trigger ) {
     }
 }
 DECL_EVENT( unending_hunger_expire ) {
-    if ( unending_hunger_expire == rti->timestamp ) {
+    if (unending_hunger_expire == rti->timestamp) {
         lprintf( ( "unending_hunger expire" ) );
         rti->player.stat.gear_str -= trinket_unending_hunger * unending_hunger_stack;
         unending_hunger_stack = 0;
@@ -1579,7 +1332,7 @@ DECL_EVENT( unending_hunger_expire ) {
 
 #if defined(trinket_gronntooth_war_horn)
 DECL_EVENT( gronntooth_war_horn_trigger ) {
-    if( !UP( gronntooth_war_horn_expire ) ) {
+    if (!UP( gronntooth_war_horn_expire )) {
         rti->player.stat.gear_str += trinket_gronntooth_war_horn;
         refresh_str( rti );
         refresh_ap( rti );
@@ -1589,7 +1342,7 @@ DECL_EVENT( gronntooth_war_horn_trigger ) {
     lprintf( ( "gronntooth_war_horn trigger" ) );
 }
 DECL_EVENT( gronntooth_war_horn_expire ) {
-    if ( gronntooth_war_horn_expire == rti->timestamp ) {
+    if (gronntooth_war_horn_expire == rti->timestamp) {
         lprintf( ( "gronntooth_war_horn expire" ) );
         gronntooth_war_horn_expire = 0;
         rti->player.stat.gear_str -= trinket_gronntooth_war_horn;
@@ -1599,174 +1352,150 @@ DECL_EVENT( gronntooth_war_horn_expire ) {
 }
 #endif
 
-void spec_routine_entries( rtinfo_t* rti, _event_t e );
+void class_routine_entries( rtinfo_t* rti, _event_t e );
 
 void routine_entries( rtinfo_t* rti, _event_t e ) {
-    if( e.routine >= START_OF_SPEC_ROUTNUM ) {
-        spec_routine_entries( rti, e );
-    }
-    else switch( e.routine ) {
+    if (e.routine >= START_OF_CLASS_ROUTNUM) {
+        class_routine_entries( rti, e );
+    } else switch (e.routine) {
         HOOK_EVENT( gcd_expire );
-        HOOK_EVENT( battle_cry_start );
-        HOOK_EVENT( battle_cry_expire );
-        HOOK_EVENT( battle_cry_cd );
-        HOOK_EVENT( berserker_rage_cd );
-        HOOK_EVENT( heroic_leap_cast );
-        HOOK_EVENT( heroic_leap_cd );
-#if (BUFF_BLOODLUST == 1)
+        #if (BUFF_BLOODLUST == 1)
         HOOK_EVENT( bloodlust_start );
         HOOK_EVENT( bloodlust_end );
-#endif
-#if (BUFF_POTION == 1)
+        #endif
+        #if (BUFF_POTION == 1)
         HOOK_EVENT( potion_start );
         HOOK_EVENT( potion_cd );
         HOOK_EVENT( potion_expire );
-#endif
-#if (TALENT_SHOCKWAVE)
-        HOOK_EVENT( shockwave_cd );
-        HOOK_EVENT( shockwave_cast );
-#endif
-#if (TALENT_STORM_BOLT)
-        HOOK_EVENT( storm_bolt_cd );
-        HOOK_EVENT( storm_bolt_cast );
-#endif
-#if (TALENT_AVATAR)
-        HOOK_EVENT( avatar_start );
-        HOOK_EVENT( avatar_expire );
-        HOOK_EVENT( avatar_cd );
-#endif
-#if (TALENT_BLADESTORM)
-        HOOK_EVENT( bladestorm_tick );
-        HOOK_EVENT( bladestorm_cd );
-#endif
-#if (archmages_incandescence || archmages_greater_incandescence)
+        #endif
+        #if (archmages_incandescence || archmages_greater_incandescence)
         HOOK_EVENT( incandescence_trigger );
         HOOK_EVENT( incandescence_expire );
-#endif
-#if (legendary_ring)
+        #endif
+        #if (legendary_ring)
         HOOK_EVENT( thorasus_the_stone_heart_of_draenor_start );
         HOOK_EVENT( thorasus_the_stone_heart_of_draenor_expire );
         HOOK_EVENT( thorasus_the_stone_heart_of_draenor_cd );
-#endif
-#if (thunderlord_mh || bleedinghollow_mh || shatteredhand_mh)
+        #endif
+        #if (thunderlord_mh || bleedinghollow_mh || shatteredhand_mh)
         HOOK_EVENT( enchant_mh_trigger );
         HOOK_EVENT( enchant_mh_expire );
-#endif
-#if (shatteredhand_mh)
+        #endif
+        #if (shatteredhand_mh)
         HOOK_EVENT( enchant_mh_tick );
-#endif
-#if (thunderlord_oh || bleedinghollow_oh || shatteredhand_oh)
+        #endif
+        #if (thunderlord_oh || bleedinghollow_oh || shatteredhand_oh)
         HOOK_EVENT( enchant_oh_trigger );
         HOOK_EVENT( enchant_oh_expire );
-#endif
-#if (shatteredhand_oh)
+        #endif
+        #if (shatteredhand_oh)
         HOOK_EVENT( enchant_oh_tick );
-#endif
-#if (RACE == RACE_BLOODELF)
+        #endif
+        #if (RACE == RACE_BLOODELF)
         HOOK_EVENT( arcane_torrent_cd );
         HOOK_EVENT( arcane_torrent_execute );
-#endif
-#if (RACE == RACE_TROLL)
+        #endif
+        #if (RACE == RACE_TROLL)
         HOOK_EVENT( berserking_start );
         HOOK_EVENT( berserking_expire );
         HOOK_EVENT( berserking_cd );
-#endif
-#if (RACE == RACE_ORC)
+        #endif
+        #if (RACE == RACE_ORC)
         HOOK_EVENT( blood_fury_start );
         HOOK_EVENT( blood_fury_expire );
         HOOK_EVENT( blood_fury_cd );
-#endif
-#if (RACE == RACE_UNDEAD)
+        #endif
+        #if (RACE == RACE_UNDEAD)
         HOOK_EVENT( touch_of_the_grave_trigger );
-#endif
-#if defined(trinket_vial_of_convulsive_shadows)
+        #endif
+        #if defined(trinket_vial_of_convulsive_shadows)
         HOOK_EVENT( vial_of_convulsive_shadows_expire );
         HOOK_EVENT( vial_of_convulsive_shadows_start );
         HOOK_EVENT( vial_of_convulsive_shadows_cd );
-#endif
-#if defined(trinket_forgemasters_insignia)
+        #endif
+        #if defined(trinket_forgemasters_insignia)
         HOOK_EVENT( forgemasters_insignia_tick );
-#endif
-#if defined(trinket_horn_of_screaming_spirits)
+        #endif
+        #if defined(trinket_horn_of_screaming_spirits)
         HOOK_EVENT( horn_of_screaming_spirits_trigger );
         HOOK_EVENT( horn_of_screaming_spirits_expire );
-#endif
-#if defined(trinket_scabbard_of_kyanos)
+        #endif
+        #if defined(trinket_scabbard_of_kyanos)
         HOOK_EVENT( scabbard_of_kyanos_expire );
         HOOK_EVENT( scabbard_of_kyanos_start );
         HOOK_EVENT( scabbard_of_kyanos_cd );
-#endif
-#if defined(trinket_badge_of_victory)
+        #endif
+        #if defined(trinket_badge_of_victory)
         HOOK_EVENT( badge_of_victory_expire );
         HOOK_EVENT( badge_of_victory_start );
         HOOK_EVENT( badge_of_victory_cd );
-#endif
-#if defined(trinket_insignia_of_victory)
+        #endif
+        #if defined(trinket_insignia_of_victory)
         HOOK_EVENT( insignia_of_victory_expire );
         HOOK_EVENT( insignia_of_victory_trigger );
-#endif
-#if defined(trinket_tectus_beating_heart)
+        #endif
+        #if defined(trinket_tectus_beating_heart)
         HOOK_EVENT( tectus_beating_heart_trigger );
         HOOK_EVENT( tectus_beating_heart_expire );
-#endif
-#if defined(trinket_formidable_fang)
+        #endif
+        #if defined(trinket_formidable_fang)
         HOOK_EVENT( formidable_fang_trigger );
         HOOK_EVENT( formidable_fang_expire );
-#endif
-#if defined(trinket_draenic_stone)
+        #endif
+        #if defined(trinket_draenic_stone)
         HOOK_EVENT( draenic_stone_expire );
         HOOK_EVENT( draenic_stone_trigger );
-#endif
-#if defined(trinket_skull_of_war)
+        #endif
+        #if defined(trinket_skull_of_war)
         HOOK_EVENT( skull_of_war_expire );
         HOOK_EVENT( skull_of_war_trigger );
-#endif
-#if defined(trinket_mote_of_the_mountain)
+        #endif
+        #if defined(trinket_mote_of_the_mountain)
         HOOK_EVENT( mote_of_the_mountain_trigger );
         HOOK_EVENT( mote_of_the_mountain_expire );
-#endif
-#if defined(trinket_discordant_chorus)
+        #endif
+        #if defined(trinket_discordant_chorus)
         HOOK_EVENT( discordant_chorus_trigger );
-#endif
-#if defined(trinket_empty_drinking_horn)
+        #endif
+        #if defined(trinket_empty_drinking_horn)
         HOOK_EVENT( empty_drinking_horn_trigger );
         HOOK_EVENT( empty_drinking_horn_tick );
         HOOK_EVENT( empty_drinking_horn_expire );
-#endif
-#if defined(trinket_unending_hunger)
+        #endif
+        #if defined(trinket_unending_hunger)
         HOOK_EVENT( unending_hunger_trigger );
         HOOK_EVENT( unending_hunger_expire );
-#endif
-#if defined(trinket_spores_of_alacrity)
+        #endif
+        #if defined(trinket_spores_of_alacrity)
         HOOK_EVENT( spores_of_alacrity_trigger );
         HOOK_EVENT( spores_of_alacrity_expire );
-#endif
-#if defined(trinket_bonemaws_big_toe)
+        #endif
+        #if defined(trinket_bonemaws_big_toe)
         HOOK_EVENT( bonemaws_big_toe_expire );
         HOOK_EVENT( bonemaws_big_toe_start );
         HOOK_EVENT( bonemaws_big_toe_cd );
-#endif
-#if defined(trinket_emberscale_talisman)
+        #endif
+        #if defined(trinket_emberscale_talisman)
         HOOK_EVENT( emberscale_talisman_expire );
         HOOK_EVENT( emberscale_talisman_start );
         HOOK_EVENT( emberscale_talisman_cd );
-#endif
-#if defined(trinket_gronntooth_war_horn)
+        #endif
+        #if defined(trinket_gronntooth_war_horn)
         HOOK_EVENT( gronntooth_war_horn_trigger );
         HOOK_EVENT( gronntooth_war_horn_expire );
-#endif
+        #endif
     default:
-        lprintf( ( "wild class routine entry %d", e.routine ) );
+        lprintf( ( "wild common routine entry %d", e.routine ) );
         assert( 0 );
     }
 }
 
 #define initialize_rppm( proc ) safemacro(proc.lasttimeattemps = ( time_t ) - ( k32s )FROM_SECONDS( 10 ))
 
-void spec_module_init( rtinfo_t* rti );
+void class_module_init( rtinfo_t* rti );
 
-void class_module_init( rtinfo_t* rti ) {
-    spec_module_init( rti );
+void module_init( rtinfo_t* rti ) {
+    class_module_init( rti );
 
     refresh_str( rti );
     refresh_ap( rti );
@@ -1782,155 +1511,155 @@ void class_module_init( rtinfo_t* rti ) {
     lprintf( ( "Raid buffed mastery %f", rti->player.stat.mastery ) );
     lprintf( ( "Raid buffed vers %f", rti->player.stat.vers ) );
 
-#if (BUFF_BLOODLUST == 1)
+    #if (BUFF_BLOODLUST == 1)
     eq_enqueue( rti, hostonly( FROM_MILLISECONDS( 1 ) ) deviceonly( rti->timestamp ), routnum_bloodlust_start, 0 );
-#endif
-#if (BUFF_POTION == 1)
+    #endif
+    #if (BUFF_POTION == 1)
     spell_potion( rti );
-#endif
+    #endif
 
-#if (thunderlord_mh || bleedinghollow_mh)
-    initialize_rppm( rti->player.class->enchant_mh.proc );
-#endif
-#if (shatteredhand_mh)
-    initialize_rppm( rti->player.class->enchant_mh );
-#endif
-#if (thunderlord_oh || bleedinghollow_oh)
-    initialize_rppm( rti->player.class->enchant_oh.proc );
-#endif
-#if (shatteredhand_oh)
-    initialize_rppm( rti->player.class->enchant_mh );
-#endif
-#if defined(trinket_forgemasters_insignia)
-    initialize_rppm( rti->player.class->forgemasters_insignia.proc );
-#endif // defined
-#if defined(trinket_horn_of_screaming_spirits)
-    initialize_rppm( rti->player.class->horn_of_screaming_spirits.proc );
-#endif // defined
-#if defined(trinket_tectus_beating_heart)
-    initialize_rppm( rti->player.class->tectus_beating_heart.proc );
-#endif // defined
-#if defined(trinket_formidable_fang)
-    initialize_rppm( rti->player.class->formidable_fang.proc );
-#endif // defined
-#if defined(trinket_mote_of_the_mountain)
-    initialize_rppm( rti->player.class->mote_of_the_mountain.proc );
-#endif // defined
-#if defined(trinket_discordant_chorus)
-    initialize_rppm( rti->player.class->discordant_chorus );
-#endif // defined
-#if defined(trinket_unending_hunger)
-    initialize_rppm( rti->player.class->unending_hunger.proc );
-#endif // defined
-#if defined(trinket_spores_of_alacrity)
-    initialize_rppm( rti->player.class->spores_of_alacrity.proc );
-#endif // defined
-#if defined(trinket_gronntooth_war_horn)
-    initialize_rppm( rti->player.class->gronntooth_war_horn.proc );
-#endif // defined
+    #if (thunderlord_mh || bleedinghollow_mh)
+    initialize_rppm( rti->player.common->enchant_mh.proc );
+    #endif
+    #if (shatteredhand_mh)
+    initialize_rppm( rti->player.common->enchant_mh );
+    #endif
+    #if (thunderlord_oh || bleedinghollow_oh)
+    initialize_rppm( rti->player.common->enchant_oh.proc );
+    #endif
+    #if (shatteredhand_oh)
+    initialize_rppm( rti->player.common->enchant_mh );
+    #endif
+    #if defined(trinket_forgemasters_insignia)
+    initialize_rppm( rti->player.common->forgemasters_insignia.proc );
+    #endif // defined
+    #if defined(trinket_horn_of_screaming_spirits)
+    initialize_rppm( rti->player.common->horn_of_screaming_spirits.proc );
+    #endif // defined
+    #if defined(trinket_tectus_beating_heart)
+    initialize_rppm( rti->player.common->tectus_beating_heart.proc );
+    #endif // defined
+    #if defined(trinket_formidable_fang)
+    initialize_rppm( rti->player.common->formidable_fang.proc );
+    #endif // defined
+    #if defined(trinket_mote_of_the_mountain)
+    initialize_rppm( rti->player.common->mote_of_the_mountain.proc );
+    #endif // defined
+    #if defined(trinket_discordant_chorus)
+    initialize_rppm( rti->player.common->discordant_chorus );
+    #endif // defined
+    #if defined(trinket_unending_hunger)
+    initialize_rppm( rti->player.common->unending_hunger.proc );
+    #endif // defined
+    #if defined(trinket_spores_of_alacrity)
+    initialize_rppm( rti->player.common->spores_of_alacrity.proc );
+    #endif // defined
+    #if defined(trinket_gronntooth_war_horn)
+    initialize_rppm( rti->player.common->gronntooth_war_horn.proc );
+    #endif // defined
 }
 
-void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id );
+void class_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id );
 
 void special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id ) {
-    if ( DICE_MISS != dice ) {
-#if (RACE == RACE_UNDEAD)
-        proc_ICD( rti, &rti->player.class->touch_of_the_grave, 0.2f, FROM_SECONDS( 15 ), routnum_touch_of_the_grave_trigger, target_id );
-#endif
-        if ( ATYPE_WHITE_MELEE == attacktype || ATYPE_YELLOW_MELEE == attacktype ) {
-#if (archmages_incandescence || archmages_greater_incandescence)
-            if ( !UP( incandescence_expire ) ) {
-                proc_RPPM( rti, &rti->player.class->incandescence.proc, 0.92f, routnum_incandescence_trigger, target_id );
+    if (DICE_MISS != dice) {
+        #if (RACE == RACE_UNDEAD)
+        proc_ICD( rti, &rti->player.common->touch_of_the_grave, 0.2f, FROM_SECONDS( 15 ), routnum_touch_of_the_grave_trigger, target_id );
+        #endif
+        if (ATYPE_WHITE_MELEE == attacktype || ATYPE_YELLOW_MELEE == attacktype) {
+            #if (archmages_incandescence || archmages_greater_incandescence)
+            if (!UP( incandescence_expire )) {
+                proc_RPPM( rti, &rti->player.common->incandescence.proc, 0.92f, routnum_incandescence_trigger, target_id );
             }
-#endif
-#if (thunderlord_mh)
-            proc_RPPM( rti, &rti->player.class->enchant_mh.proc, 2.5f, routnum_enchant_mh_trigger, target_id );
-#elif (bleedinghollow_mh)
-            proc_RPPM( rti, &rti->player.class->enchant_mh.proc, 2.3f, routnum_enchant_mh_trigger, target_id );
-#elif (shatteredhand_mh)
-            proc_RPPM( rti, &rti->player.class->enchant_mh, 3.5f * ( 1.0f + rti->player.stat.haste ), routnum_enchant_mh_trigger, target_id );
-#endif
-#if (thunderlord_oh)
-            proc_RPPM( rti, &rti->player.class->enchant_oh.proc, 2.5f, routnum_enchant_oh_trigger, target_id );
-#elif (bleedinghollow_oh)
-            proc_RPPM( rti, &rti->player.class->enchant_oh.proc, 2.3f, routnum_enchant_oh_trigger, target_id );
-#elif (shatteredhand_oh)
-            proc_RPPM( rti, &rti->player.class->enchant_oh, 3.5f * ( 1.0f + rti->player.stat.haste ), routnum_enchant_oh_trigger, target_id );
-#endif
-#if defined(trinket_forgemasters_insignia)
-            if ( !UP( forgemasters_insignia_expire ) ) {
-                proc_RPPM( rti, &rti->player.class->forgemasters_insignia.proc, 0.92f, routnum_forgemasters_insignia_tick, target_id );
+            #endif
+            #if (thunderlord_mh)
+            proc_RPPM( rti, &rti->player.common->enchant_mh.proc, 2.5f, routnum_enchant_mh_trigger, target_id );
+            #elif (bleedinghollow_mh)
+            proc_RPPM( rti, &rti->player.common->enchant_mh.proc, 2.3f, routnum_enchant_mh_trigger, target_id );
+            #elif (shatteredhand_mh)
+            proc_RPPM( rti, &rti->player.common->enchant_mh, 3.5f * ( 1.0f + rti->player.stat.haste ), routnum_enchant_mh_trigger, target_id );
+            #endif
+            #if (thunderlord_oh)
+            proc_RPPM( rti, &rti->player.common->enchant_oh.proc, 2.5f, routnum_enchant_oh_trigger, target_id );
+            #elif (bleedinghollow_oh)
+            proc_RPPM( rti, &rti->player.common->enchant_oh.proc, 2.3f, routnum_enchant_oh_trigger, target_id );
+            #elif (shatteredhand_oh)
+            proc_RPPM( rti, &rti->player.common->enchant_oh, 3.5f * ( 1.0f + rti->player.stat.haste ), routnum_enchant_oh_trigger, target_id );
+            #endif
+            #if defined(trinket_forgemasters_insignia)
+            if (!UP( forgemasters_insignia_expire )) {
+                proc_RPPM( rti, &rti->player.common->forgemasters_insignia.proc, 0.92f, routnum_forgemasters_insignia_tick, target_id );
             }
-#endif
-#if defined(trinket_horn_of_screaming_spirits)
-            if ( !UP( horn_of_screaming_spirits_expire ) ) {
-                proc_RPPM( rti, &rti->player.class->horn_of_screaming_spirits.proc, 0.92f, routnum_horn_of_screaming_spirits_trigger, target_id );
+            #endif
+            #if defined(trinket_horn_of_screaming_spirits)
+            if (!UP( horn_of_screaming_spirits_expire )) {
+                proc_RPPM( rti, &rti->player.common->horn_of_screaming_spirits.proc, 0.92f, routnum_horn_of_screaming_spirits_trigger, target_id );
             }
-#endif
-#if defined(trinket_insignia_of_victory)
-            proc_ICD( rti, &rti->player.class->insignia_of_victory.proc, 0.15f, FROM_SECONDS( 55 ), routnum_insignia_of_victory_trigger, target_id );
-#endif
-#if defined(trinket_tectus_beating_heart)
-            if ( !UP( tectus_beating_heart_expire ) ) {
-                proc_RPPM( rti, &rti->player.class->tectus_beating_heart.proc, 0.92f, routnum_tectus_beating_heart_trigger, target_id );
+            #endif
+            #if defined(trinket_insignia_of_victory)
+            proc_ICD( rti, &rti->player.common->insignia_of_victory.proc, 0.15f, FROM_SECONDS( 55 ), routnum_insignia_of_victory_trigger, target_id );
+            #endif
+            #if defined(trinket_tectus_beating_heart)
+            if (!UP( tectus_beating_heart_expire )) {
+                proc_RPPM( rti, &rti->player.common->tectus_beating_heart.proc, 0.92f, routnum_tectus_beating_heart_trigger, target_id );
             }
-#endif
-#if defined(trinket_formidable_fang)
-            if ( !UP( formidable_fang_expire ) ) {
-                proc_RPPM( rti, &rti->player.class->formidable_fang.proc, 0.92f, routnum_formidable_fang_trigger, target_id );
+            #endif
+            #if defined(trinket_formidable_fang)
+            if (!UP( formidable_fang_expire )) {
+                proc_RPPM( rti, &rti->player.common->formidable_fang.proc, 0.92f, routnum_formidable_fang_trigger, target_id );
             }
-#endif
-#if defined(trinket_draenic_stone)
-            proc_ICD( rti, &rti->player.class->draenic_stone.proc, 0.35f, FROM_SECONDS( 55 ), routnum_draenic_stone_trigger, target_id );
-#endif
-#if defined(trinket_skull_of_war)
-            proc_ICD( rti, &rti->player.class->skull_of_war.proc, 0.15f, FROM_SECONDS( 115 ), routnum_skull_of_war_trigger, target_id );
-#endif
-#if defined(trinket_mote_of_the_mountain)
-            if ( !UP( mote_of_the_mountain_expire ) ) {
-                proc_RPPM( rti, &rti->player.class->mote_of_the_mountain.proc, 0.92f, routnum_mote_of_the_mountain_trigger, target_id );
+            #endif
+            #if defined(trinket_draenic_stone)
+            proc_ICD( rti, &rti->player.common->draenic_stone.proc, 0.35f, FROM_SECONDS( 55 ), routnum_draenic_stone_trigger, target_id );
+            #endif
+            #if defined(trinket_skull_of_war)
+            proc_ICD( rti, &rti->player.common->skull_of_war.proc, 0.15f, FROM_SECONDS( 115 ), routnum_skull_of_war_trigger, target_id );
+            #endif
+            #if defined(trinket_mote_of_the_mountain)
+            if (!UP( mote_of_the_mountain_expire )) {
+                proc_RPPM( rti, &rti->player.common->mote_of_the_mountain.proc, 0.92f, routnum_mote_of_the_mountain_trigger, target_id );
             }
-#endif
-#if defined(trinket_discordant_chorus)
-            proc_RPPM( rti, &rti->player.class->discordant_chorus, 6.0f * ( 1.0f + rti->player.stat.haste ), routnum_discordant_chorus_trigger, target_id );
-#endif
-#if defined(trinket_empty_drinking_horn)
+            #endif
+            #if defined(trinket_discordant_chorus)
+            proc_RPPM( rti, &rti->player.common->discordant_chorus, 6.0f * ( 1.0f + rti->player.stat.haste ), routnum_discordant_chorus_trigger, target_id );
+            #endif
+            #if defined(trinket_empty_drinking_horn)
             eq_enqueue( rti, rti->timestamp, routnum_empty_drinking_horn_trigger, target_id );
-#endif
-#if defined(trinket_unending_hunger)
-            proc_RPPM( rti, &rti->player.class->unending_hunger.proc, 1.0f, routnum_unending_hunger_trigger, target_id );
-            if( UP( unending_hunger_expire ) && unending_hunger_stack < 20 ) {
+            #endif
+            #if defined(trinket_unending_hunger)
+            proc_RPPM( rti, &rti->player.common->unending_hunger.proc, 1.0f, routnum_unending_hunger_trigger, target_id );
+            if (UP( unending_hunger_expire ) && unending_hunger_stack < 20) {
                 unending_hunger_stack++;
                 rti->player.stat.gear_str += trinket_unending_hunger;
                 refresh_str( rti );
                 refresh_ap( rti );
             }
-#endif
-#if defined(trinket_spores_of_alacrity)
-            if ( !UP( spores_of_alacrity_expire ) ) {
-                proc_RPPM( rti, &rti->player.class->spores_of_alacrity.proc, 0.92f, routnum_spores_of_alacrity_trigger, target_id );
+            #endif
+            #if defined(trinket_spores_of_alacrity)
+            if (!UP( spores_of_alacrity_expire )) {
+                proc_RPPM( rti, &rti->player.common->spores_of_alacrity.proc, 0.92f, routnum_spores_of_alacrity_trigger, target_id );
             }
-#endif
-#if defined(trinket_gronntooth_war_horn)
-            proc_RPPM( rti, &rti->player.class->gronntooth_war_horn.proc, 1.5f, routnum_gronntooth_war_horn_trigger, target_id );
-#endif
+            #endif
+            #if defined(trinket_gronntooth_war_horn)
+            proc_RPPM( rti, &rti->player.common->gronntooth_war_horn.proc, 1.5f, routnum_gronntooth_war_horn_trigger, target_id );
+            #endif
         }
     }
-    if ( DICE_CRIT == dice ) {
-#if (thunderlord_mh)
-        if ( UP( rti->player.class->enchant_mh.expire ) && rti->player.class->enchant_mh.extend ) {
-            rti->player.class->enchant_mh.extend --;
-            rti->player.class->enchant_mh.expire += FROM_SECONDS( 2 );
-            eq_enqueue( rti, rti->player.class->enchant_mh.expire, routnum_enchant_mh_expire, target_id );
+    if (DICE_CRIT == dice) {
+        #if (thunderlord_mh)
+        if (UP( rti->player.common->enchant_mh.expire ) && rti->player.common->enchant_mh.extend) {
+            rti->player.common->enchant_mh.extend--;
+            rti->player.common->enchant_mh.expire += FROM_SECONDS( 2 );
+            eq_enqueue( rti, rti->player.common->enchant_mh.expire, routnum_enchant_mh_expire, target_id );
         }
-#endif
-#if (thunderlord_oh)
-        if ( UP( rti->player.class->enchant_oh.expire ) && rti->player.class->enchant_oh.extend ) {
-            rti->player.class->enchant_oh.extend --;
-            rti->player.class->enchant_oh.expire += FROM_SECONDS( 2 );
-            eq_enqueue( rti, rti->player.class->enchant_oh.expire, routnum_enchant_oh_expire, target_id );
+        #endif
+        #if (thunderlord_oh)
+        if (UP( rti->player.common->enchant_oh.expire ) && rti->player.common->enchant_oh.extend) {
+            rti->player.common->enchant_oh.extend--;
+            rti->player.common->enchant_oh.expire += FROM_SECONDS( 2 );
+            eq_enqueue( rti, rti->player.common->enchant_oh.expire, routnum_enchant_oh_expire, target_id );
         }
-#endif
+        #endif
     }
-    spec_special_procs( rti, attacktype, dice, target_id );
+    class_special_procs( rti, attacktype, dice, target_id );
 }

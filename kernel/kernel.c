@@ -196,67 +196,6 @@ hostonly(
     static k32u maxqueuelength = 0;
 )
 
-#define RACE_NONE 0
-#define RACE_HUMAN 1
-#define RACE_DWARF 2
-#define RACE_GNOME 3
-#define RACE_NIGHTELF_DAY 4
-#define RACE_NIGHTELF_NIGHT 5
-#define RACE_DRAENEI 6
-#define RACE_WORGEN 7
-#define RACE_ORC 8
-#define RACE_TROLL 9
-#define RACE_TAUREN 10
-#define RACE_UNDEAD 11
-#define RACE_BLOODELF 12
-#define RACE_GOBLIN 13
-#define RACE_PANDAREN 14
-
-deviceonly( __constant ) k32s racial_base_str[] = {
-    0, 0, 5, -5, -4, -4, 66, 3, 3, 1, 5, -1, -3, -3, 0,
-};
-
-/* Declarations from class modules. */
-typedef struct {
-    time_t cd;
-} ICD_t;
-typedef struct {
-    time_t lasttimeattemps;
-    time_t lasttimeprocs;
-} RPPM_t;
-
-typedef struct weapon_t {
-    float speed;
-    k32u low;
-    k32u high;
-    k32u type;
-} weapon_t;
-
-#define WEAPON_2H 0
-#define WEAPON_1H 1
-#define WEAPON_DAGGER 2
-
-deviceonly( __constant ) weapon_t weapon[] = {
-    {
-        MH_SPEED,
-        MH_LOW,
-        MH_HIGH,
-        MH_TYPE,
-    },
-    {
-        OH_SPEED,
-        OH_LOW,
-        OH_HIGH,
-        OH_TYPE,
-    },
-};
-
-deviceonly( __constant ) float normalized_weapon_speed[] = {
-    3.3f,
-    2.4f,
-    1.7f,
-};
-
 typedef struct stat_t {
     k32u gear_str;
     k32u gear_crit;
@@ -275,13 +214,17 @@ typedef struct stat_t {
 typedef struct {
     float power;
     stat_t stat;
+    struct common_state_t* common;
     struct class_state_t* class;
     struct spec_state_t* spec;
     time_t gcd;
     k32u target;
+    kbool busy;
+    kbool trinket_active;
 } player_t;
 
 typedef struct {
+    struct common_debuff_t* common;
     struct class_debuff_t* class;
     struct spec_debuff_t* spec;
 } enemy_t;
@@ -324,7 +267,7 @@ void routine_entries( rtinfo_t* rti, _event_t e );
 /*
     Class modules may need an initializer, link it here.
 */
-void class_module_init( rtinfo_t* rti );
+void module_init( rtinfo_t* rti );
 
 /* Initialize RNG */
 #if defined(RNG_MT127)
@@ -470,8 +413,9 @@ int eq_execute( rtinfo_t* rti ) {
 
     /* When time elapse, trigger a full scanning at APL. */
     if ( rti->timestamp < p[1].time ) {
-        if ( !STRICT_GCD || !UP( rti->player.gcd ) ) /* Strict GCD: Do not scan APL if GCD is up. */
-            scan_apl( rti ); /* This may change p[1]. */
+        if ( !rti->player.busy )
+            if ( !STRICT_GCD || !UP( rti->player.gcd ) ) /* Strict GCD: Do not scan APL if GCD is up. */
+                scan_apl( rti ); /* This may change p[1]. */
 
         /* Check again. */
         assert( rti->eq.count );
@@ -518,28 +462,6 @@ float enemy_health_percent( rtinfo_t* rti ) {
     return mix( death_pct, initial_health_percentage, ( float )remainder / ( float )rti->expected_combat_length );
 }
 
-void proc_ICD( rtinfo_t* rti, ICD_t* state, float chance, time_t cooldown, k32u routnum, k32u target_id ) {
-    if ( ( !state->cd || state->cd <= rti->timestamp ) && uni_rng( rti ) < chance ) {
-        state->cd = TIME_OFFSET( cooldown );
-        eq_enqueue( rti, rti->timestamp, routnum, target_id );
-    }
-}
-void proc_PPM( rtinfo_t* rti, float PPM, weapon_t* weapon, k32u routnum, k32u target_id ) {
-    if ( uni_rng( rti ) < ( PPM * weapon->speed / 60.0f ) ) {
-        eq_enqueue( rti, rti->timestamp, routnum, target_id );
-    }
-}
-void proc_RPPM( rtinfo_t* rti, RPPM_t* state, float RPPM, k32u routnum, k32u target_id ) {
-    if ( state->lasttimeattemps == rti->timestamp ) return;
-    float proc = RPPM * min( TO_SECONDS( rti->timestamp - state->lasttimeattemps ), 10.0f ) / 60.0f;
-    state->lasttimeattemps = rti->timestamp;
-    proc *= max( 1.0f, 1.0f + ( min( TO_SECONDS( rti->timestamp - state->lasttimeprocs ), 1000.0f ) / ( 60.0f / RPPM ) - 1.5f ) * 3.0f );
-    if ( uni_rng( rti ) < proc ) {
-        eq_enqueue( rti, rti->timestamp, routnum, target_id );
-        state->lasttimeprocs = rti->timestamp;
-    }
-}
-
 void sim_init( rtinfo_t* rti, k32u seed ) {
     /* Analogize get_global_id for CPU. */
     hostonly(
@@ -556,7 +478,7 @@ void sim_init( rtinfo_t* rti, k32u seed ) {
     rti->expected_combat_length = FROM_SECONDS( max_length + vary_combat_length * clamp( stdnor_rng( rti ) * ( 1.0f / 3.0f ), -1.0f, 1.0f ) );
 
     /* Class module initializer. */
-    class_module_init( rti );
+    module_init( rti );
 
     eq_enqueue( rti, rti->expected_combat_length, EVENT_END_SIMULATION, 0 );
 }

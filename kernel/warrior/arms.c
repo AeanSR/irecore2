@@ -15,7 +15,6 @@
 
 /* spec state infos. */
 struct spec_state_t{
-    int placeholder;
     struct {
         time_t cd;
         time_t expire;
@@ -72,7 +71,6 @@ struct spec_state_t{
 #endif
 };
 struct spec_debuff_t{
-    int placeholder;
     struct {
         time_t expire;
         float increament;
@@ -174,14 +172,25 @@ float ap_dmg( rtinfo_t* rti, float ap_multiplier ) {
     return dmg;
 }
 
+float spec_power_gain( rtinfo_t* rti, float power ) {
+    /* do nothing */
+}
+
 /* Power check with dauntless. */
-kbool arms_power_check( rtinfo_t* rti, float cost ) {
-    return power_check( rti, (float)(int)( cost * ( TALENT_DAUNTLESS ? 0.8f : 1.0f ) ) );
+float spec_power_check( rtinfo_t* rti, float cost ) {
+    return (float)(int)( cost * ( TALENT_DAUNTLESS ? 0.8f : 1.0f ) );
 }
 
 /* Power consume with dauntless. */
-void arms_power_consume( rtinfo_t* rti, float cost ) {
-    power_consume( rti, (float)(int)( cost * ( TALENT_DAUNTLESS ? 0.8f : 1.0f ) ) );
+#if (TALENT_ANGER_MANAGEMENT)
+void anger_management_count( rtinfo_t* rti, float rage );
+#endif
+float spec_power_consume( rtinfo_t* rti, float cost ) {
+    cost = (float)(int)( cost * ( TALENT_DAUNTLESS ? 0.8f : 1.0f ) );
+#if (TALENT_ANGER_MANAGEMENT)
+    anger_management_count( rti, *cost );
+#endif
+    return cost;
 }
 
 /* event list. */
@@ -294,11 +303,11 @@ DECL_EVENT( cleave_cast ) {
 DECL_SPELL( cleave ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( cleave_cd > rti->timestamp ) return 0;
-    if ( !arms_power_check( rti, 10.0f ) ) return 0;
-    arms_power_consume( rti, 10.0f );
+    if ( !power_check( rti, 10.0f ) ) return 0;
+    power_consume( rti, 10.0f );
     cleave_cd = TIME_OFFSET( FROM_SECONDS( 6 ) );
     eq_enqueue( rti, cleave_cd, routnum_cleave_cd, 0 );
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_cleave_cast, rti->player.target );
     lprintf( ( "cast cleave" ) );
     return 1;
@@ -333,7 +342,7 @@ DECL_SPELL( colossus_smash ) {
     if ( colossus_smash_cd > rti->timestamp ) return 0;
     colossus_smash_cd = TIME_OFFSET( FROM_SECONDS( 45 ) );
     eq_enqueue( rti, colossus_smash_cd, routnum_colossus_smash_cd, 0 );
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_colossus_smash_cast, rti->player.target );
     lprintf( ( "cast colossus_smash" ) );
     return 1;
@@ -352,10 +361,10 @@ DECL_EVENT( execute_cast ) {
     r += execute_base_rage_cost( rti ) - 10.0f; /* so the rage cost could even be negative. */
     /* if base rage cost reduced to 0, current rage = 0, multiplier could even be 0. */
     if ( TALENT_DAUNTLESS ){
-        power_consume( rti, r * 0.8f ); /* to avoid dauntless. */
-        rti->player.power -= r * 0.2f; /* this is safe. to avoid anger management. */
+        power_consume( rti, r );
+        rti->player.power -= r * 0.2f; /* this is safe. to avoid anger management & dauntless. */
     } else {
-        power_consume( rti, r ); /* to avoid dauntless. */
+        power_consume( rti, r );
     }
     float d = weapon_dmg( rti, 2.00f, 1, 0 ) * multiplier;
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
@@ -382,7 +391,7 @@ DECL_SPELL( execute ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( enemy_health_percent( rti ) > 20.0f ) return 0;
     if ( !power_check( rti, execute_base_rage_cost( rti ) ) ) return 0;
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_execute_cast, rti->player.target );
     lprintf( ( "cast execute" ) );
     return 1;
@@ -400,8 +409,8 @@ DECL_EVENT( hamstring_cast ) {
 }
 DECL_SPELL( hamstring ) {
     if ( hamstring_cd > rti->timestamp ) return 0;
-    if ( !arms_power_check( rti, 10.0f ) ) return 0;
-    arms_power_consume( rti, 10.0f );
+    if ( !power_check( rti, 10.0f ) ) return 0;
+    power_consume( rti, 10.0f );
     hamstring_cd = TIME_OFFSET( FROM_SECONDS( 1 ) );
     eq_enqueue( rti, hamstring_cd, routnum_hamstring_cd, 0 );
     eq_enqueue( rti, rti->timestamp, routnum_hamstring_cast, rti->player.target );
@@ -443,8 +452,8 @@ DECL_EVENT( mortal_strike_cast ) {
 DECL_SPELL( mortal_strike ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( mortal_strike_charge == 0 ) return 0;
-    if ( !arms_power_check( rti, 20.0f ) ) return 0;
-    arms_power_consume( rti, 20.0f );
+    if ( !power_check( rti, 20.0f ) ) return 0;
+    power_consume( rti, 20.0f );
     if ( TALENT_IN_FOR_THE_KILL && enemy_health_percent( rti ) <= 20.0f ) {
         power_gain( rti, 40.0f ); // TODO: does sweeping strike ms proc in4thekill?
     }
@@ -453,7 +462,7 @@ DECL_SPELL( mortal_strike ) {
         mortal_strike_cd = TIME_OFFSET( FROM_SECONDS( 6.0f / ( 1.0f + rti->player.stat.haste ) ) );
         eq_enqueue( rti, mortal_strike_cd, routnum_mortal_strike_charge, 0 );
     }
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_mortal_strike_cast, rti->player.target );
     lprintf( ( "cast mortal_strike" ) );
     return 1;
@@ -477,9 +486,9 @@ DECL_EVENT( slam_cast ) {
 }
 DECL_SPELL( slam ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
-    if ( !arms_power_check( rti, 15.0f ) ) return 0;
-    arms_power_consume( rti, 15.0f );
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    if ( !power_check( rti, 15.0f ) ) return 0;
+    power_consume( rti, 15.0f );
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_slam_cast, rti->player.target );
     lprintf( ( "cast slam" ) );
     return 1;
@@ -523,9 +532,9 @@ DECL_EVENT( whirlwind_cast ) {
 }
 DECL_SPELL( whirlwind ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
-    if ( !arms_power_check( rti, 25.0f ) ) return 0;
-    arms_power_consume( rti, 25.0f );
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    if ( !power_check( rti, 25.0f ) ) return 0;
+    power_consume( rti, 25.0f );
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_whirlwind_cast, rti->player.target );
     lprintf( ( "cast whirlwind" ) );
     return 1;
@@ -552,9 +561,9 @@ DECL_EVENT( overpower_cast ) {
 DECL_SPELL( overpower ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( !UP( overpower_expire ) ) return 0;
-    if ( !arms_power_check( rti, 10.0f ) ) return 0;
-    arms_power_consume( rti, 10.0f );
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    if ( !power_check( rti, 10.0f ) ) return 0;
+    power_consume( rti, 10.0f );
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_overpower_cast, rti->player.target );
     overpower_expire = rti->timestamp;
     eq_enqueue( rti, rti->timestamp, routnum_overpower_expire, 0 );
@@ -592,9 +601,9 @@ DECL_EVENT( rend_cast ) {
 }
 DECL_SPELL( rend ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
-    if ( !arms_power_check( rti, 15.0f ) ) return 0;
-    arms_power_consume( rti, 15.0f );
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    if ( !power_check( rti, 15.0f ) ) return 0;
+    power_consume( rti, 15.0f );
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_rend_cast, rti->player.target );
     lprintf( ( "cast rend" ) );
     return 1;
@@ -624,8 +633,8 @@ DECL_EVENT( focused_rage_cd ) {
 }
 DECL_SPELL( focused_rage ) {
     if ( focused_rage_cd > rti->timestamp ) return 0;
-    if ( !arms_power_check( rti, 15.0f ) ) return 0;
-    arms_power_consume( rti, 15.0f );
+    if ( !power_check( rti, 15.0f ) ) return 0;
+    power_consume( rti, 15.0f );
     focused_rage_cd = TIME_OFFSET( FROM_SECONDS( 1.5f ) );
     eq_enqueue( rti, focused_rage_cd, routnum_focused_rage_cd, 0 );
     focused_rage_stack = min( 3, (int)focused_rage_stack + 1 );
@@ -713,7 +722,7 @@ DECL_EVENT( ravager_cast ) {
 DECL_SPELL( ravager ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( ravager_cd > rti->timestamp ) return 0;
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_ravager_cast, 0 );
     ravager_cd = TIME_OFFSET( FROM_SECONDS( 60 ) );
     ravager_expire = TIME_OFFSET( FROM_SECONDS( 10 ) );

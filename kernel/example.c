@@ -1,5 +1,6 @@
 ﻿/*
     职业模块示例 2016.4.4
+    last edit: 2016.4.6
 */
 
 /*
@@ -13,16 +14,17 @@
     开发职业模块就是要开发后端源码当中描述职业机制的片段。
 
     后端源码框架
-    kernel.c和entry.c是所有职业共用的部分，kernel.c是后端代码的开头部分，entry.c是后端代码的结尾部分。
+    kernel.c、common.c和entry.c是所有职业共用的部分，kernel.c是后端代码的核心框架，entry.c是后端代码的入口，common.c是全职业通用部分的抽象。
     前端在进行源码拼接时，会遵循以下顺序：
 
         // 预定义，这里将前端的选项设置通过宏的方式设置给后端
-        #define CLASS_WARRIOR
-        #define SPEC_ARMS
+        #define CLASS CLASS_WARRIOR
+        #define SPEC SPEC_ARMS
         #define TALENT_TIER1 3
         ...
         // 这里插入kernel.c
 
+        // 这里插入common.c
         // 这里插入职业模块
         // 这里插入专精模块
 
@@ -253,27 +255,12 @@
 
 /************************** 这里开始一个职业模块范例 ***********************************************/
 
-#ifdef SPEC_LIL             // 前端给出的宏定义是 #define SPEC_XXX 这种形式
-#undef SPEC_LIL             // 你可以undef它们，
-#undef SPEC_ANOTHER_SPEC
-#define SPEC_LIL 1          // 然后转换成你喜欢的形式，比如 #define SPEC_XXX 1
-#define SPEC_ANOTHER_SPEC 0 // 这样你就可以直接在代码里写 if (SPEC_XXX)这样的东西了，显然更方便一些。
-#else
-#undef SPEC_LIL
-#undef SPEC_ANOTHER_SPEC
-#define SPEC_LIL 0
-#define SPEC_ANOTHER_SPEC 1
-#endif
-
-#define TALENT_ROCKET  (SPEC_LIL && TALENT_TIER1 == 1)              // 将所有天赋是否启用的判别式都定义成宏
-#define TALENT_PLATING (SPEC_ANOTHER_SPEC && TALENT_TIER1 == 1)     // 前端给出的宏定义是 #define TALENT_TIER1 2 这种形式，TIER后面的数字是层数，定义值是选择，0为留白，123分别为左中右 
+#define TALENT_ROCKET  (SPEC == SPEC_LIL && TALENT_TIER1 == 1)              // 将所有天赋是否启用的判别式都定义成宏
+#define TALENT_PLATING (SPEC == SPEC_ANOTHER_SPEC && TALENT_TIER1 == 1)     // 前端给出的宏定义是 #define TALENT_TIER1 2 这种形式，TIER后面的数字是层数，定义值是选择，0为留白，123分别为左中右 
 #define TALENT_GIFT    (TALENT_TIER1 == 2)                          // 有些天赋会随专精切换而变化，有些则不会
 #define TALENT_BSOD    (TALENT_TIER1 == 3)                          // 这些不变化的天赋的模型一般写在职业模块里，反之则写在专精模块里
 
-struct class_state_t{   // struct class_state_t 是存储着职业相关状态信息的结构体类型。这个类型是框架要求你必须定义的。
-    int placeholder;    // 第一个成员为ph，它有两个作用：确保你的结构体至少包含一个成员，确保你的结构体的第一个成员是整数类型（供entry初始化之便）。
-                        // 如果你已经能够确保这两点，那么也可以省略掉ph。ph没有实际作用，我们也不允许在代码的其他位置引用ph。
-    
+struct class_state_t{   // struct class_state_t 是存储着职业相关状态信息的结构体类型。这个类型是框架要求你必须定义的。    
     struct {            // 用结构体来定义模型中的状态量，可以更好地整理它们。
         time_t cd;      // 冷却一般叫做cd。它保存着冷却时间结束时刻的时间戳。
         time_t expire;  // 持续时间一般叫做expire。它保存着持续时间结束时刻的时间戳。
@@ -296,7 +283,6 @@ struct class_state_t{   // struct class_state_t 是存储着职业相关状态�
 };
 
 struct class_debuff_t { // struct class_debuff_t 也是框架要求必须定义的，它存储每个目标身上你职业相关状态信息。
-    int placeholder;    // ph同理。
 
     struct {
         time_t expire;
@@ -305,84 +291,13 @@ struct class_debuff_t { // struct class_debuff_t 也是框架要求必须定义�
 
 };
 
-// 能量处理函数，每个职业都有自己的能量值。
-// 框架并不要求必须有这些，但通常你需要有。
-// 这里提供了最基本的模板，你的职业的能量可能还有特殊机制，则需要在此基础上另行实现。
-void power_gain( rtinfo_t* rti, float power ) {     // 获取能量。
-    rti->player.power = min( power_max, rti->player.power + power );
-}
-kbool power_check( rtinfo_t* rti, float cost ) {    // 检测能量是否达到cost。
-    if ( cost <= rti->player.power ) return 1;
-    return 0;
-}
-void power_consume( rtinfo_t* rti, float cost ) {   // 消耗能量。
-    assert( power_check( rti, cost ) );
-    rti->player.power -= cost;
-}
-
-// 属性处理函数。
-// 框架并不要求必须有这些，但通常你需要有。
-// rti->player.stat结构体当中既保存了装备属性（gear_xxx），又保存了Buff后面板属性（xxx）。
-// 处理函数是根据装备属性计算面板属性的函数。在触发效果开始或结束改变了装备属性时，调用此函数更新面板属性。
-void refresh_str( rtinfo_t* rti ) {
-    float fstr = ( float )rti->player.stat.gear_str;
-    k32u str;
-    float coeff = 1.0f;
-    if ( PLATE_SPECIALIZATION ) coeff *= 1.05f;
-    #if (archmages_incandescence || archmages_greater_incandescence)
-    if ( UP( incandescence_expire ) ) coeff *= archmages_greater_incandescence ? 1.15f : 1.1f;
-    #endif
-    str = convert_uint_rtz( fstr * coeff ); // 注意白色力量是向零取整。
-    fstr = 1455; /* Base str @lvl 100. */   // 这个值可能随职业不同而变化！
-    fstr += racial_base_str[RACE]; /* Racial str. */
-    str += convert_uint_rtz( fstr * coeff ); // 绿色力量也向零取整。两部分分别取整后相加得到面板力量。
-    rti->player.stat.str = str;
-}
-
-float spec_mastery_coefficient( rtinfo_t* rti ); // 有时不同专精对属性的处理会不太一致，比如精通的系数不同专精是不一样的。此时可以搞“多态”来处理。
-float spec_mastery_increament( rtinfo_t* rti );  // C语言也能搞多态？非常简单，就这么搞。这两个函数在此声明，但在专精模块里给出实现。
-                                                 // 加载不同的专精模块的时候，这两个函数的具体实现就不同了，实现了类似OOP当中虚函数的作用。
-void refresh_mastery( rtinfo_t* rti ) {
-    float mastery = ( float )rti->player.stat.gear_mastery;
-    #if (bleedinghollow_mh)
-    if ( UP( rti->player.class->enchant_mh.expire ) ) mastery += 500.0f;
-    #endif
-    #if (bleedinghollow_oh)
-    if ( UP( rti->player.class->enchant_oh.expire ) ) mastery += 500.0f;
-    #endif
-    mastery = spec_mastery_coefficient( rti ) * ( 0.08f + mastery / 11000 ) + spec_mastery_increament( rti ); // 这样公式就会随专精不同而不同了。
-    rti->player.stat.mastery = mastery;
-}
-
-// 武器伤害和AP伤害，只声明，具体实现抛给专精模块
-float weapon_dmg( rtinfo_t* rti, float weapon_multiplier, kbool normalized, kbool offhand ); 
-float ap_dmg( rtinfo_t* rti, float ap_multiplier );
-// 攻击类型和伤害类型的分类，具体需要如何分类看职业需要。
-enum {
-    ATYPE_WHITE_MELEE, // 近战肉搏
-    ATYPE_YELLOW_MELEE, // 近战技能
-    ATYPE_SPELL, // 法术
-    DTYPE_DIRECT, // 直接伤害
-    DTYPE_PHYSICAL, // 物理伤害
-    DTYPE_SHADOW, // 暗影伤害
-    DTYPE_FIRE,  // 火焰伤害
-};
-// 掷骰结果分类
-// 现在偏斜、碾压、躲闪、招架等等通常都不会出现了，所以只处理这三种情况。
-enum {
-    DICE_MISS, // 未命中
-    DICE_CRIT, // 爆击
-    DICE_HIT, // 命中
-};
-void special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id ); // 触发效果挂钩，这里只声明，稍后给出实现
-k32u round_table_dice( rtinfo_t* rti, k32u target_id, k32u attacktype, float extra_crit_rate ); // 圆桌掷骰，由专精模块给出实现
-float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u dice, float extra_crit_bonus, kbool ignore_armor ); // 造成伤害，由专精模块给出实现
-
 /*
-    这里开始要编写事件系统了！有些宏需要定义，帮我们减轻负担。
+    这里开始要编写事件系统了！有些宏在common.c当中定义了，帮我们减轻负担。
 */
 /*
-    DECL_EVENT： 声明一个事件。用例：
+    #define DECL_EVENT( name ) void event_##name ( rtinfo_t* rti, k32u target_id )
+
+    声明一个事件。用例：
     DECL_EVENT( smackthat_cast ) {
         ...
     }
@@ -393,14 +308,16 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
     这个函数处理编号为routnum_smackthat_cast的事件。当此事件发生时，模拟器调用该函数。
     还记得eq_enqueue时提供的target参数么？这个参数会被传递到target_id这里。
 */
-#define DECL_EVENT( name ) void event_##name ( rtinfo_t* rti, k32u target_id )
 /*
-    HOOK_EVENT： 挂钩一个事件。
+    #define HOOK_EVENT( name ) case routnum_##name: event_##name( rti, e.target_id ); break;
+
+    挂钩一个事件。
     将routnum_smackthat_cast和event_smackthat_cast联系起来。在后面的事件入口处使用，这里先放下不谈。
 */
-#define HOOK_EVENT( name ) case routnum_##name: event_##name( rti, e.target_id ); break;
 /*
-    DECL_SPELL： 声明一个技能。用例：
+    #define DECL_SPELL( name ) int spell_##name ( rtinfo_t* rti )
+
+    声明一个技能。用例：
     DECL_SPELL( smackthat ) {
         ...
     }
@@ -415,17 +332,17 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
         * 插入事件。
         * 返回值1，表示这个技能成功执行了。
 */
-#define DECL_SPELL( name ) int spell_##name ( rtinfo_t* rti )
 /*
-    SPELL： 用于APL当中，表示释放技能。
+    #define SPELL( name ) safemacro(if(spell_##name ( rti )) return;)
+
+    用于APL当中，表示释放技能。
     IreCore的APL是非坠落性APL，即每一次扫描APL项，成功释放一个技能后，就立即返回。不再尝试寻找优先级更低的项是否能同时释放。
     这样配合核心算法可以达到更高的效率，核心算法会确保反复扫描APL直到没有动作，再让时刻向后移动。
 */
-#define SPELL( name ) safemacro(if(spell_##name ( rti )) return;)
 
 // 事件编号列表。每个事件需要一个对应的事件编号。
 enum {
-    routnum_gcd_expire,
+    END_OF_COMMON_ROUTNUM = START_OF_CLASS_ROUTNUM - 1, // 职业的事件编号从START_OF_CLASS_ROUTNUM起始。
     routnum_smackthat_cast,
     routnum_smackthat_cd,
     routnum_smackthat_expire,
@@ -433,29 +350,22 @@ enum {
     routnum_bsod_cast,
     routnum_bsod_cd,
 #endif
-    START_OF_SPEC_ROUTNUM, // 这个START_OF_SPEC_ROUTNUM可以帮助专精模块确定它的enum起始编号是多少。
+    START_OF_SPEC_ROUTNUM, // 这个START_OF_SPEC_ROUTNUM可以帮助专精模块确定它的事件编号列表起始是多少。
 };
 
-// === General Cooldown ======================================================= // 看这个分界线是不是非常帅！方便找技能的实现位置。用insert键写这种线很方便。
-void gcd_start ( rtinfo_t* rti, time_t length ) {                       // 启动GCD，专门弄一个函数减少后面的代码量。
-    rti->player.gcd = TIME_OFFSET( max( length, FROM_SECONDS( 1 ) ) );  // GCD下限1秒
-    eq_enqueue( rti, rti->player.gcd, routnum_gcd_expire, 0 );          // 挂钩gcd_expire事件。
-}
-DECL_EVENT( gcd_expire ) {  // gcd_expire事件的处理程序
-    /* Do nothing. */       // 什么都不做，因为GCD结束这个事件只是UP( rti->player.gcd )从真变为假，不会导致任何状态发生额外的变化，不需要编码。
-}                           // 但这个事件的存在是必要的，它让模拟器在这个时刻停留一下，于是处理器离开这个时刻时就会触发APL扫描，让角色在这一时刻执行动作。没有这个事件，就不会在这个时刻执行动作。
-                            // 许多事件都没有实际编码，它们的作用都是让模拟器在事件发生的时刻暂时驻足而已。
-
-// === smackthat ==============================================================
+// === smackthat ============================================================== // 看这个分界线是不是非常帅！方便找技能的实现位置。用insert键写这种线很方便。
 DECL_EVENT( smackthat_expire ) { // 虽然smackthat_expire被定义成了一个宏，但按照C语言标准，这里会先执行DECL_EVENT的展开，展开成event_smackthat_expire，然后就和smackthat_expire这个宏没有关系了。
     if ( smackthat_expire == rti->timestamp ) { // 空悬事件过滤，前面讲到了。
         smackthat_stack = 0;    // 堆叠层数一定要随着Buff过期而归零。
         lprintf( ( "smackthat expire" ) );      
     }
-}
 DECL_EVENT( smackthat_cd ) {       
     lprintf( ( "smackthat cd" ) );     // 这个事件不需要空悬事件过滤，只打印日志即可。
 }
+// 这个事件实际上什么都不做，因为CD结束这个事件只是UP( smackthat_cd )从真变为假，不会导致任何状态发生额外的变化，不需要编码。
+// 但这个事件的存在是必要的，它让模拟器在这个时刻停留一下，于是处理器离开这个时刻时就会触发APL扫描，让角色在这一时刻执行动作。没有这个事件，就不会在这个时刻执行动作。
+// 许多事件都没有实际编码，它们的作用都是让模拟器在事件发生的时刻暂时驻足而已。
+
 DECL_EVENT( smackthat_cast ) {
     float d = ap_dmg( rti, 0.6f );    // 计算AP伤害：0.6AP
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );  // 掷骰
@@ -480,12 +390,10 @@ DECL_SPELL( smackthat ) {
     if ( UP( smackthat_cd ) ) return 0;   // 检查冷却
     if ( !power_check( rti, 20.0f ) ) return 0; // 检查能量
     // * DECL_SPELL要做的事情之二：破坏条件
-    gcd_start( rti, 1.5f / ( 1.0f + rti->player.haste ) ); // 基础1.5秒，受急速影响的GCD。
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 ); // 基础1.5秒，受急速影响的GCD。
     smackthat_cd = TIME_OFFSET( FROM_SECONDS( 3 ) ); // CD设置为3秒后。
     eq_enqueue( rti, smackthat_cd, routnum_smackthat_cd, 0 ); // 插入CD完成事件。
     power_consume( rti, 20.0f ); // 消耗能量
-    // some_depend_buffs_expire = rti->timestamp; // 有时还需要消耗掉前置Buff
-    // eq_enqueue( rti, some_depend_buffs_expire, routnum_some_depend_buffs_expire, 0 ); // 立刻触发该Buff结束的事件。这会导致原本的结束事件空悬，所以处理程序里需要过滤空悬。
     // * DECL_SPELL要做的事情之三：插入事件
     eq_enqueue( rti, rti->timestamp, routnum_smackthat_cast, 0 ); // 插入技能释放事件。
     lprintf( ( "cast smackthat" ) ); // 打印战斗日志
@@ -510,7 +418,7 @@ DECL_SPELL( bsod ) {
     if ( UP( bsod_cd ) ) return 0;   // 检查冷却
     if ( !UP( smackthat_expire ) ) return 0; // 检查前置Buff是否激活
     // * DECL_SPELL要做的事情之二：破坏条件
-    gcd_start( rti, 1.5f / ( 1.0f + rti->player.haste ) ); // 基础1.5秒，受急速影响的GCD。
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 ); // 基础1.5秒，受急速影响的GCD。
     bsod_cd = TIME_OFFSET( FROM_SECONDS( 6 ) ); // CD设置为6秒后。
     eq_enqueue( rti, bsod_cd, routnum_bsod_cd, 0 ); // 插入CD完成事件。
     smackthat_expire = rti->timestamp; // 消耗掉前置Buff
@@ -529,18 +437,17 @@ DECL_SPELL( bsod ) {    // 即使没有启用这个天赋，也要声明这个�
 #endif
 
 /*
-    routine_entries：事件处理程序入口。这是框架要求你必须定义的。
+    class_routine_entries：事件处理程序入口。这是框架要求你必须定义的。
     它的作用是分拣事件，根据事件编号选择相应的处理程序来调用。
 */
 void spec_routine_entries( rtinfo_t* rti, _event_t e ); // 专精模块的事件处理程序入口，也接在这里。
-void routine_entries( rtinfo_t* rti, _event_t e ) {     // 总的事件处理程序入口。
+void class_routine_entries( rtinfo_t* rti, _event_t e ) {     // 职业模块的事件处理程序入口。
     if( e.routine >= START_OF_SPEC_ROUTNUM ) {          // 如果事件编号属于专精模块，那就交由专精模块的事件处理程序入口来处理。
         spec_routine_entries( rti, e );
     }
     else switch( e.routine ) {                          // 否则进行分拣。
-        HOOK_EVENT( gcd_expire );                       // 每一个事件编号routnum对应一个处理程序DECL_EVENT，HOOK_EVENT可以将它们对应起来。
-        HOOK_EVENT( smackthat_expire );                 // 每个事件都要在这里hook一下，才能被调用到。
-        HOOK_EVENT( smackthat_cd );
+        HOOK_EVENT( smackthat_expire );                 // 每一个事件编号routnum对应一个处理程序DECL_EVENT，HOOK_EVENT可以将它们对应起来。
+        HOOK_EVENT( smackthat_cd );                     // 每个事件都要在这里hook一下，才能被调用到。
         HOOK_EVENT( smackthat_cast );
 #if (TALENT_BSOD)                                       // 天赋事件只在激活天赋后才有，所以预处理一下。
         HOOK_EVENT( bsod_cd );
@@ -552,35 +459,18 @@ void routine_entries( rtinfo_t* rti, _event_t e ) {     // 总的事件处理程
     }
 }
 
-/*
-    模块初始化。这是框架要求你必须定义的。
-*/
+// 模块初始化。这是框架要求你必须定义的。
 void spec_module_init( rtinfo_t* rti ); // 专精模块的初始化。
 void class_module_init( rtinfo_t* rti ) {
     spec_module_init( rti ); // 首先初始化专精部分。
-
-    // 初始化面板属性。
-    refresh_str( rti );
-    refresh_mastery( rti );
-    // ...
-    
-    // 在日志里打印初始属性。
-    lprintf( ( "Raid buffed str %d", rti->player.stat.str ) );
-    lprintf( ( "Raid buffed ap %d", rti->player.stat.ap ) );
-    lprintf( ( "Raid buffed crit %f", rti->player.stat.crit ) );
-    lprintf( ( "Raid buffed haste %f", rti->player.stat.haste ) );
-    lprintf( ( "Raid buffed mastery %f", rti->player.stat.mastery ) );
-    lprintf( ( "Raid buffed vers %f", rti->player.stat.vers ) );
 
     // 如果有模拟开始之前就要插入的事件，放在这里。
     // RPPM的触发率信息RPPM_t放在这里初始化。
 }
 
-/*
-    触发效果
-*/
+// 触发效果
 void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id ); // 专精模块的触发效果。
-void special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id ) {
+void class_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id ) {
     // 有触发效果的话，把触发写在这里。
     // special_procs会被round_table_dice调用。
 }
@@ -588,22 +478,53 @@ void special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id ) 
 /************************** 这里开始一个专精模块范例 ***********************************************/
 
 struct spec_state_t {   // struct spec_state_t 也是框架要求你必须定义的。
-    int placeholder;    // 和struct class_state_t完全相同，只不过包含的是与专精相关的状态信息。
+                        // 和struct class_state_t完全相同，只不过包含的是与专精相关的状态信息。
                         // 引用class_state_t的路径是rti->player.class->
                         // 引用spec_state_t的路径是rti->player.spec->
     // ...              // 照着职业模块那样写即可。
 };
 struct spec_debuff_t{   // 相应的，也要有struct spec_debuff_t。
-    int placeholder;
     // ...
 };
 
-float spec_mastery_coefficient( rtinfo_t* rti ){    // 所有职业模块搞多态留下的待实现的函数，你都需要在这里搞定。
+// 能量处理
+// 你使用power_gain( rti, power )来使角色获得能量
+// 不同专精在获得能量时可能还会触发不同的机制，你可以在spec_power_gain当中描述这些机制。
+// 如果要修改power的值，return修改后的值即可。
+float spec_power_gain( rtinfo_t* rti, float power ) {
+    return power;
+}
+// 同理，你使用power_check( rti, cost )来检查角色是否拥有足够的能量
+// 你可以在spec_power_check当中描述额外机制。
+float spec_power_check( rtinfo_t* rti, float cost ) {
+    return cost;
+}
+// 你使用power_consume( rti, cost )来扣除角色的能量
+// 你可以在spec_power_consume当中描述额外机制。
+float spec_power_consume( rtinfo_t* rti, float cost ) {
+    return cost;
+}
+
+// 属性处理
+// IreCore采用更新的方式维护属性量。rti->player.stat当中既包含装备属性（装备力量、战斗等级），又包含面板属性（面板力量、AP、副属性百分比）。
+// 你可以直接修改装备属性的值，但每次修改后，要立即调用更新函数来重新计算面板属性。refresh_str、refresh_ap、refresh_crit...
+// 需要面板属性时直接引用面板属性值即可，因为你已经保证那是最新的数据了。
+
+// 不同的专精对属性的处理可能有细微不同，这里提供了一些callback让你描述。
+// 这些callback可以根据需要再多引出几个来，如有需要，和aean讲。
+float spec_mastery_coefficient( rtinfo_t* rti ){    // 专精的精通系数
     return 2.0f;
 }
-float spec_mastery_increament( rtinfo_t* rti ){
+float spec_mastery_increament( rtinfo_t* rti ){     // 某些专精在某些情况下会有额外增加/减少的精通量，写在这里
     return 0.0f;
 }
+float spec_crit_increament( rtinfo_t* rti ){        // 某些专精在某些情况下会有额外增加/减少的爆击率，写在这里
+    return 0.0f;
+}
+float spec_haste_coefficient( rtinfo_t* rti ){      // 某些专精会有额外的急速，注意这个数字是乘在急速上的
+    return 1.0f;
+}
+
 
 // round_table_dice2是一个额外的掷骰函数。区别在于它不触发特效。
 // 有时你也会希望用到round_table_dice2，直接用，没关系。声明到职业模块里去，在职业模块里也能用。

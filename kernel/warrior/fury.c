@@ -15,7 +15,6 @@
 
 /* spec state infos. */
 struct spec_state_t{
-    int placeholder;
     struct {
         time_t cd;
     } bloodthirst;
@@ -122,8 +121,29 @@ struct spec_state_t{
 #endif
 };
 struct spec_debuff_t{
-    int placeholder;
 };
+
+/* Reimplemented power gain. */
+#if (TALENT_FROTHING_BERSERKER)
+void frothing_berserker_trigger( rtinfo_t* rti );
+#endif
+float spec_power_gain( rtinfo_t* rti, float power ) {
+    int frothing = 1;
+    frothing &= rti->player.power < power_max;
+    frothing &= rti->player.power + power >= power_max;
+#if (TALENT_FROTHING_BERSERKER)
+    if( frothing ) frothing_berserker_trigger( rti );
+#endif
+    return power;
+}
+
+float spec_power_check( rtinfo_t* rti, float cost ) {
+    return cost;
+}
+
+float spec_power_consume( rtinfo_t* rti, float cost ) {
+    return cost;
+}
 
 float spec_mastery_coefficient( rtinfo_t* rti ){
     return 1.4f;
@@ -395,7 +415,7 @@ DECL_SPELL( bloodthirst ) {
     if ( bloodthirst_cd > rti->timestamp ) return 0;
     bloodthirst_cd = TIME_OFFSET( FROM_SECONDS( 4.5f / ( 1.0f + rti->player.stat.haste ) ) );
     eq_enqueue( rti, bloodthirst_cd, routnum_bloodthirst_cd, 0 );
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_bloodthirst_cast, rti->player.target );
     lprintf( ( "cast bloodthirst" ) );
     return 1;
@@ -434,7 +454,7 @@ DECL_SPELL( execute ) {
     if ( !power_check( rti, 25.0f ) ) return 0;
     if ( enemy_health_percent( rti ) > 20.0f ) return 0;
     power_consume( rti, 25.0f );
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_execute_cast, rti->player.target );
     lprintf( ( "cast execute" ) );
     return 1;
@@ -465,7 +485,7 @@ DECL_EVENT( taste_for_blood_trigger ) {
 }
 DECL_SPELL( furious_slash ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_furious_slash_cast, rti->player.target );
     lprintf( ( "cast furious_slash" ) );
     return 1;
@@ -512,7 +532,7 @@ DECL_SPELL( raging_blow ) {
     } else {
         if ( !UP( enrage_expire ) ) return 0;
     }
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_raging_blow_cast, rti->player.target );
 #if (TALENT_INNER_RAGE)
     raging_blow_cd = TIME_OFFSET( FROM_SECONDS( 4.5f / ( 1.0f + rti->player.stat.haste ) ) );
@@ -588,7 +608,7 @@ DECL_SPELL( rampage ) {
         if ( !power_check( rti, (TALENT_CARNAGE) ? 65.0f : 85.0f ) ) return 0;
         power_consume( rti, (TALENT_CARNAGE) ? 65.0f : 85.0f );
     }
-    gcd_start( rti, FROM_SECONDS( 2.0f / ( 1.0f + rti->player.stat.haste ) ) );
+    gcd_start( rti, FROM_SECONDS( 2.0f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_rampage_cast_1, rti->player.target );
 #if (TALENT_MEAT_GRINDER)
     if ( UP( meat_grinder_expire ) ){
@@ -650,7 +670,7 @@ DECL_SPELL( whirlwind ) {
         if ( !power_check( rti, 10.0f ) ) return 0;
         power_consume( rti, 10.0f );
     }
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_whirlwind_cast, rti->player.target );
     lprintf( ( "cast whirlwind" ) );
     return 1;
@@ -769,7 +789,7 @@ DECL_EVENT( dragon_roar_expire ) {
 DECL_SPELL( dragon_roar ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( dragon_roar_cd > rti->timestamp ) return 0;
-    gcd_start( rti, FROM_SECONDS( 1.5f / ( 1.0f + rti->player.stat.haste ) ) );
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_dragon_roar_cast, 0 );
     dragon_roar_cd = TIME_OFFSET( FROM_SECONDS( 20 ) );
     eq_enqueue( rti, dragon_roar_cd, routnum_dragon_roar_cd, 0 );

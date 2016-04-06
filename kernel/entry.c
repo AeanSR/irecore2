@@ -13,6 +13,17 @@
     If not, see <http://opensource.org/licenses/mit-license.php>.
 */
 
+/* Aggregate state structs. */
+struct runtime_state_t {
+    rtinfo_t _rti;
+    struct common_state_t common_state;
+    struct class_state_t class_state;
+    struct spec_state_t spec_state;
+    struct common_debuff_t common_debuff[num_enemies];
+    struct class_debuff_t class_debuff[num_enemies];
+    struct spec_debuff_t spec_debuff[num_enemies];
+};
+
 /* Single iteration logic. */
 deviceonly( __kernel ) void sim_iterate(
     deviceonly( __global ) float* dps_result,
@@ -22,39 +33,30 @@ deviceonly( __kernel ) void sim_iterate(
     k32u gear_haste,
     k32u gear_mastery,
     k32u gear_vers
-) {
-    deviceonly( __private ) rtinfo_t _rti;
-    deviceonly( __private ) struct class_state_t class_state;
-    deviceonly( __private ) struct class_debuff_t class_debuff[num_enemies];
-    deviceonly( __private ) struct spec_state_t spec_state;
-    deviceonly( __private ) struct spec_debuff_t spec_debuff[num_enemies];
+) { 
+    /* Write zero to states. */
+    deviceonly( __private ) struct runtime_state_t state = { {0} };
 
-    /* Write zero to RTI. */
-    _rti = ( rtinfo_t ) { 0 };
-    class_state = ( struct class_state_t ) { 0 };
-    spec_state = ( struct spec_state_t ) { 0 };
-
-    _rti.player.stat.gear_str = gear_str;
-    _rti.player.stat.gear_crit = gear_crit;
-    _rti.player.stat.gear_haste = gear_haste;
-    _rti.player.stat.gear_mastery = gear_mastery;
-    _rti.player.stat.gear_vers = gear_vers;
-
-    _rti.player.class = &class_state;
-    _rti.player.spec = &spec_state;
+    state._rti.player.stat.gear_str = gear_str;
+    state._rti.player.stat.gear_crit = gear_crit;
+    state._rti.player.stat.gear_haste = gear_haste;
+    state._rti.player.stat.gear_mastery = gear_mastery;
+    state._rti.player.stat.gear_vers = gear_vers;
+    state._rti.player.common = &state.common_state;
+    state._rti.player.class = &state.class_state;
+    state._rti.player.spec = &state.spec_state;
     for( int i = 0; i < num_enemies; i++ ) {
-        class_debuff[i] = ( struct class_debuff_t ) { 0 };
-        spec_debuff[i] = ( struct spec_debuff_t ) { 0 };
-        _rti.enemy[i].class = &class_debuff[i];
-        _rti.enemy[i].spec = &spec_debuff[i];
+        state._rti.enemy[i].common = &state.common_debuff[i];
+        state._rti.enemy[i].class = &state.class_debuff[i];
+        state._rti.enemy[i].spec = &state.spec_debuff[i];
     }
 
     sim_init(
-        &_rti,
+        &state._rti,
         ( k32u )deterministic_seed + ( k32u )get_global_id( 0 )
     );
 
-    while( eq_execute( &_rti ) );
+    while( eq_execute( &state._rti ) );
 
-    dps_result[get_global_id( 0 )] = _rti.damage_collected / TO_SECONDS( _rti.expected_combat_length );
+    dps_result[get_global_id( 0 )] = state._rti.damage_collected / TO_SECONDS( state._rti.expected_combat_length );
 }

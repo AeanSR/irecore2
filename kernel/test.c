@@ -2,8 +2,8 @@
     kernel compile test
 */
 
-#define CLASS_WARRIOR
-#define SPEC_FURY
+#define CLASS CLASS_WARRIOR
+#define SPEC SPEC_FURY
 #define STRICT_GCD 1
 #define WBR_NEVER_EXPIRE 1
 #define AVATAR_LIKE_BLOODBATH 0
@@ -72,9 +72,10 @@
 #define TALENT_TIER7 1
 
 #include "kernel.c"
-#include "warrior.c"
-#include "fury.c"
-//#include "arms.c"
+#include "common.c"
+#include "warrior\warrior.c"
+#include "warrior\fury.c"
+//#include "warrior\arms.c"
 #include "entry.c"
 
 void scan_apl( rtinfo_t* rti ) {
@@ -90,7 +91,6 @@ void scan_apl( rtinfo_t* rti ) {
 int main(){
     float result;
     sim_iterate( &result, 5171, 4313 + 250, 2148 + 125, 751, 1504, 0 );
-    int state_size = sizeof( rtinfo_t ) + sizeof( struct class_state_t ) + sizeof( struct spec_state_t );
-    state_size += (sizeof( struct class_debuff_t ) + sizeof( struct spec_debuff_t )) * num_enemies;
+    int state_size = sizeof( struct runtime_state_t );
     printf( "result: %.3f\nmax queue length: %d\nruntime state size: %d\n", result, maxqueuelength, state_size );
 }
