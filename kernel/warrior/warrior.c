@@ -122,6 +122,16 @@ struct class_state_t {
 struct class_debuff_t {
 };
 
+void on_time_elapsed( rtinfo_t* rti, time_t last_time ) {
+
+}
+time_t check_point( rtinfo_t* rti ) {
+#if (TALENT_ANGER_MANAGEMENT) // when battle cry cd varies a lot, use check point instead of events to track.
+    return battle_cry_cd;
+#endif
+    return 0;
+}
+
 /* Event list. */
 enum {
     END_OF_COMMON_ROUTNUM = START_OF_CLASS_ROUTNUM - 1,
@@ -172,7 +182,7 @@ DECL_SPELL( battle_cry ) {
     eq_enqueue( rti, battle_cry_expire, routnum_battle_cry_expire, 0 );
     battle_cry_cd = TIME_OFFSET( FROM_SECONDS( 60 ) ); // TODO: some traits would decrease cd?
     spec_spell_battle_cry( rti ); // this may modify cd!
-    if ( !TALENT_ANGER_MANAGEMENT ) eq_enqueue( rti, battle_cry_cd, routnum_battle_cry_cd, 0 ); // with anger management enabled it doesn't worth to track exact cd.
+    if ( !TALENT_ANGER_MANAGEMENT ) eq_enqueue( rti, battle_cry_cd, routnum_battle_cry_cd, 0 ); // when battle cry cd varies a lot, use check point instead of events to track.
     return 1;
 }
 

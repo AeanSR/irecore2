@@ -426,7 +426,7 @@ void refresh_str( rtinfo_t* rti ) {
     if (UP( incandescence_expire )) coeff *= archmages_greater_incandescence ? 1.15f : 1.1f;
     #endif
     str = convert_uint_rtz( fstr * coeff );
-    fstr = 1455; /* Base str @lvl 100. */ // TODO: this may vary between classes.
+    fstr = 1455; /* Base str @lvl 100. */ // TODO: this may vary between classes. DK & warrior confirmed.
     fstr += racial_base_str[RACE]; /* Racial str. */
     str += convert_uint_rtz( fstr * coeff );
     rti->player.stat.str = str;

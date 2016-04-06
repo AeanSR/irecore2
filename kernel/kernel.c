@@ -401,6 +401,12 @@ _event_t* eq_enqueue( rtinfo_t* rti, time_t trigger, k32u routine, k32u target_i
     return 0;
 }
 
+/* EQ will call this function when time elapsed. */
+void on_time_elapsed( rtinfo_t* rti, time_t last_time );
+
+/* EQ will visit check point timestamp. */
+time_t check_point( rtinfo_t* rti );
+
 /* Execute the top priority. */
 int eq_execute( rtinfo_t* rti ) {
     k32u i, child;
@@ -425,28 +431,37 @@ int eq_execute( rtinfo_t* rti ) {
 
     min = p[1];
 
-    /* Delete from heap. */
-    last = p[rti->eq.count--];
-    for( i = 1; i << 1 <= rti->eq.count; i = child ) {
-        child = i << 1;
-        if ( child != rti->eq.count && rti->eq.event[child].time < p[child].time )
-            child++;
-        if ( last.time > p[child].time )
-            p[i] = p[child];
-        else
-            break;
+    time_t check = check_point( rti );
+    if ( !UP( check ) || min.time <= check ) { /* Check point is not valid. */
+        /* Delete from heap. */
+        last = p[rti->eq.count--];
+        for( i = 1; i << 1 <= rti->eq.count; i = child ) {
+            child = i << 1;
+            if ( child != rti->eq.count && rti->eq.event[child].time < p[child].time )
+                child++;
+            if ( last.time > p[child].time )
+                p[i] = p[child];
+            else
+                break;
+        }
+        p[i] = last;
+    } else {  /* Check point inserted between now and min. */
+        time_t last_time = rti->timestamp;
+        rti->timestamp = check; /* Jump to check point first. */
+        on_time_elapsed( rti, last_time );
+        return 1;
     }
-    p[i] = last;
-
     /* Now 'min' contains the top priority. Execute it. */
-    rti->timestamp = min.time;
-
     if ( min.routine == EVENT_END_SIMULATION ) /* Finish the simulation here. */
         return 0;
 
-    /* TODO: Some preparations? */
+    if ( rti->timestamp != min.time ) {
+        time_t last_time = rti->timestamp;
+        rti->timestamp = min.time;
+        on_time_elapsed( rti, last_time );
+    }
+
     routine_entries( rti, min );
-    /* TODO: Some finishing works? */
 
     return 1;
 }

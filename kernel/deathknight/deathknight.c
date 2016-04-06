@@ -15,11 +15,42 @@
 
 /* class state infos. */
 struct class_state_t {
-
+    struct {
+        k32u ready;
+        time_t cd[3];
+    } rune;
+    #define rune_max     (6)
+    #define rune_ready   (rti->player.class->rune.ready)
+    #define rune_cd(seq) (rti->player.class->rune.cd[seq])
 };
 struct class_debuff_t {
 
 };
+
+void rune_reactive( rtinfo_t* rti ) {
+    if ( rune_ready >= rune_max - 3 ) return;
+    rune_ready ++;
+}
+kbool rune_check( rtinfo_t* rti, k32u count ) {
+    if ( rune_ready >= count ) return 1;
+    return 0;
+}
+void rune_consume( rtinfo_t* rti, k32u count ) {
+    assert( rune_ready >= count );
+    rune_ready -= count;
+}
+float rune_charge_rate( rtinfo_t* rti ) {
+    float rate = 1.0f + rti->player.stat.haste;
+    return rate;
+}
+void on_time_elapsed( rtinfo_t* rti, time_t last_time ) {
+
+}
+time_t check_point( rtinfo_t* rti ) {
+
+    return 0;
+}
+
 
 /* Event list. */
 enum {
