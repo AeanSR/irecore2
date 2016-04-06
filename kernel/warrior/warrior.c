@@ -63,7 +63,7 @@
 #define TALENT_OPPORTUNITY_STRIKES ((SPEC == SPEC_ARMS) && (TALENT_TIER7 == 2))
 #define TALENT_RAVAGER             ((SPEC == SPEC_ARMS) && (TALENT_TIER7 == 3))
 
-/* class-spec state infos. */
+/* class state infos. */
 struct class_state_t {
     struct {
         time_t expire;
