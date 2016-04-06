@@ -5,7 +5,7 @@
     IreCore is distributed under the terms of The MIT License.
     You should have received a copy of the MIT License along with this program.
     If not, see <http://opensource.org/licenses/mit-license.php>.
-*/
+    */
 
 #ifndef LIBIC_INTL_H_INCLUDED
 #define LIBIC_INTL_H_INCLUDED
@@ -42,7 +42,7 @@ struct ic_computedevice_t {
     cl_command_queue queue;
     char* platform_name;
     char* device_name;
-    ic_computedevice_t() : platform_name( 0 ), device_name( 0 ), context( 0 ), queue( 0 ) { }
+    ic_computedevice_t() : platform_name(0), device_name(0), context(0), queue(0) { }
 };
 
 struct config_t {
@@ -99,16 +99,19 @@ struct config_t {
     int opencl_device_id;
     int developer_debug;
     ic_printcb_t printcb;
-    char* kernel_str;
-    char* kernel_entry_str;
-    char* kernel_warrior_str;
-    char* kernel_arms_str;
-    char* kernel_fury_str;
+    struct {
+        char* kernel_str;
+        char* entry_str;
+        char* common_str;
+        char* warrior_str;
+        char* arms_str;
+        char* fury_str;
+    } kernel;
     FILE* output_file;
     std::vector<ic_computedevice_t> device_list;
     config_t() {
-        memset( this, 0, sizeof *this );
-        srand( ( unsigned int ) time( NULL ) );
+        memset(this, 0, sizeof *this);
+        srand((unsigned int)time(NULL));
         rng_engine = 32;
         strict_gcd = 1;
         sync_melee = 1;
@@ -130,8 +133,8 @@ struct config_t {
     }
 };
 
-IC_LOCAL int cbprintf( const char* format, ... );
+IC_LOCAL int cbprintf(const char* format, ...);
 // apltr
-IC_LOCAL int fapltr( std::string& input_file, std::string& output );
-IC_LOCAL int sapltr( std::string& input, std::string& output );
+IC_LOCAL int fapltr(std::string& input_file, std::string& output);
+IC_LOCAL int sapltr(std::string& input, std::string& output);
 #endif

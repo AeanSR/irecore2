@@ -70,7 +70,7 @@
     </Link>
     <PostBuildEvent>
       <Command>cd $(SolutionDir)\
-pack_release.bat</Command>
+pack_release_vc140.bat</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

@@ -67,13 +67,13 @@ void ic_setprintcallback( ic_printcb_t cbf ) {
     config().printcb = cbf;
 }
 
-#define load_source( kptr, srcname )     if (!config().kptr){ \
+#define load_source( kptr, srcname )     if (!config().kernel.kptr){ \
         FILE* f = fopen("kernel\\" srcname, "rb"); \
         fseek(f, 0, SEEK_END); \
         size_t tell = ftell(f); \
         rewind(f); \
-        config().kptr = (char*)calloc(tell + 1, 1); \
-        fread(config().kptr, tell, 1, f); \
+        config().kernel.kptr = (char*)calloc(tell + 1, 1); \
+        fread(config().kernel.kptr, tell, 1, f); \
         fclose(f); \
     }
 
@@ -81,10 +81,11 @@ void ic_setprintcallback( ic_printcb_t cbf ) {
 void ic_init( void ) {
     // Load kernel source
     load_source( kernel_str, "kernel.c" );
-    load_source( kernel_entry_str, "entry.c" );
-    load_source( kernel_warrior_str, "warrior.c" );
-    load_source( kernel_arms_str, "arms.c" );
-    load_source( kernel_fury_str, "fury.c" );
+    load_source( entry_str, "entry.c" );
+    load_source( common_str, "common.c" );
+    load_source( warrior_str, "warrior\\warrior.c" );
+    load_source( arms_str, "warrior\\arms.c" );
+    load_source( fury_str, "warrior\\fury.c" );
     // Lookup available devices.
     if (config().device_list.empty()) {
         config().device_list.clear();
@@ -504,11 +505,7 @@ const char* ic_getparam( const char* key ) {
 void ic_resetparam( void ) {
     config_t blank;
     blank.device_list = config().device_list;
-    blank.kernel_entry_str = config().kernel_entry_str;
-    blank.kernel_entry_str = config().kernel_entry_str;
-    blank.kernel_warrior_str = config().kernel_warrior_str;
-    blank.kernel_arms_str = config().kernel_arms_str;
-    blank.kernel_fury_str = config().kernel_fury_str;
+    blank.kernel = config().kernel;
     blank.printcb = config().printcb;
     blank.output_file = config().output_file;
     config() = blank;
@@ -775,12 +772,12 @@ IC_LOCAL std::string generate_predef( config_t& blank ) {
 
     switch (blank.spec) {
     case SPEC_ARMS_WARRIOR:
-        predef.append( "#define CLASS_WARRIOR\r\n" );
-        predef.append( "#define SPEC_ARMS\r\n" );
+        predef.append( "#define CLASS CLASS_WARRIOR\r\n" );
+        predef.append( "#define SPEC SPEC_ARMS\r\n" );
         break;
     case SPEC_FURY_WARRIOR:
-        predef.append( "#define CLASS_WARRIOR\r\n" );
-        predef.append( "#define SPEC_FURY\r\n" );
+        predef.append( "#define CLASS CLASS_WARRIOR\r\n" );
+        predef.append( "#define SPEC SPEC_FURY\r\n" );
         break;
     }
 
@@ -1038,18 +1035,19 @@ int ic_runsim( float* dps, float* dpsr, float* dpse, float* sim_time ) {
     if (!ttprobe( hashkey, &program )) {
         // compile kernel
         cbprintf( "JIT ...\n" );
-        std::string source( config().kernel_str );
+        std::string source( config().kernel.kernel_str );
+        source += config().kernel.common_str;
         switch (blank.spec) {
         case SPEC_ARMS_WARRIOR:
-            source += config().kernel_warrior_str;
-            source += config().kernel_arms_str;
+            source += config().kernel.warrior_str;
+            source += config().kernel.arms_str;
             break;
         case SPEC_FURY_WARRIOR:
-            source += config().kernel_warrior_str;
-            source += config().kernel_fury_str;
+            source += config().kernel.warrior_str;
+            source += config().kernel.fury_str;
             break;
         }
-        source += config().kernel_entry_str;
+        source += config().kernel.entry_str;
         source = predef + source;
         source += "void scan_apl( rtinfo_t* rti ) {";
         source += blank.apl;
