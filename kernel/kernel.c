@@ -173,11 +173,11 @@ typedef struct {
 
 typedef k32u time_t;
 #define FROM_SECONDS( sec ) ((time_t)convert_uint_rtp((float)(sec) * 1000.0f))
-#define FROM_MILLISECONDS( msec ) ((time_t)(msec))
+#define FROM_MILLISECONDS( msec ) ((time_t)convert_uint_rtp((float)(msec)))
 #define TO_SECONDS( timestamp ) (convert_float_rtp((k32u)timestamp) * 0.001f)
 #define TIME_OFFSET( time ) ((time_t)((k32s)rti->timestamp + (k32s)time))
 #define TIME_DISTANT( time ) ((time_t)max((k32s)(time) - (k32s)(rti->timestamp), 0))
-#define UP( time_to_check ) ( (time_to_check) && (time_to_check) > rti->timestamp )
+#define UP( time_to_check ) ((time_to_check) > rti->timestamp )
 #define REMAIN( time_to_check ) ((time_t)max(((k32s)(time_to_check) - (k32s)rti->timestamp), 0))
 
 /* Event queue. */

@@ -13,7 +13,6 @@
     If not, see <http://opensource.org/licenses/mit-license.php>.
 */
 
-enum { NSPEC_ARMS, NSPEC_FURY, };
 #if defined(SPEC_FURY)
 #undef SPEC_FURY
 #undef SPEC_ARMS
@@ -1768,8 +1767,6 @@ void spec_module_init( rtinfo_t* rti );
 
 void class_module_init( rtinfo_t* rti ) {
     spec_module_init( rti );
-
-    rti->player.power = 0.0f;
 
     refresh_str( rti );
     refresh_ap( rti );

@@ -170,7 +170,7 @@ float weapon_dmg( rtinfo_t* rti, float weapon_multiplier, kbool normalized, kboo
 
 float ap_dmg( rtinfo_t* rti, float ap_multiplier ) {
     float dmg = ap_multiplier * rti->player.stat.ap;
-    if ( MH_TYPE == WEAPON_1H ) dmg *= 1.1f;
+    if ( MH_TYPE == WEAPON_2H ) dmg *= 1.1f;
     return dmg;
 }
 
