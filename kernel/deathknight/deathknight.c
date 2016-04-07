@@ -66,6 +66,7 @@ kbool rune_check( rtinfo_t* rti, k32u count ) {
 void rune_consume( rtinfo_t* rti, k32u count ) {
     assert( rune_ready >= count );
     rune_ready -= count;
+    spec_power_gain(count * 10f);
 }
 float rune_charge_rate( rtinfo_t* rti ) {
     float rate = 1.0f + rti->player.stat.haste;
@@ -78,7 +79,16 @@ time_t check_point( rtinfo_t* rti ) {
 
     return 0;
 }
-
+float spec_power_gain( rtinfo_t* rti, float power ) {
+    return power;
+}
+float spec_power_check( rtinfo_t* rti, float cost ) {
+    return cost;
+}
+float spec_power_consume( rtinfo_t* rti, float cost ) {
+    
+    return cost;//TODO: add runic empowerment & runic corruption
+}
 
 /* Event list. */
 enum {

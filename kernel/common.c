@@ -501,6 +501,7 @@ enum {
     DTYPE_PHYSICAL,
     DTYPE_SHADOW,
     DTYPE_FIRE,
+    DTYPE_FROST,
 };
 enum {
     DICE_MISS,
