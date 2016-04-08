@@ -1,22 +1,12 @@
 //
 //  frost_dk.c
-//  
+//
 //
 //  Created by Tianjian Guo on 4/6/16.
 //
 //
 
 struct spec_state_t{
-//==================================================================================
-    struct {
-    } frost_strike;
-//==================================================================================
-    struct {
-    }howling_blast;
-//==================================================================================
-    struct{
-    }obliterate;
-//==================================================================================
     struct{
         time_t cd;
     }empower_rune_weapon;
@@ -143,6 +133,17 @@ float spec_haste_coefficient( rtinfo_t* rti ){
     return 0.0f; //TODO: some passives
 }
 
+float spec_power_gain( rtinfo_t* rti, float power ) {
+    return power;
+}
+float spec_power_check( rtinfo_t* rti, float cost ) {
+    return cost;
+}
+float spec_power_consume( rtinfo_t* rti, float cost ) {
+
+    return cost;//TODO: add runic empowerment & runic corruption
+}
+
 k32u round_table_dice( rtinfo_t* rti, k32u target_id, k32u attacktype, float extra_crit_rate ) {
     k32u dice = round_table_dice2( rti, target_id, attacktype, extra_crit_rate );
     special_procs( rti, attacktype, dice, target_id );
@@ -151,7 +152,12 @@ k32u round_table_dice( rtinfo_t* rti, k32u target_id, k32u attacktype, float ext
 
 k32u round_table_dice2( rtinfo_t* rti, k32u target_id, k32u attacktype, float extra_crit_rate ) {
     float c = uni_rng( rti );
-    float cr = rti->player.stat.crit + extra_crit_rate;
+    float cr = rti->player.stat.crit - 0.03f + extra_crit_rate;
+    if (ATYPE_WHITE_MELEE == attacktype){
+        cr += 0.19f;
+        if ( c < 0.19f ) return DICE_MISS;
+    }
+
     //TODO: lots of stuff
     if ( c < cr ){
         return DICE_CRIT;
@@ -166,7 +172,15 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
         return dmg;
     }
     float cdb = ( 1.0f + extra_crit_bonus ) * 2.0f;
-    dmg *= 1.0f + rti->player.stat.vers;
+                                                                    dmg *= 1.0f + rti->player.stat.vers;
+    if ( UP( thorasus_the_stone_heart_of_draenor_expire ) )         dmg *= 1.0f + legendary_ring * 0.0001f;
+    if ( ENEMY_IS_DEMONIC && UP(gronntooth_war_horn_expire ) )      dmg *= 1.1f;
+    if ( RACE == RACE_DWARF || RACE == RACE_TAUREN )                cdb *= 1.02f;
+    if ( DTYPE_PHYSICAL == dmgtype ){
+        if ( !ignore_armor )                                        dmg *= 0.650684f; // 0.680228f @110lvl
+    }
+    if ( DICE_CRIT == dice )                                        dmg *= cdb;
+
     //TODO: extra damage
     rti->damage_collected += dmg;
     return dmg;
@@ -193,6 +207,8 @@ enum {
     routnum_howling_blast_cast,
     routnum_frost_fever_tick,
     routnum_frost_fever_cast,
+
+    START_OF_WILD_ROUTNUM
 };
 // === auto-attack ============================================================
 //TODO:icy talons, frozen pulse
@@ -225,9 +241,12 @@ DECL_EVENT( auto_attack_oh ) {
 }
 // === Frost Strike ===========================================================
 DECL_EVENT( frost_stike_cast ) {
-    float d = weapon_dmg(rti, 2.30f * (1.0f + rti->player.stat.mastery ), 1, 0) + weapon_dmg(rti, 1.90f * (1.0f + rti->player.stat.mastery ), 1, 0);
-    k32u dice = round_table_dice(rti, target_id, ATYPE_SPELL, 0);
-    deal_damage(rti, target_id, d, DTYPE_FROST, dice, 0,0s);
+    float d = weapon_dmg(rti, 2.30f * (1.0f + rti->player.stat.mastery ), 1, 0);
+    k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
+    deal_damage(rti, target_id, d, DTYPE_FROST, dice, 0, 0);
+    d = weapon_dmg(rti, 1.92f * (1.0f + rti->player.stat.mastery ), 1, 1);
+    dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
+    deal_damage(rti, target_id, d, DTYPE_FROST, dice, 0, 0);
     lprintf( ( "frost strike hit" ) );
     //Add Icy Talon
 }
@@ -235,16 +254,19 @@ DECL_SPELL( frost_strike ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( !power_check( rti, 25.0f ) ) return 0;
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1);//TODO: check if haste effects DCD
-    spec_power_consume(rti, 25f);
+    power_consume(rti, 25.0f);
     eq_enqueue( rti, rti->timestamp, routnum_frost_strike_cast, 0);
     lprintf( ( "frost strike casted" ) );
-    
+
 }
 // === Obliterate =============================================================
 DECL_EVENT( obliterate_cast ) {
-    float d = weapon_dmg(rti, 2.58f * (1.0f + rti->player.stat.mastery ), 1, 0) + weapon_dmg(rti, 1.2.58f * (1.0f + rti->player.stat.mastery ), 1, 0);
-    k32u dice = round_table_dice(rti, target_id, ATYPE_SPELL, 0);
-    deal_damage(rti, target_id, d, DTYPE_FROST, dice, 0,0);
+    float d = weapon_dmg(rti, 2.58f * (1.0f + rti->player.stat.mastery ), 1, 0);
+    k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
+    deal_damage(rti, target_id, d, DTYPE_PHYSICAL, dice, 0,0);
+    d = weapon_dmg(rti, 2.58f * (1.0f + rti->player.stat.mastery ), 1, 1);
+    dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
+    deal_damage(rti, target_id, d, DTYPE_PHYSICAL, dice, 0,0);
     lprintf( ( "obliterate hit" ) );
     //Add killing machine
 }
@@ -259,13 +281,13 @@ DECL_SPELL( obliterate ) {
 // === howling blast ==========================================================
 DECL_EVENT( howling_blast_cast ) {
     float dMain = ap_dmg(rti, 0.3852f);
-    k32u dice = round_table_dice(rti, target_id, ATYPE_SPELL, 0);
+    k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
     deal_damage(rti, target_id, d, DTYPE_FROST, dice, 0,0);
     eq_enqueue(rti, rti->timestamp, routnum_frost_fever_cast, 0);
     lprintf( ( "howling blast hit" ) );
     for ( int i = 1; i < num_enemies; i++ ) {
-        float dAOE = ap_dmg(rti, 0.305f);
-        k32u dice = round_table_dice( rti, i, ATYPE_SPELL, 0 );
+        float dAOE = 0.8f * dMain;
+        k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
         deal_damage( rti, i, dAOE, DTYPE_FROST, dice, 0, 0 );
         eq_enqueue(rti, rti->timestamp, routnum_frost_fever_cast, i);
         lprintf( ( "howling blast aoe hit @tar%d", i ) );
@@ -276,7 +298,7 @@ DECL_EVENT( howling_blast_cast ) {
 }
 DECL_SPELL( howling_blast ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
-    if ( !rune_check( rti, 2 ) ) return 0;
+    if ( !rune_check( rti, 1 ) ) return 0;
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1);//TODO: check if haste effects DCD
     rune_consume(rti, 1);
     eq_enqueue( rti, rti->timestamp, routnum_howling_blast_cast, 0);
@@ -295,11 +317,15 @@ DECL_EVENT( frost_fever_tick) {
 }
 DECL_EVENT( frost_fever_cast ) {
     if ( UP( frost_fever_expire( target_id ) ) ) {
-
-        frost_fever_expire( target_id ) += TIME_OFFSET( FROM_SECONDS( ((frost_fever_expire( target_id )-(rti->timestamp)) > .3*24 ? 1.3*24 : rend_expire-rti.timestamp+24)); // TODO: how rend extends?
-        lprintf( ( "frost_fever_expire_expire extends to %f sec", TO_SECONDS( TIME_DISTANT( frost_fever_expire( target_id ) ) ) ) );
+        if (REMAIN( frost_fever_expire( target_id ) ) > FROM_SECONDS( .3f*24 )){
+            frost_fever_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 1.3f*24 ) );
+        } else {
+            frost_fever_expire( target_id ) += FROM_SECONDS( 24 );
+        }
+        lprintf( ( "frost_fever_expire extends to %f sec", TO_SECONDS( TIME_DISTANT( frost_fever_expire( target_id ) ) ) ) );
     } else {
-        frost_fever_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 15 ) );
+        frost_fever_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 24 ) );
         eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 3 ) ), routnum_frost_fever_tick, target_id );
-        lprintf( ( "rend start" ) );
+        lprintf( ( "frost_fever start" ) );
+    }
 }
