@@ -45,11 +45,11 @@
 struct class_state_t {
     struct {
         k32u ready;
-        time_t cd[3];
+        float charge_progress[3];
     } rune;
     #define rune_max     (6)
     #define rune_ready   (rti->player.class->rune.ready)
-    #define rune_cd(seq) (rti->player.class->rune.cd[seq])
+    #define rune_cd(seq) TIME_OFFSET(rti->player.class->rune.charge_progress[seq] * FROM_SECONDS(10) / rune_charge_rate(rti))
 };
 struct class_debuff_t {
 
@@ -65,19 +65,42 @@ kbool rune_check( rtinfo_t* rti, k32u count ) {
 }
 void rune_consume( rtinfo_t* rti, k32u count ) {
     assert( rune_ready >= count );
+    k32u rune_on_cd = min( rune_max - rune_ready, 3 );
     rune_ready -= count;
     power_gain(count * 10.0f);
+    if ( rune_on_cd < 3 ) {
+        for ( int i = 0; i < count && i < 3 - rune_on_cd; i++ ) {
+            rti->player.class->rune.charge_progress[i + rune_on_cd] = 1.0f;
+        }
+    }
 }
+float spec_rune_charge_rate( rtinfo_t* rti );
 float rune_charge_rate( rtinfo_t* rti ) {
     float rate = 1.0f + rti->player.stat.haste;
+    rate *= spec_rune_charge_rate( rti );
     return rate;
 }
 void on_time_elapsed( rtinfo_t* rti, time_t last_time ) {
-
+    time_t elapsed = rti->timestamp - last_time;
+    float rune_progress = rune_charge_rate( rti ) * (float)elapsed / (float)FROM_SECONDS( 10 );
+    k32u rune_on_cd = min( rune_max - rune_ready, 3 );
+    k32u rune_locked = rune_max - rune_ready - rune_on_cd;
+    k32u rune_actived = 0;
+    for ( int i = 0; i < rune_on_cd; i++ ) {
+        rti->player.class->rune.charge_progress[i] -= rune_progress;
+        if ( rti->player.class->rune.charge_progress[i] <= 0.0f ) rune_actived ++;
+    }
+    for ( int i = 0; i < 3; i++ ) {
+        if ( i + rune_actived < 3 ) {
+            rti->player.class->rune.charge_progress[i] = rti->player.class->rune.charge_progress[i + rune_actived];
+        } else {
+            rti->player.class->rune.charge_progress[i] = ( rune_locked > i + rune_actived - 3 ) ? 1.0f : 0.0f;
+        }
+    }
+    rune_ready += rune_actived;
 }
 time_t check_point( rtinfo_t* rti ) {
-
-    return 0;
+    return rune_cd(0);
 }
 
 /* Event list. */
