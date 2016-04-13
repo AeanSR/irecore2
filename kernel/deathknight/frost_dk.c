@@ -111,13 +111,16 @@ struct class_debuff_t {
 //==================================================================================
     struct{
         time expire;
+        
     }killing_machine;
     #define killing_machine_expire (rti->player.spec->killing_machine.expire)
 //==================================================================================
     struct{
         time expire;
+        RPPM_t, proc;
     }rime;
     #define rime_expire (rti->player.spec->rime.expire)
+    #defube rime_
 };
 //Stat&Uitility=====================================================================
 float spec_mastery_coefficient( rtinfo_t* rti ){
@@ -201,7 +204,11 @@ void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_
 {
     if( DICE_MISS != dice && ( ATYPE_WHITE_MELEE == attacktype)
        {
-           //TODO : killing machine
+           proc_RPPM( rti, &rti->player.spec->killing_machine.proc, 4.5f/* * ( 1.0f + rti->player.stat.haste )*/, routnum_killing_machine_trigger, 0 );
+       }
+    if( DICE_MISS != dice && ( ATYPE_WHITE_MELEE == attacktype)
+       {
+           
            //TODO : frozen pulse
        }
 //Skills=======================================================================
@@ -217,6 +224,8 @@ enum {
 #if(TALENT_ICY_TALONS)
     routnum_icy_talons_expire,
 #endif
+    routnum_killing_machine_expire,
+    routnum_killing_machine_trigger,
     START_OF_WILD_ROUTNUM
 };
 // === auto-attack ============================================================
@@ -264,7 +273,8 @@ DECL_EVENT( frost_stike_cast ) {
     deal_damage(rti, target_id, d, DTYPE_FROST, dice, 0, 0);
     lprintf( ( "frost strike hit" ) );
 #if(TALENT_ICY_TALONS)
-    eq_enqueue(rti, TIME_OFFSET( 3.0f), )
+    eq_enqueue(rti, TIME_OFFSET( 3.0f), routnum_icy_talons_expire,0);
+#endif
 }
 DECL_SPELL( frost_strike ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
@@ -293,7 +303,10 @@ DECL_EVENT( icy_talons_expire ) {
 // === Obliterate =============================================================
 DECL_EVENT( obliterate_cast ) {
     float d = weapon_dmg(rti, 2.58f * (1.0f + rti->player.stat.mastery ), 1, 0);
-    k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
+    if( UP (killing_machine_expire)) {k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 1.0f);
+                                      killing_machine_expire = rti->timestamp;
+                                      eq_enqueue(rti, killing_machine_expire, routnum_killing_machine_expire,0);}//TODO: murderous efficiency
+    else                              k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
     deal_damage(rti, target_id, d, DTYPE_PHYSICAL, dice, 0,0);
     d = weapon_dmg(rti, 2.58f * (1.0f + rti->player.stat.mastery ), 1, 1);
     dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
@@ -312,6 +325,9 @@ DECL_SPELL( obliterate ) {
 // === howling blast ==========================================================
 DECL_EVENT( howling_blast_cast ) {
     float dMain = ap_dmg(rti, 0.3852f);
+#if(TALENT_FREEZING_FOG)
+    dMain = dMain *2;
+#endif
     k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
     deal_damage(rti, target_id, d, DTYPE_FROST, dice, 0,0);
     eq_enqueue(rti, rti->timestamp, routnum_frost_fever_cast, 0);
@@ -323,9 +339,7 @@ DECL_EVENT( howling_blast_cast ) {
         eq_enqueue(rti, rti->timestamp, routnum_frost_fever_cast, i);
         lprintf( ( "howling blast aoe hit @tar%d", i ) );
     }
-
     //add Rime
-    //add freezing fog
 }
 DECL_SPELL( howling_blast ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
@@ -361,6 +375,15 @@ DECL_EVENT( frost_fever_cast ) {
     }
 }
 // === killing machine =======================================================
-    
+DECL_EVENT( killing_machine_expire ) {
+    if ( killing_machine_expire == rti->timestamp ) {
+        lprintf( ( "smackthat expire" ) );
+    }
+}
+DECL_EVENT( killing_machine_trigger ) {
+    killing_machine_expire = TIME_OFFSET( FROM_SECONDS(10.0f));
+    eq_enqueue(rti,killing_machine_expire,routnum_killing_machine_expire,0);
+}
+
                                  
                                  
