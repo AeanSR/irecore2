@@ -130,7 +130,7 @@ float spec_mastery_increament( rtinfo_t* rti ){
     return 0.0f;
 }
 float spec_crit_increament( rtinfo_t* rti ){
-    return 0.0f; //TODO: killing machine
+    return 0.0f;
 }
 float spec_haste_coefficient( rtinfo_t* rti ){
     return 0.0f; //TODO: some passives
@@ -144,7 +144,7 @@ float spec_power_check( rtinfo_t* rti, float cost ) {
 }
 float spec_power_consume( rtinfo_t* rti, float cost ) {
 
-    return cost;//TODO: add runic empowerment & runic corruption
+    return cost;//TODO: add runic empowerment
 }
 
 k32u round_table_dice( rtinfo_t* rti, k32u target_id, k32u attacktype, float extra_crit_rate ) {
@@ -300,19 +300,24 @@ DECL_EVENT( icy_talons_expire ) {
         eq_enqueue(rti, icy_talons_expire, routnum_icy_talons_expire, 0);
     }
 }
-// === Obliterate =============================================================
+// === Obliterate =============================================================TODO: murderous efficiency
 DECL_EVENT( obliterate_cast ) {
     float d = weapon_dmg(rti, 2.58f * (1.0f + rti->player.stat.mastery ), 1, 0);
-    if( UP (killing_machine_expire)) {k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 1.0f);
-                                      killing_machine_expire = rti->timestamp;
-                                      eq_enqueue(rti, killing_machine_expire, routnum_killing_machine_expire,0);}//TODO: murderous efficiency
-    else                              k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
+    //kiling machine implementation
+    if( UP (killing_machine_expire) ) {
+        k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 1.0f);
+        killing_machine_expire = rti->timestamp;
+        eq_enqueue(rti, killing_machine_expire, routnum_killing_machine_expire,0);
+        lprintf( ( "killing machine buff consumed" ) );
+    }
+    else {
+        k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
+    }
     deal_damage(rti, target_id, d, DTYPE_PHYSICAL, dice, 0,0);
     d = weapon_dmg(rti, 2.58f * (1.0f + rti->player.stat.mastery ), 1, 1);
     dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
     deal_damage(rti, target_id, d, DTYPE_PHYSICAL, dice, 0,0);
     lprintf( ( "obliterate hit" ) );
-    //Add killing machine
 }
 DECL_SPELL( obliterate ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
@@ -377,12 +382,13 @@ DECL_EVENT( frost_fever_cast ) {
 // === killing machine =======================================================
 DECL_EVENT( killing_machine_expire ) {
     if ( killing_machine_expire == rti->timestamp ) {
-        lprintf( ( "smackthat expire" ) );
+        lprintf( ( "killing machine wasted" ) );
     }
 }
 DECL_EVENT( killing_machine_trigger ) {
     killing_machine_expire = TIME_OFFSET( FROM_SECONDS(10.0f));
     eq_enqueue(rti,killing_machine_expire,routnum_killing_machine_expire,0);
+    lprintf( ( "killing machine buff gained" ) );
 }
 
                                  
