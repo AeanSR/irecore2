@@ -98,7 +98,7 @@ struct item_sparse_record_t {
         while (*q) {
             name.push_back( *q++ );
         }
-        while (!*q++);
+        q += 4;
         while (*q) {
             desc.push_back( *q++ );
         }
