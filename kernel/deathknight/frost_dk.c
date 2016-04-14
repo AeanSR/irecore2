@@ -197,6 +197,13 @@ float ap_dmg( rtinfo_t* rti, float ap_multiplier ) {
     float dmg = ap_multiplier * rti->player.stat.ap;
     return dmg;
 }
+void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id )
+{
+    if( DICE_MISS != dice && ( ATYPE_WHITE_MELEE == attacktype)
+       {
+           //TODO : killing machine
+           //TODO : frozen pulse
+       }
 //Skills=======================================================================
 enum {
     END_OF_COMMON_ROUTNUM = START_OF_CLASS_ROUTNUM - 1,
@@ -207,11 +214,12 @@ enum {
     routnum_howling_blast_cast,
     routnum_frost_fever_tick,
     routnum_frost_fever_cast,
-
+#if(TALENT_ICY_TALONS)
+    routnum_icy_talons_expire,
+#endif
     START_OF_WILD_ROUTNUM
 };
 // === auto-attack ============================================================
-//TODO:icy talons, frozen pulse
 DECL_EVENT( auto_attack_mh ) {
     float d = weapon_dmg( rti, 1.0f, 0, 0 );
     k32u dice = round_table_dice( rti, rti->player.target, ATYPE_WHITE_MELEE, 0 );
@@ -222,7 +230,8 @@ DECL_EVENT( auto_attack_mh ) {
     } else {
         lprintf( ( "mh hit" ) );
     }
-    float aspeed = 1.0f + rti->player.stat.haste;
+    if(UP(icy_talons_expire))                    float aspeed = (1.0f + rti->player.stat.haste) * 1.25f;
+    else                                         float aspeed = (1.0f + rti->player.stat.haste);
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( weapon[0].speed / aspeed ) ), routnum_auto_attack_mh, rti->player.target );
 }
 DECL_EVENT( auto_attack_oh ) {
@@ -235,29 +244,51 @@ DECL_EVENT( auto_attack_oh ) {
     } else {
         lprintf( ( "oh hit" ) );
     }
-    float aspeed = 1.0f + rti->player.stat.haste;
+    if(UP(icy_talons_expire))                    float aspeed = (1.0f + rti->player.stat.haste) * 1.25f;
+    else                                         float aspeed = (1.0f + rti->player.stat.haste);
+
     if ( UP( enrage_expire ) ) aspeed *= 2.0f;
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( weapon[1].speed / aspeed ) ), routnum_auto_attack_oh, rti->player.target );
 }
 // === Frost Strike ===========================================================
 DECL_EVENT( frost_stike_cast ) {
     float d = weapon_dmg(rti, 2.30f * (1.0f + rti->player.stat.mastery ), 1, 0);
-    k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
+#if(TALENT_SHATTERING_STRIKE)
+    k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0.3f);
+#else
+    k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0;
+#endif
     deal_damage(rti, target_id, d, DTYPE_FROST, dice, 0, 0);
     d = weapon_dmg(rti, 1.92f * (1.0f + rti->player.stat.mastery ), 1, 1);
     dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
     deal_damage(rti, target_id, d, DTYPE_FROST, dice, 0, 0);
     lprintf( ( "frost strike hit" ) );
-    //Add Icy Talon
+#if(TALENT_ICY_TALONS)
+    eq_enqueue(rti, TIME_OFFSET( 3.0f), )
 }
 DECL_SPELL( frost_strike ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
-    if ( !power_check( rti, 25.0f ) ) return 0;
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 1);//TODO: check if haste effects DCD
+    if ( !power_check( rti, 25.0f ) ) return 0
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1);//TODO: check if haste effects GCD
     power_consume(rti, 25.0f);
     eq_enqueue( rti, rti->timestamp, routnum_frost_strike_cast, 0);
     lprintf( ( "frost strike casted" ) );
 
+}
+// === icy talons =============================================================
+DECL_EVENT( icy_talons_expire ) {
+    if( UP (icy_talons_expire))
+    {
+        icy_talons_expire += FROM_SECONDS( 3.0f );
+        lprintf( ( "icy_alons_expire extends to %f sec", TO_SECONDS( TIME_DISTANT( icy_talons_expire ) ) ) );
+        eq_enqueue(rti, icy_talons_expire, routnum_icy_talons_expire, 0);
+    }
+    else
+    {
+        icy_talons_expire = TIME_OFFSET( 3.0f );
+        lprintf( ( "gain icy talons buff" ) );
+        eq_enqueue(rti, icy_talons_expire, routnum_icy_talons_expire, 0);
+    }
 }
 // === Obliterate =============================================================
 DECL_EVENT( obliterate_cast ) {
@@ -273,7 +304,7 @@ DECL_EVENT( obliterate_cast ) {
 DECL_SPELL( obliterate ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( !rune_check( rti, 2 ) ) return 0;
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 1);//TODO: check if haste effects DCD
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1);//TODO: check if haste effects GCD
     rune_consume(rti, 2);
     eq_enqueue( rti, rti->timestamp, routnum_obliterate_cast, 0);
     lprintf( ( "obliterate casted" ) );
@@ -299,13 +330,13 @@ DECL_EVENT( howling_blast_cast ) {
 DECL_SPELL( howling_blast ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( !rune_check( rti, 1 ) ) return 0;
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 1);//TODO: check if haste effects DCD
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1);//TODO: check if haste effects GCD
     rune_consume(rti, 1);
     eq_enqueue( rti, rti->timestamp, routnum_howling_blast_cast, 0);
     lprintf( ( "howling blast casted" ) );
 }
 // === frost fever ============================================================
-DECL_EVENT( frost_fever_tick) {
+DECL_EVENT( frost_fever_tick ) {
     if(frost_fever_expire( target_id ) < rti->timestamp) return;
     float d = ap_dmg(rti, .473f);
     k32u dice = round_table_dice( rti, target_id, ATYPE_SPELL, 0)//TODO: does this proc trinks?
@@ -329,3 +360,7 @@ DECL_EVENT( frost_fever_cast ) {
         lprintf( ( "frost_fever start" ) );
     }
 }
+// === killing machine =======================================================
+    
+                                 
+                                 
