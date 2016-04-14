@@ -117,9 +117,9 @@ struct item_record_t : public record_t {
     UINT8 dc6;
 };
 
-struct gt_record_t : public record_t {
-    UINT32 id;
-    float value;
+struct spell_scaling_record_t : public record_t {
+    int level;
+    int value[18];
 };
 
 struct item_enchantment_record_t : public record_t {
@@ -152,7 +152,7 @@ struct gem_properties_record_t : public record_t {
 };
 
 template <typename T>
-int wdbc_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::string& string_block ) {
+int wdbc_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::vector<char>& string_block ) {
     struct {
         UINT32 record_count;
         UINT32 field_count;
@@ -213,7 +213,7 @@ int wdbc_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::
 }
 
 template <typename T>
-int wdb4_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::string& string_block ) {
+int wdb4_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::vector<char>& string_block ) {
     struct {
         UINT32 record_count;
         UINT32 field_count;
@@ -322,7 +322,7 @@ int wdb4_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::
             }
         }
         string_block.resize( header.string_block_size );
-        if (!CascReadFile( file, &string_block[0], header.string_block_size, &read )) {
+        if (!CascReadFile( file, string_block.data(), header.string_block_size, &read )) {
             printf( "failed to read dbc string block\n" );
             return 0;
         }
@@ -371,9 +371,182 @@ int wdb4_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::
     }
     return 1;
 }
-
 template <typename T>
-int dbc_reader( HANDLE storage, const char* dbc_name, std::vector<std::pair<UINT32, T> >& records, std::string& string_block ) {
+int wdb5_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::vector<char>& string_block ) {
+    struct {
+        UINT32 record_count;
+        UINT32 field_count;
+        UINT32 record_size;
+        UINT32 string_block_size;
+        UINT32 table_hash;
+        UINT32 build;
+        UINT32 min_id;
+        UINT32 max_id;
+        UINT32 timestamp_last_written;
+        UINT32 locale;
+        UINT32 flags;
+        UINT32 copy_table_size;
+    } header;
+    void* discard;
+    DWORD read;
+    if (!CascReadFile( file, &header, sizeof( header ), &read )) {
+        printf( "failed to read dbc header\n" );
+        return 0;
+    }
+    if (read != sizeof( header )) {
+        printf( "dbc header broken\n" );
+        return 0;
+    }
+    for (int i = 0; i < header.field_count - 1; i++) {
+        struct field_info_t{
+            UINT16 type;
+            UINT16 pos;
+        } field_info;
+        if (!CascReadFile( file, &field_info, sizeof(field_info_t), &read )) {
+            printf( "failed to read dbc field info\n" );
+            return 0;
+        }
+        if (read != sizeof( field_info_t )) {
+            printf( "dbc field info broken\n" );
+            return 0;
+        }
+        printf("\tfield %d: type %d, pos %d\n", i+1, field_info.type, field_info.pos);
+    }
+    if (header.flags & 0x01) {
+        struct offset_map_entry_t {
+            UINT32 offset;
+            UINT16 length;
+        };
+        std::vector<offset_map_entry_t> offset_map;
+        CascSetFilePointer( file, header.string_block_size, 0, FILE_BEGIN );
+        for (UINT32 i = header.min_id; i <= header.max_id; i++) {
+            offset_map_entry_t o;
+            if (!CascReadFile( file, &o, sizeof( offset_map_entry_t ), &read )) {
+                printf( "failed to read dbc offset map\n" );
+                return 0;
+            }
+            if (read != sizeof( offset_map_entry_t )) {
+                printf( "dbc offset map broken\n" );
+                return 0;
+            }
+            offset_map.push_back( o );
+        }
+        records.resize( header.record_count );
+        if (header.flags & 0x04) {
+            for (UINT32 i = 0; i < header.record_count; i++) {
+                UINT32 id;
+                if (!CascReadFile( file, &id, sizeof( UINT32 ), &read )) {
+                    printf( "failed to read dbc explicit id\n" );
+                    return 0;
+                }
+                if (read != sizeof( UINT32 )) {
+                    printf( "dbc explicit id broken\n" );
+                    return 0;
+                }
+                records[i].first = id;
+            }
+        }
+        for (auto i = records.begin(); i != records.end(); i++) {
+            T new_record;
+            std::string buf;
+            buf.resize( offset_map[i->first - header.min_id].length );
+            CascSetFilePointer( file, offset_map[i->first - header.min_id].offset, 0, FILE_BEGIN );
+            if (!CascReadFile( file, &buf[0], buf.size(), &read )) {
+                printf( "failed to read dbc record\n" );
+                return 0;
+            }
+            if (read != buf.size()) {
+                printf( "dbc record broken\n" );
+                return 0;
+            }
+            new_record.typename T::inline_str_process( &buf[0], buf.size(), sizeof( T ) );
+            i->second = new_record;
+        }
+        CascSetFilePointer( file, header.string_block_size + offset_map.size() * sizeof( offset_map_entry_t ) + header.record_count * sizeof( UINT32 ), 0, FILE_BEGIN );
+    } else {
+        if (header.record_size < sizeof( T )) {
+            printf( "record size is lesser than expect\n" );
+            return 0;
+        }
+        if (header.record_size > sizeof( T )) {
+            printf( "record size is greater than expect, %d %d\n", sizeof( T ), header.record_size );
+            // this is a warning. resume.
+            discard = alloca( header.record_size - sizeof( T ) );
+        }
+        for (UINT32 i = 0; i < header.record_count; i++) {
+            T new_record;
+            if (!CascReadFile( file, &new_record, sizeof( T ), &read )) {
+                printf( "failed to read dbc record\n" );
+                return 0;
+            }
+            if (read != sizeof( T )) {
+                printf( "dbc record broken\n" );
+                return 0;
+            }
+            records.push_back( std::make_pair( i, new_record ) );
+            if (header.record_size > sizeof( T )) {
+                if (!CascReadFile( file, discard, header.record_size - sizeof( T ), &read )) {
+                    printf( "failed to read dbc record (padding)\n" );
+                    return 0;
+                }
+                if (read != header.record_size - sizeof( T )) {
+                    printf( "dbc record (padding) broken\n" );
+                    return 0;
+                }
+            }
+        }
+        string_block.resize( header.string_block_size );
+        if (!CascReadFile( file, string_block.data(), header.string_block_size, &read )) {
+            printf( "failed to read dbc string block\n" );
+            return 0;
+        }
+        if (read != header.string_block_size) {
+            printf( "dbc string block broken %d %d\n", read, header.string_block_size );
+            return 0;
+        }
+        if (header.flags & 0x04) {
+            for (UINT32 i = 0; i < header.record_count; i++) {
+                UINT32 id;
+                if (!CascReadFile( file, &id, sizeof( UINT32 ), &read )) {
+                    printf( "failed to read dbc explicit id\n" );
+                    return 0;
+                }
+                if (read != sizeof( UINT32 )) {
+                    printf( "dbc explicit id broken\n" );
+                    return 0;
+                }
+                records[i].first = id;
+            }
+        }
+    }
+    if (header.copy_table_size > 0) {
+        struct copy_table_entry_t {
+            UINT32 id_of_new_row;
+            UINT32 id_of_copied_row;
+        };
+        copy_table_entry_t* copy_table = ( copy_table_entry_t* ) alloca( header.copy_table_size );
+        if (!CascReadFile( file, copy_table, header.copy_table_size, &read )) {
+            printf( "failed to read dbc copy table\n" );
+            return 0;
+        }
+        if (read != header.copy_table_size) {
+            printf( "dbc copy table broken\n" );
+            return 0;
+        }
+        for (UINT32 i = 0; i < header.copy_table_size / sizeof( copy_table_entry_t ); i++) {
+            for (auto rec = records.begin(); rec != records.end(); rec++) {
+                if (rec->first == copy_table[i].id_of_copied_row) {
+                    T copied = rec->second;
+                    records.push_back( std::make_pair( copy_table[i].id_of_new_row, copied ) );
+                    break;
+                }
+            }
+        }
+    }
+    return 1;
+}
+template <typename T>
+int dbc_reader( HANDLE storage, const char* dbc_name, std::vector<std::pair<UINT32, T> >& records, std::vector<char>& string_block ) {
     UINT32 magic;
     HANDLE file;
     DWORD read;
@@ -395,8 +568,17 @@ int dbc_reader( HANDLE storage, const char* dbc_name, std::vector<std::pair<UINT
         ok = wdbc_reader( file, records, string_block );
     } else if (magic == ( ( ( UINT32 )'W' ) | ( ( UINT32 )'D' << 8 ) | ( ( UINT32 )'B' << 16 ) | ( ( UINT32 )'4' << 24 ) )) {
         ok = wdb4_reader( file, records, string_block );
+    } else if (magic == ( ( ( UINT32 )'W' ) | ( ( UINT32 )'D' << 8 ) | ( ( UINT32 )'B' << 16 ) | ( ( UINT32 )'5' << 24 ) )) {
+        ok = wdb5_reader( file, records, string_block );
     } else {
-        printf( "wrong format specified, this file is %c%c%c%c, not WDBC or WDB4\n",
+        DWORD size = CascGetFileSize( file, 0 );
+        CascSetFilePointer( file, 0, 0, FILE_BEGIN );
+        char* buf = (char*) malloc(size);
+        CascReadFile( file, buf, size, &read );
+        FILE* f = fopen("gt.txt", "wb");
+        fwrite(buf, 1, read, f);
+        fclose(f);
+        printf( "wrong format specified, this file is %c%c%c%c, not WDBC, WDB4 or WDB5\n",
             ( char ) magic, ( char ) ( magic >> 8 ), ( char ) ( magic >> 16 ), ( char ) ( magic >> 24 ) );
         return 0;
     }
@@ -409,8 +591,8 @@ const char* dbfn_item = "DBFilesClient\\Item.db2";
 const char* dbfn_itemsparse = "DBFilesClient\\Item-sparse.db2";
 const char* dbfn_itemench = "DBFilesClient\\SpellItemEnchantment.db2";
 const char* dbfn_gem = "DBFilesClient\\GemProperties.db2";
-const char* dbfn_combatratingsmult = "DBFilesClient\\gtCombatRatingsMultByILvl.dbc";
-const char* dbfn_spellscaling = "DBFilesClient\\gtSpellScaling.dbc";
+const char* dbfn_combatratingsmult = "GameTables\\CombatRatingsMultByILvl.txt";
+const char* dbfn_spellscaling = "GameTables\\SpellScaling.txt";
 
 enum {
     ITEMCLASS_WEAPON = 2,
@@ -452,35 +634,36 @@ int _tmain( int argc, TCHAR* argv[] ) {
         return 0;
     }
     std::vector<std::pair<UINT32, item_record_t> > item_records;
-    std::string item_string_block;
+    std::vector<char> item_string_block;
     if (!dbc_reader( storage, dbfn_item, item_records, item_string_block )) {
         return 0;
     }
     std::vector<std::pair<UINT32, item_sparse_record_t> > item_sparse_records;
-    std::string item_sparse_string_block;
+    std::vector<char> item_sparse_string_block;
     if (!dbc_reader( storage, dbfn_itemsparse, item_sparse_records, item_sparse_string_block )) {
         return 0;
     }
     std::vector<std::pair<UINT32, item_enchantment_record_t> > item_enchantment_records;
-    std::string item_enchantment_string_block;
+    std::vector<char> item_enchantment_string_block;
     if (!dbc_reader( storage, dbfn_itemench, item_enchantment_records, item_enchantment_string_block )) {
         return 0;
     }
     std::vector<std::pair<UINT32, gem_properties_record_t> > gem_properties_records;
-    std::string gem_properties_string_block;
+    std::vector<char> gem_properties_string_block;
     if (!dbc_reader( storage, dbfn_gem, gem_properties_records, gem_properties_string_block )) {
         return 0;
     }
     std::vector<std::pair<UINT32, gt_record_t> > spell_scaling_records;
-    std::string spell_scaling_string_block;
+    std::vector<char> spell_scaling_string_block;
     if (!dbc_reader( storage, dbfn_spellscaling, spell_scaling_records, spell_scaling_string_block )) {
         return 0;
     }
     std::vector<std::pair<UINT32, gt_record_t> > combat_ratings_mult_records;
-    std::string combat_ratings_mult_string_block;
+    std::vector<char> combat_ratings_mult_string_block;
     if (!dbc_reader( storage, dbfn_combatratingsmult, combat_ratings_mult_records, combat_ratings_mult_string_block )) {
         return 0;
     }
+    
 
     const size_t spell_scaling_levels = 123;
     const size_t spell_scaling_classes = 18;

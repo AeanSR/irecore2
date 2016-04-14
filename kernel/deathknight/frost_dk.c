@@ -253,7 +253,7 @@ DECL_EVENT( frost_stike_cast ) {
     dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
     deal_damage(rti, target_id, d, DTYPE_FROST, dice, 0, 0);
 #if(TALENT_ICY_TALONS)
-    eq_enqueue(rti, TIME_OFFSET( FROM_SECONDS( 3 ) ), routnum_icy_talons_trigger, 0 );
+    eq_enqueue(rti, TIME_OFFSET( FROM_SECONDS( 3 ) ), routnum_icy_talons_trigger, 0 ); // trigger? expire? wtf do you want to express...
 #endif
     lprintf( ( "frost strike hit" ) );
 }
