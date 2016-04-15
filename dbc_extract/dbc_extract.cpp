@@ -14,6 +14,7 @@
 #include <vector>
 #include <utility>
 #include <cmath>
+#include <sstream>
 #include <algorithm>
 
 struct record_t {
@@ -117,16 +118,13 @@ struct item_record_t : public record_t {
     UINT8 dc6;
 };
 
-struct spell_scaling_record_t : public record_t {
-    int level;
-    int value[18];
-};
-
 struct item_enchantment_record_t : public record_t {
     UINT32 id_property[3];
     UINT32 dc0;
     float  coeff[3];
     UINT32 dc1;
+    UINT32 dc14;
+    UINT32 dc15;
     INT16  amount[3];
     UINT16 dc2;
     UINT16 dc3;
@@ -382,7 +380,6 @@ int wdb5_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::
         UINT32 build;
         UINT32 min_id;
         UINT32 max_id;
-        UINT32 timestamp_last_written;
         UINT32 locale;
         UINT32 flags;
         UINT32 copy_table_size;
@@ -397,7 +394,7 @@ int wdb5_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::
         printf( "dbc header broken\n" );
         return 0;
     }
-    for (int i = 0; i < header.field_count - 1; i++) {
+    for (int i = 0; i < header.field_count; i++) {
         struct field_info_t{
             UINT16 type;
             UINT16 pos;
@@ -575,6 +572,7 @@ int dbc_reader( HANDLE storage, const char* dbc_name, std::vector<std::pair<UINT
         CascSetFilePointer( file, 0, 0, FILE_BEGIN );
         char* buf = (char*) malloc(size);
         CascReadFile( file, buf, size, &read );
+        CascCloseFile( file );
         FILE* f = fopen("gt.txt", "wb");
         fwrite(buf, 1, read, f);
         fclose(f);
@@ -653,38 +651,53 @@ int _tmain( int argc, TCHAR* argv[] ) {
     if (!dbc_reader( storage, dbfn_gem, gem_properties_records, gem_properties_string_block )) {
         return 0;
     }
-    std::vector<std::pair<UINT32, gt_record_t> > spell_scaling_records;
-    std::vector<char> spell_scaling_string_block;
-    if (!dbc_reader( storage, dbfn_spellscaling, spell_scaling_records, spell_scaling_string_block )) {
-        return 0;
-    }
-    std::vector<std::pair<UINT32, gt_record_t> > combat_ratings_mult_records;
-    std::vector<char> combat_ratings_mult_string_block;
-    if (!dbc_reader( storage, dbfn_combatratingsmult, combat_ratings_mult_records, combat_ratings_mult_string_block )) {
-        return 0;
-    }
-    
 
     const size_t spell_scaling_levels = 123;
     const size_t spell_scaling_classes = 18;
     float spell_scaling[spell_scaling_classes][spell_scaling_levels];
-    if (spell_scaling_levels * spell_scaling_classes != spell_scaling_records.size()) {
-        printf( "num spell scaling records(%d) not equal to %dx%d\n", spell_scaling_records.size(), spell_scaling_classes, spell_scaling_levels );
+    HANDLE file; DWORD read;
+    if (!CascOpenFile( storage, dbfn_spellscaling, CASC_LOCALE_ALL, 0, &file )) {
+        printf( "failed to open dbc %s, error %d\n", dbfn_spellscaling, GetLastError() );
+        return 0;
     }
-    for (auto i = spell_scaling_records.begin(); i != spell_scaling_records.end(); i++) {
-        size_t i_class = i->second.id / spell_scaling_levels;
-        size_t i_levels = i->second.id % spell_scaling_levels;
-        spell_scaling[i_class][i_levels] = i->second.value;
+    DWORD size = CascGetFileSize( file, 0 );
+    std::string csv_buf;
+    csv_buf.resize(size);
+    CascReadFile( file, &csv_buf[0], size, &read );
+    CascCloseFile( file );
+    std::stringstream sss(csv_buf);
+    std::string csv_line;
+    std::getline(sss, csv_line);
+    for(int i = 0; i < spell_scaling_levels; i++) {
+        std::getline(sss, csv_line);
+        std::stringstream ss2(csv_line);
+        std::string csv_item;
+        std::getline(ss2, csv_item, '\t');
+        for(int j = 0; j < spell_scaling_classes; j++) {
+            std::getline(ss2, csv_item, '\t');
+            spell_scaling[j][i] = atoi(csv_item.c_str());
+        }
     }
 
     const size_t combat_ratings_mult_maxilvl = 1300;
     float combat_ratings_mult[combat_ratings_mult_maxilvl];
-    if (combat_ratings_mult_maxilvl != combat_ratings_mult_records.size()) {
-        printf( "num combat ratings mult records(%d) not equal to %d\n", combat_ratings_mult_records.size(), combat_ratings_mult_maxilvl );
+    if (!CascOpenFile( storage, dbfn_combatratingsmult, CASC_LOCALE_ALL, 0, &file )) {
+        printf( "failed to open dbc %s, error %d\n", dbfn_combatratingsmult, GetLastError() );
+        return 0;
     }
-    for (auto i = combat_ratings_mult_records.begin(); i != combat_ratings_mult_records.end(); i++) {
-        size_t id = i->second.id;
-        combat_ratings_mult[id] = i->second.value;
+    size = CascGetFileSize( file, 0 );
+    csv_buf.resize(size);
+    CascReadFile( file, &csv_buf[0], size, &read );
+    CascCloseFile( file );
+    std::stringstream ssc(csv_buf);
+    std::getline(ssc, csv_line);
+    for(int i = 0; i < combat_ratings_mult_maxilvl; i++) {
+        std::getline(ssc, csv_line);
+        std::stringstream ss2(csv_line);
+        std::string csv_item;
+        std::getline(ss2, csv_item, '\t');
+        std::getline(ss2, csv_item, '\t');
+        combat_ratings_mult[i] = atof(csv_item.c_str());
     }
 
     struct item_t {
