@@ -25,7 +25,7 @@ struct record_t {
     }
 };
 
-struct item_sparse_record_t {
+struct item_sparse_record_t : public record_t {
     INT32   dc0[3];
     float   dc1;
     float   dc2;
@@ -41,6 +41,9 @@ struct item_sparse_record_t {
     float   dc12; // 132 bytes
     std::string  name;
     std::string  desc; // variable length
+    INT32   dc67;
+    INT32   dc68;
+    INT32   dc69;
     UINT32  dc18;
     float   dc19;
     UINT32  dc20;
@@ -60,8 +63,9 @@ struct item_sparse_record_t {
     UINT16  dc34;
     UINT16  dc35;
     UINT16  dc36;
-    UINT16  dc37;
     UINT16  gem_props;
+    UINT16  dc37;
+    // gem props was here.
     UINT16  dc39;
     UINT16  dc40;
     UINT16  dc41;
@@ -86,14 +90,14 @@ struct item_sparse_record_t {
     UINT8   dc60;
     UINT8   dc61;
     UINT8   dc62;
-    UINT8   dc63;
-    UINT8   dc64;
+    //UINT8   dc63;
+    //UINT8   dc64;
     void inline_str_process( void* data, size_t length, size_t size_of_this ) {
         size_t invariant1 = 132;
         size_t invariant2 = sizeof( *this ) - invariant1 - 2 * sizeof( std::string );
 
         memcpy( this, data, invariant1 );
-        memcpy( &dc18, ( char* ) data + length - invariant2, invariant2 );
+        memcpy( &dc67, ( char* ) data + length - invariant2, invariant2 );
 
         char* q = ( char* ) data + invariant1;
         while (*q) {
@@ -124,7 +128,6 @@ struct item_enchantment_record_t : public record_t {
     float  coeff[3];
     UINT32 dc1;
     UINT32 dc14;
-    UINT32 dc15;
     INT16  amount[3];
     UINT16 dc2;
     UINT16 dc3;
@@ -381,8 +384,8 @@ int wdb5_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::
         UINT32 min_id;
         UINT32 max_id;
         UINT32 locale;
-        UINT32 flags;
         UINT32 copy_table_size;
+        UINT32 flags;
     } header;
     void* discard;
     DWORD read;
@@ -409,6 +412,7 @@ int wdb5_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::
         }
         printf("\tfield %d: type %d, pos %d\n", i+1, field_info.type, field_info.pos);
     }
+    printf("%d, %d\n", sizeof(T), sizeof(std::string));
     if (header.flags & 0x01) {
         struct offset_map_entry_t {
             UINT32 offset;
@@ -553,6 +557,15 @@ int dbc_reader( HANDLE storage, const char* dbc_name, std::vector<std::pair<UINT
         printf( "failed to open dbc %s, error %d\n", dbc_name, GetLastError() );
         return 0;
     }
+    {
+        DWORD size = CascGetFileSize( file, 0 );
+        char* buf = (char*) malloc(size);
+        CascReadFile( file, buf, size, &read );
+        FILE* f = fopen(dbc_name, "wb");
+        fwrite(buf, 1, read, f);
+        fclose(f);
+        CascSetFilePointer( file, 0, 0, FILE_BEGIN );
+    }
     if (!CascReadFile( file, &magic, sizeof( magic ), &read )) {
         printf( "failed to read dbc magic %s\n", dbc_name );
         return 0;
@@ -568,14 +581,6 @@ int dbc_reader( HANDLE storage, const char* dbc_name, std::vector<std::pair<UINT
     } else if (magic == ( ( ( UINT32 )'W' ) | ( ( UINT32 )'D' << 8 ) | ( ( UINT32 )'B' << 16 ) | ( ( UINT32 )'5' << 24 ) )) {
         ok = wdb5_reader( file, records, string_block );
     } else {
-        DWORD size = CascGetFileSize( file, 0 );
-        CascSetFilePointer( file, 0, 0, FILE_BEGIN );
-        char* buf = (char*) malloc(size);
-        CascReadFile( file, buf, size, &read );
-        CascCloseFile( file );
-        FILE* f = fopen("gt.txt", "wb");
-        fwrite(buf, 1, read, f);
-        fclose(f);
         printf( "wrong format specified, this file is %c%c%c%c, not WDBC, WDB4 or WDB5\n",
             ( char ) magic, ( char ) ( magic >> 8 ), ( char ) ( magic >> 16 ), ( char ) ( magic >> 24 ) );
         return 0;
