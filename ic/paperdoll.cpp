@@ -100,6 +100,10 @@ QString qsprint( float v ) {
 void paperdoll_t::clear() {
     for (int i = 0; i < 16; i++) {
         gear_list[i] = item_t();
+        if (gear_type_list[i] == gear_type_list_armor)
+            gear_list[i].type = GEARSUBCLASS_PLATE;
+        if (gear_type_list[i] == gear_type_list_weapon)
+            gear_list[i].type = WEAPONSUBCLASS_SWORD_2H;
     }
     slot_switched();
     gear_summary_calculate();

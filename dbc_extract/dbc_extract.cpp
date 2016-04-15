@@ -788,6 +788,7 @@ int _tmain( int argc, TCHAR* argv[] ) {
     std::sort( enchant_data.begin(), enchant_data.end() );
 
     FILE* f = fopen( "dbc.c", "wb" );
+    fprintf( f, "\xEF\xBB\xBF" );
     fprintf( f, "/*\r\n\tIreCore Database %s\r\n*/\r\n\r\n#include \"dbc.h\"\r\n\r\n", __DATE__ );
     fprintf( f, "float _dbc_combat_ratings_mult[] = {\r\n" );
     for (size_t i = 0; i < combat_ratings_mult_maxilvl; i++) {

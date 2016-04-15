@@ -213,8 +213,7 @@ gic::gic( QWidget *parent )
 
     // initialize paperdoll.
     ui.radioHelm->setChecked( true );
-    paperdoll.slot_switched();
-    paperdoll.gear_summary_calculate();
+    paperdoll.clear();
 
     connect( ui.radioHelm, SIGNAL( toggled( bool ) ), this, SLOT( slot_switched() ) );
     connect( ui.radioNeck, SIGNAL( toggled( bool ) ), this, SLOT( slot_switched() ) );
