@@ -463,7 +463,7 @@ DECL_SPELL( execute ) {
 // === furious slash ==========================================================
 DECL_EVENT( furious_slash_cast ) {
     float d = weapon_dmg( rti, 2.0f, 1, 1 );
-    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, ( t18_2pc ? 0.5f : 0.0f ) );
+    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, ( t18_2pc ? 0.05f : 0.0f ) );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, ( t18_2pc ? 0.12f : 0.0f ) , 0 );
     eq_enqueue( rti, rti->timestamp, routnum_taste_for_blood_trigger, 0 );
 #if (TALENT_FRENZY)
