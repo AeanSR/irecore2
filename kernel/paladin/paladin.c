@@ -50,7 +50,7 @@
 
 /*
     Paladin only have one DPS Spec, so all models goes into retribution.c
-    paladin.c will be a great template for new class models since this model is empty.
+    paladin.c will be a great template for new class modules since this module is empty.
 */
 
 /* class state infos. */
