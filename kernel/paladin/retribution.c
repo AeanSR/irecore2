@@ -101,6 +101,18 @@ struct spec_state_t {
 #define holy_wrath_expire (0)
 #define holy_wrath_cd     (0)
 #endif
+#if defined(trinket_libram_of_vindication)
+    struct {
+        time_t expire;
+        k32u   stack;
+        k32u   target;
+    } libram_of_vindication;
+#define libram_of_vindication_stack  (rti->player.spec->libram_of_vindication.stack)
+#define libram_of_vindication_expire (rti->player.spec->libram_of_vindication.expire)
+#else
+#define libram_of_vindication_stack  (0)
+#define libram_of_vindication_expire (0)
+#endif
 };
 
 struct spec_debuff_t {
@@ -160,6 +172,9 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
     dmg *= 1.0f + rti->player.stat.vers;
     if ( UP( avenging_wrath_expire ) )                          dmg *= 1.35f;
     if ( UP( thorasus_the_stone_heart_of_draenor_expire ) )     dmg *= 1.0f + legendary_ring * 0.0001f;
+#if defined(trinket_libram_of_vindication)
+    if ( UP( libram_of_vindication_expire ) )                   dmg *= 1.0f + trinket_libram_of_vindication * 0.0001f * libram_of_vindication_stack;
+#endif
     if ( ENEMY_IS_DEMONIC && UP( gronntooth_war_horn_expire ) ) dmg *= 1.1f;
     if ( RACE == RACE_DWARF || RACE == RACE_TAUREN )            cdb *= 1.02f;
     if ( DTYPE_PHYSICAL == dmgtype ) {
@@ -240,6 +255,10 @@ enum {
 #if (TALENT_HOLY_WRATH)
     routnum_holy_wrath_tick,
     routnum_holy_wrath_cd,
+#endif
+#if defined(trinket_libram_of_vindication)
+    routnum_libram_of_vindication_expire,
+    routnum_libram_of_vindication_trigger,
 #endif
     START_OF_WILD_ROUTNUM,
 };
@@ -396,6 +415,9 @@ DECL_EVENT( crusader_strike_cast ) {
         lprintf( ( "zeal multi-hit" ) );
     }
     eq_enqueue( rti, rti->timestamp, routnum_zeal_trigger, 0 );
+#endif
+#if defined(trinket_libram_of_vindication)
+    eq_enqueue( rti, rti->timestamp, routnum_libram_of_vindication_trigger, target_id );
 #endif
     lprintf( ( "crusader_strike hit" ) );
 }
@@ -645,6 +667,28 @@ DECL_SPELL( holy_wrath ) {
     return 0;
 }
 #endif
+
+// === libram of vindication ==================================================
+#if defined(trinket_libram_of_vindication)
+DECL_EVENT( libram_of_vindication_expire ) {
+    if ( libram_of_vindication_expire == rti->timestamp ) {
+        libram_of_vindication_stack = 0;
+        lprintf( ( "libram_of_vindication expire" ) );
+    }
+}
+DECL_EVENT( libram_of_vindication_trigger ) {
+    libram_of_vindication_expire = TIME_OFFSET( FROM_SECONDS( 10 ) );
+    if (target_id == rti->player.spec->libram_of_vindication.target) {
+        libram_of_vindication_stack = min( libram_of_vindication_stack + 1, 3 );
+    }else{
+        libram_of_vindication_stack = 1;
+        rti->player.spec->libram_of_vindication.target = target_id;
+    }
+    eq_enqueue( rti, libram_of_vindication_expire, routnum_libram_of_vindication_expire, 0 );
+    lprintf( ( "libram_of_vindication stack %d", libram_of_vindication_stack ) );
+}
+#endif
+
 
 void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
     switch ( e.routine ) {

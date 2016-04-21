@@ -61,6 +61,7 @@
 //#define trinket_bonemaws_big_toe 1767
 //#define trinket_emberscale_talisman 1767
 //#define trinket_gronntooth_war_horn 1152
+#define trinket_libram_of_vindication 314
 #define ENEMY_IS_DEMONIC 1
 
 #define TALENT_TIER1 3
