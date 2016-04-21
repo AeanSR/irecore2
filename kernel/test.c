@@ -2,8 +2,8 @@
     kernel compile test
 */
 
-#define CLASS CLASS_WARRIOR
-#define SPEC SPEC_FURY
+#define CLASS CLASS_PALADIN
+#define SPEC SPEC_RETRIBUTION
 #define STRICT_GCD 1
 #define WBR_NEVER_EXPIRE 1
 #define AVATAR_LIKE_BLOODBATH 0
@@ -14,7 +14,7 @@
 #define initial_health_percentage 100.0f
 #define death_pct 0.0f
 #define iterations 1
-#define power_max 120.0f
+#define power_max 5.0f
 #define num_enemies 6
 #define GLYPH_OF_RAGINGWIND 1
 #define PLATE_SPECIALIZATION 1
@@ -53,7 +53,7 @@
 //#define trinket_draenic_stone 1414
 //#define trinket_skull_of_war 2120
 //#define trinket_mote_of_the_mountain 1517
-#define trinket_worldbreakers_resolve 220
+//#define trinket_worldbreakers_resolve 220
 //#define trinket_discordant_chorus 20564
 #define trinket_empty_drinking_horn 259
 //#define trinket_unending_hunger 54
@@ -68,20 +68,22 @@
 #define TALENT_TIER3 3
 #define TALENT_TIER4 3
 #define TALENT_TIER5 3
-#define TALENT_TIER6 1
-#define TALENT_TIER7 1
+#define TALENT_TIER6 3
+#define TALENT_TIER7 3
 
 #include "kernel.c"
 #include "common.c"
-#include "warrior\warrior.c"
-#include "warrior\fury.c"
+//#include "warrior\warrior.c"
+//#include "warrior\fury.c"
 //#include "warrior\arms.c"
+#include "paladin\paladin.c"
+#include "paladin\retribution.c"
 #include "entry.c"
 
 void scan_apl( rtinfo_t* rti ) {
     //SPELL( avatar );
-    SPELL( battle_cry );
-    SPELL( heroic_leap );
+    //SPELL( battle_cry );
+    //SPELL( heroic_leap );
     // SPELL( ravager );
     //SPELL( bloodthirst );
     //SPELL( storm_bolt );

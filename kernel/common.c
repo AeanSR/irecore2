@@ -33,11 +33,13 @@
 /* class list */
 #define CLASS_WARRIOR 0
 #define CLASS_DEATHKNIGHT 1
+#define CLASS_PALADIN 2
 
 #define SPEC_ARMS 0
 #define SPEC_FURY 1
 #define SPEC_FROST_DK 2
 #define SPEC_UNHOLY 3
+#define SPEC_RETRIBUTION 4
 
 /* race base strength */
 deviceonly( __constant ) k32s racial_base_str[] = {
@@ -502,6 +504,7 @@ enum {
     DTYPE_SHADOW,
     DTYPE_FIRE,
     DTYPE_FROST,
+    DTYPE_HOLY,
 };
 enum {
     DICE_MISS,
@@ -521,6 +524,7 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
 #define HOOK_EVENT( name ) case routnum_##name: event_##name( rti, e.target_id ); break;
 #define DECL_SPELL( name ) int spell_##name ( rtinfo_t* rti )
 #define SPELL( name ) safemacro(if(spell_##name ( rti )) return;)
+#define SPELL_ALIAS( alias, origin ) int spell_##alias ( rtinfo_t* rti ) { return spell_##origin ( rti ); }
 enum {
     routnum_gcd_expire,
     #if (BUFF_BLOODLUST == 1)
@@ -870,10 +874,14 @@ DECL_EVENT( arcane_torrent_execute ) {
 
 DECL_SPELL( arcane_torrent ) {
     if (arcane_torrent_cd > rti->timestamp) return 0;
+    if (rti->player.gcd > rti->timestamp) return 0;
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     arcane_torrent_cd = TIME_OFFSET( FROM_SECONDS( 90 ) ); // 120->90 patch 6.2.2
     eq_enqueue( rti, arcane_torrent_cd, routnum_arcane_torrent_cd, 0 );
     eq_enqueue( rti, rti->timestamp, routnum_arcane_torrent_execute, 0 );
-    power_gain( rti, 15.0f );
+    if (CLASS == CLASS_WARRIOR) power_gain( rti, 15.0f );
+    if (CLASS == CLASS_DEATHKNIGHT) power_gain( rti, 20.0f );
+    // retpal gain nothing.
     lprintf( ( "cast arcane_torrent" ) );
     return 1;
 }
