@@ -131,10 +131,11 @@ gic::gic( QWidget *parent )
     ui.comboImportActive->setCurrentIndex( 0 );
 
     std::vector<QString> spec_name;
-    spec_name.resize( 2 );
+    spec_name.resize( 3 );
     spec_name[SPEC_ARMS_WARRIOR] = QApplication::translate( "gicClass", "Arms Warrior" );
     spec_name[SPEC_FURY_WARRIOR] = QApplication::translate( "gicClass", "Fury Warrior" );
-    for (auto i = spec_name.begin(); i != spec_name.end(); i++) ui.comboSpec->addItem( *i );
+	spec_name[SPEC_RET_PALADIN] = QApplication::translate( "gicClass", "Retribution Paladin" );
+	for (auto i = spec_name.begin(); i != spec_name.end(); i++) ui.comboSpec->addItem( *i );
     on_comboSpec_currentIndexChanged( 0 );
 
     // legendary rings.
@@ -176,7 +177,8 @@ gic::gic( QWidget *parent )
         QApplication::translate( "gicClass", "Spores of Alacrity" ) <<
         QApplication::translate( "gicClass", "Bonemaw's Big Toe" ) <<
         QApplication::translate( "gicClass", "Emberscale Talisman" ) <<
-        QApplication::translate( "gicClass", "Gronntooth War Horn" );
+        QApplication::translate( "gicClass", "Gronntooth War Horn" ) <<
+		QApplication::translate( "gicClass", "Libram of Vindication" );
     ui.comboTrinketSpecial1->addItems( lists );
     ui.comboTrinketSpecial2->addItems( lists );
     lists.clear();
@@ -380,10 +382,22 @@ void gic::set_parameters() {
     switch (ui.comboSpec->currentIndex()) {
     case SPEC_ARMS_WARRIOR:
         ic_setparam( "spec", "arms" );
+		if (ui.comboRace->currentIndex() == 3)
+			ic_setparam( "rage_max", "105" );
+		else
+			ic_setparam( "rage_max", "100" );
         break;
     case SPEC_FURY_WARRIOR:
         ic_setparam( "spec", "fury" );
+		if (ui.comboRace->currentIndex() == 3)
+			ic_setparam( "rage_max", "105" );
+		else
+			ic_setparam( "rage_max", "100" );
         break;
+	case SPEC_RET_PALADIN:
+		ic_setparam( "spec", "retribution" );
+		ic_setparam( "rage_max", "5" );
+		break;
     }
 
     QString talent;
@@ -429,11 +443,6 @@ void gic::set_parameters() {
     };
     ic_setparam( "mh_type", weapon_type[paperdoll.gear_list[6].type] );
     ic_setparam( "oh_type", weapon_type[paperdoll.gear_list[7].type] );
-
-    if (ui.comboRace->currentIndex() == 3)
-        ic_setparam( "rage_max", "105" );
-    else
-        ic_setparam( "rage_max", "100" );
 
     ic_setparam( "t17_2pc", ui.checkT172P->isChecked() ? "1" : "0" );
     ic_setparam( "t17_4pc", ui.checkT174P->isChecked() ? "1" : "0" );
@@ -559,6 +568,35 @@ void gic::on_comboSpec_currentIndexChanged( int idx ) {
         ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Reckless Abandon" ) );
         ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Dragon Roar" ) );
     }
+	if (idx == SPEC_RET_PALADIN) {
+		ui.comboTalent1->addItem( QApplication::translate( "gicClass", "Final Verdict" ) );
+		ui.comboTalent1->addItem( QApplication::translate( "gicClass", "Execution Sentence" ) );
+		ui.comboTalent1->addItem( QApplication::translate( "gicClass", "Consecration" ) );
+
+		ui.comboTalent2->addItem( QApplication::translate( "gicClass", "The Fires of Justice" ) );
+		ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Zeal" ) );
+		ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Greater Judgment" ) );
+
+		ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Fist of Judgment" ) );
+		ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Repentance" ) );
+		ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Blinding Light" ) );
+
+		ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Virtue's Blade" ) );
+		ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Blade of Wrath" ) );
+		ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Divine Hammer" ) );
+
+		ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Justicar's Vengeance" ) );
+		ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Eye for an Eye" ) );
+		ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Word of Glory" ) );
+
+		ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Divine Intervention" ) );
+		ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Divine Steed" ) );
+		ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Seal of Light" ) );
+
+		ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Divine Purpose" ) );
+		ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Holy Wrath" ) );
+		ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Equality" ) );
+	}
     // Policy Action List.
     QStringList listWarrior, listArms, listFury;
     listWarrior << "SPELL(battle_cry);"
@@ -597,11 +635,12 @@ void gic::on_comboSpec_currentIndexChanged( int idx ) {
     ui.listActions->clear();
     if ( idx == SPEC_FURY_WARRIOR ) {
         ui.listActions->addItems( listFury );
+		ui.listConditions->addItems( listWarrior );
     }
     if ( idx == SPEC_ARMS_WARRIOR ) {
         ui.listActions->addItems( listArms );
+		ui.listConditions->addItems( listWarrior );
     }
-    ui.listActions->addItems( listWarrior );
     listWarrior.clear();
     listArms.clear();
     listFury.clear();
@@ -665,11 +704,12 @@ void gic::on_comboSpec_currentIndexChanged( int idx ) {
         << "rampage_expire"
         << "rampage_stack";
     ui.listConditions->clear();
-    ui.listConditions->addItems( listWarrior );
     if ( idx == SPEC_FURY_WARRIOR ) {
-        ui.listConditions->addItems( listFury );
+		ui.listConditions->addItems( listWarrior );
+		ui.listConditions->addItems( listFury );
     }
     if ( idx == SPEC_ARMS_WARRIOR ) {
+		ui.listConditions->addItems( listWarrior );
         ui.listConditions->addItems( listArms );
     }
     ui.comboTalent1->setCurrentIndex( std::max( t1, 0 ) );

@@ -125,6 +125,12 @@ trinket_ladder_t::trinket_ladder_t() {
     list.push_back( trinket_profile_t( QApplication::translate( "gicClass", "Chipped Soul Prism" ), 124545, 705, 235, 235, 235, 235, 235, 1 ) );
     list.push_back( trinket_profile_t( QApplication::translate( "gicClass", "Gronntooth War Horn" ), 133595, 715, 140, 140, 140, 0, 0, 0, 0 ) );
     list.push_back( trinket_profile_t( QApplication::translate( "gicClass", "Gronntooth War Horn(Demon)" ), 133595, 715, 140, 140, 140, 0, 0, 0, 1 ) );
+	list.push_back( trinket_profile_t( QApplication::translate( "gicClass", "Libram of Vindication" ), 124518, 705, 0, 0, 0, 0, 0, 1 ) );
+	list.push_back( trinket_profile_t( QApplication::translate( "gicClass", "Libram of Vindication" ), 124518, 711, 0, 0, 0, 0, 0, 1 ) );
+	list.push_back( trinket_profile_t( QApplication::translate( "gicClass", "Libram of Vindication" ), 124518, 720, 0, 0, 0, 0, 0, 1 ) );
+	list.push_back( trinket_profile_t( QApplication::translate( "gicClass", "Libram of Vindication" ), 124518, 726, 0, 0, 0, 0, 0, 1 ) );
+	list.push_back( trinket_profile_t( QApplication::translate( "gicClass", "Libram of Vindication" ), 124518, 735, 0, 0, 0, 0, 0, 1 ) );
+	list.push_back( trinket_profile_t( QApplication::translate( "gicClass", "Libram of Vindication" ), 124518, 741, 0, 0, 0, 0, 0, 1 ) );
     std::stable_sort( list.begin(), list.end(), []( const trinket_profile_t& t1, const trinket_profile_t& t2 ) {return t1.itemlvl > t2.itemlvl; } );
     int s = list.size();
     for (int i = 0; i < s; i++) {

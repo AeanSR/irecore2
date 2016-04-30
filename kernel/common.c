@@ -108,7 +108,7 @@ struct common_state_t {
         time_t expire;
         RPPM_t proc;
     } incandescence;
-    #define incandescence_expire (rti->player.common->expire)
+    #define incandescence_expire (rti->player.common->incandescence.expire)
     #else
     #define incandescence_expire (0)
     #endif

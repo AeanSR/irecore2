@@ -210,10 +210,11 @@ void paperdoll_t::gear_summary_calculate() {
     ap = str;
 
     float fmastery = ( float ) mastery;
-    float spec_mastery_coeff[2];
+    float spec_mastery_coeff[3];
     spec_mastery_coeff[SPEC_ARMS_WARRIOR] = 2.0f;
     spec_mastery_coeff[SPEC_FURY_WARRIOR] = 1.4f;
-    fmastery = spec_mastery_coeff[spec] * ( 0.08f + fmastery / 11000 );
+	spec_mastery_coeff[SPEC_RET_PALADIN] = 3.5f;
+	fmastery = spec_mastery_coeff[spec] * ( 0.08f + fmastery / 11000 );
 
     float fcrit = ( float ) crit;
     fcrit *= 1.05f;

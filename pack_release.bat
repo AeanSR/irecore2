@@ -8,15 +8,18 @@ mkdir release
 mkdir release\profile
 mkdir release\kernel
 mkdir release\kernel\warrior
+mkdir release\kernel\paladin
 mkdir release\platforms
 mkdir release_nolib
 mkdir release_nolib\kernel
 mkdir release_nolib\kernel\warrior
+mkdir release_nolib\kernel\paladin
 mkdir release_nolib\profile
 mkdir release_libic
 mkdir release_libic\Win32
 mkdir release_libic\kernel
 mkdir release_libic\kernel\warrior
+mkdir release_libic\kernel\paladin
 mkdir release_libic\include
 
 :: Nolib release.
@@ -28,6 +31,8 @@ copy kernel\common.c release_nolib\kernel\common.c
 copy kernel\warrior\warrior.c release_nolib\kernel\warrior\warrior.c
 copy kernel\warrior\arms.c release_nolib\kernel\warrior\arms.c
 copy kernel\warrior\fury.c release_nolib\kernel\warrior\fury.c
+copy kernel\paladin\paladin.c release_nolib\kernel\paladin\paladin.c
+copy kernel\paladin\retribution.c release_nolib\kernel\paladin\retribution.c
 copy ic\gic_zh.qm release_nolib\gic_zh.qm
 copy LICENSE release_nolib\LICENSE
 
@@ -40,6 +45,8 @@ copy kernel\common.c release\kernel\common.c
 copy kernel\warrior\warrior.c release\kernel\warrior\warrior.c
 copy kernel\warrior\arms.c release\kernel\warrior\arms.c
 copy kernel\warrior\fury.c release\kernel\warrior\fury.c
+copy kernel\paladin\paladin.c release\kernel\paladin\paladin.c
+copy kernel\paladin\retribution.c release\kernel\paladin\retribution.c
 copy ic\gic_zh.qm release\gic_zh.qm
 copy LICENSE release\LICENSE
 copy %qt_dir%\bin\Qt5Core.dll release\Qt5Core.dll
@@ -63,4 +70,6 @@ copy kernel\common.c release_libic\kernel\common.c
 copy kernel\warrior\warrior.c release_libic\kernel\warrior\warrior.c
 copy kernel\warrior\arms.c release_libic\kernel\warrior\arms.c
 copy kernel\warrior\fury.c release_libic\kernel\warrior\fury.c
+copy kernel\paladin\paladin.c release_libic\kernel\paladin\paladin.c
+copy kernel\paladin\retribution.c release_libic\kernel\paladin\retribution.c
 copy libic\libic.lib release_libic\Win32\libic.lib

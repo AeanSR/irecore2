@@ -62,7 +62,6 @@ struct config_t {
     float initial_health_percentage;
     float death_pct;
     float power_max;
-    int glyph_of_ragingwind;
     int num_enemies;
     int plate_specialization;
     int race;
@@ -106,6 +105,8 @@ struct config_t {
         char* warrior_str;
         char* arms_str;
         char* fury_str;
+		char* paladin_str;
+		char* retribution_str;
     } kernel;
     FILE* output_file;
     std::vector<ic_computedevice_t> device_list;

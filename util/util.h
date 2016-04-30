@@ -19,7 +19,10 @@
 #ifndef IC_LOCAL
 #define IC_LOCAL
 #endif
-enum { SPEC_ARMS_WARRIOR, SPEC_FURY_WARRIOR };
+enum {
+	SPEC_ARMS_WARRIOR, SPEC_FURY_WARRIOR,
+	SPEC_RET_PALADIN,
+};
 
 IC_LOCAL double approx_scale_coeff( int current_itemlvl, int new_itemlvl );
 IC_LOCAL double approx_scale_coeff_cr( int current_itemlvl, int new_itemlvl );

@@ -158,9 +158,9 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
     bn.set_url( url );
     rapidjson::Document j = bn.get();
 
-    if (j["class"].GetInt() != 1) {
+    if (j["class"].GetInt() != 1 && j["class"].GetInt() != 2) {
         if (!silence)
-            QMessageBox::information( this, QApplication::translate( "gicClass", "Import Fail" ), QApplication::translate( "gicClass", "This character is not a warrior." ), QMessageBox::Ok );
+            QMessageBox::information( this, QApplication::translate( "gicClass", "Import Fail" ), QApplication::translate( "gicClass", "This character's class is not supported by IreCore." ), QMessageBox::Ok );
         return -1;
     }
     if (j["level"].GetInt() != 100) {
@@ -176,7 +176,9 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
                 spec = SPEC_FURY_WARRIOR;
             } else if (0 == std::string( "a" ).compare( jtalentlist[i]["calcSpec"].GetString() )) {
                 spec = SPEC_ARMS_WARRIOR;
-            } else {
+            } else if (0 == std::string( "b" ).compare( jtalentlist[i]["calcSpec"].GetString() )) {
+				spec = SPEC_RET_PALADIN;
+			}else {
                 if (!silence)
                     QMessageBox::information( this, QApplication::translate( "gicClass", "Import Fail" ), QApplication::translate( "gicClass", "Selected specialization is not a valid DPS spec. Try toggle the \"active\" option?" ), QMessageBox::Ok );
                 return -1;
@@ -250,8 +252,10 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
         int itemlvl = item["itemLevel"].GetInt();
         paperdoll.gear_list[i].name = item["name"].GetString();
         if (itemid >= 115580 && itemid <= 115584) t17_count++;
-        if (itemid == 124319 || itemid == 124329 || itemid == 124334 || itemid == 124340 || itemid == 124346) t18_count++;
-        if (itemid == 118305) archmages_greater_incandescence = 1;
+		if (itemid >= 115565 && itemid <= 115569) t17_count++;
+		if (itemid == 124319 || itemid == 124329 || itemid == 124334 || itemid == 124340 || itemid == 124346) t18_count++;
+		if (itemid == 124318 || itemid == 124328 || itemid == 124333 || itemid == 124339 || itemid == 124345) t18_count++;
+		if (itemid == 118305) archmages_greater_incandescence = 1;
         if (itemid == 118300) archmages_incandescence = 1;
         if (itemid == 124634) {
             legendary_ring = itemlvl;

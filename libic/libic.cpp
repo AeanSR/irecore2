@@ -86,7 +86,9 @@ void ic_init( void ) {
     load_source( warrior_str, "warrior\\warrior.c" );
     load_source( arms_str, "warrior\\arms.c" );
     load_source( fury_str, "warrior\\fury.c" );
-    // Lookup available devices.
+	load_source( paladin_str, "paladin\\paladin.c" );
+	load_source( retribution_str, "paladin\\retribution.c" );
+	// Lookup available devices.
     if (config().device_list.empty()) {
         config().device_list.clear();
         cl_int err;
@@ -162,7 +164,16 @@ void ic_setparam( const char* key, const char* value ) {
     if (0 == strcmp( key, "spec" )) {
         if (0 == strcmp( value, "arms" )) config().spec = SPEC_ARMS_WARRIOR;
         else if (0 == strcmp( value, "fury" )) config().spec = SPEC_FURY_WARRIOR;
-        else  cbprintf( "No such specialization \"%s\".\n", value );
+		else if (0 == strcmp( value, "retribution" )) config().spec = SPEC_RET_PALADIN;
+		else  cbprintf( "No such specialization \"%s\".\n", value );
+		switch (config().spec){
+		case SPEC_RET_PALADIN:
+			config().power_max = 5.0f;
+			break;
+		default:
+			config().power_max = 100.0f;
+			break;
+		}
     } else if (0 == strcmp( key, "gear_str" )) {
         config().gear_str = atoi( value );
         if (config().gear_str < 0) config().gear_str = 0;
@@ -255,14 +266,12 @@ void ic_setparam( const char* key, const char* value ) {
         config().death_pct = atof( value );
         if (config().death_pct > 100.0f) config().death_pct = 100.0f;
         if (config().death_pct < 0.0f) config().death_pct = 0.0f;
-    } else if (0 == strcmp( key, "rage_max" )) {
+    } else if (0 == strcmp( key, "rage_max" ) || 0 == strcmp( key, "power_max" )) {
         config().power_max = atof( value );
         if (config().power_max < 0.0f) config().power_max = 0.0f;
     } else if (0 == strcmp( key, "num_enemies" )) {
         config().num_enemies = atoi( value );
         if (config().num_enemies < 1) config().num_enemies = 1;
-    } else if (0 == strcmp( key, "glyph_of_ragingwind" )) {
-        config().glyph_of_ragingwind = atoi( value );
     } else if (0 == strcmp( key, "plate_specialization" )) {
         config().plate_specialization = !!atoi( value );
     } else if (0 == strcmp( key, "race" )) {
@@ -424,7 +433,7 @@ const char* ic_getparam( const char* key ) {
     GETF( initial_health_percentage );
     GETF( death_pct );
     if (0 == strcmp( key, "rage_max" )) { return _itoa( config().power_max, exchbuf(), 10 ); }
-    GETI( glyph_of_ragingwind );
+    GETI( power_max );
     GETI( num_enemies );
     GETI( plate_specialization );
     GETF( mh_speed );
@@ -451,13 +460,10 @@ const char* ic_getparam( const char* key ) {
     GETI( developer_debug );
     if (0 == strcmp( key, "spec" )) {
         switch (config().spec) {
-        case SPEC_ARMS_WARRIOR:
-            return "arms";
-            break;
-        case SPEC_FURY_WARRIOR:
-            return "fury";
-            break;
-        }
+        case SPEC_ARMS_WARRIOR: return "arms"; break;
+        case SPEC_FURY_WARRIOR: return "fury"; break;
+		case SPEC_RET_PALADIN:  return "retribution"; break;
+		}
     } else if (0 == strcmp( key, "talent" )) {
         for (int i = 0; i < 7; i++)
             exchbuf()[i] = TALENT_TIER( i + 1 );
@@ -779,7 +785,11 @@ IC_LOCAL std::string generate_predef( config_t& blank ) {
         predef.append( "#define CLASS CLASS_WARRIOR\r\n" );
         predef.append( "#define SPEC SPEC_FURY\r\n" );
         break;
-    }
+	case SPEC_RET_PALADIN:
+		predef.append( "#define CLASS CLASS_PALADIN\r\n" );
+		predef.append( "#define SPEC SPEC_RETRIBUTION\r\n" );
+		break;
+	}
 
     predef.append( "#define ENEMY_IS_DEMONIC " );
     sprintf( buffer, "%d", !!blank.enemy_is_demonic );
@@ -819,10 +829,6 @@ IC_LOCAL std::string generate_predef( config_t& blank ) {
 
     predef.append( "#define num_enemies " );
     sprintf( buffer, "%d", blank.num_enemies );
-    predef.append( buffer ); predef.append( "\r\n" );
-
-    predef.append( "#define GLYPH_OF_RAGINGWIND " );
-    sprintf( buffer, "%d", !!blank.glyph_of_ragingwind );
     predef.append( buffer ); predef.append( "\r\n" );
 
     predef.append( "#define PLATE_SPECIALIZATION " );
@@ -1046,7 +1052,11 @@ int ic_runsim( float* dps, float* dpsr, float* dpse, float* sim_time ) {
             source += config().kernel.warrior_str;
             source += config().kernel.fury_str;
             break;
-        }
+		case SPEC_RET_PALADIN:
+			source += config().kernel.paladin_str;
+			source += config().kernel.retribution_str;
+			break;
+		}
         source += config().kernel.entry_str;
         source = predef + source;
         source += "void scan_apl( rtinfo_t* rti ) {";
