@@ -178,7 +178,7 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
     if ( ENEMY_IS_DEMONIC && UP( gronntooth_war_horn_expire ) ) dmg *= 1.1f;
     if ( RACE == RACE_DWARF || RACE == RACE_TAUREN )            cdb *= 1.02f;
     if ( DTYPE_PHYSICAL == dmgtype ) {
-        if ( !ignore_armor )                                    dmg *= 0.650684f; // 0.680228f @110lvl
+        if ( !ignore_armor )                                    dmg *= 0.594043f; // 0.680228f @110lvl
     }
     if ( DICE_CRIT == dice )                                    dmg *= cdb;
     if ( DICE_CRIT == dice ) {
@@ -410,7 +410,7 @@ DECL_EVENT( crusader_strike_cast ) {
             d = weapon_dmg( rti, 2.1f, 1, 0 );
             dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
             deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
-            // power_gain( rti, 1.0f ); // does chain zeal give power? 
+            // power_gain( rti, 1.0f ); // does chain zeal give power?
         }
         lprintf( ( "zeal multi-hit" ) );
     }

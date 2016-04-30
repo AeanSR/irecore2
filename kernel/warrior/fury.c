@@ -208,7 +208,7 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
     //  if ( SOME_ARTIFACT_TRAITS && UP( battle_cry_expire ) )      cdb *= 1.0f + 0.1f * SOME_ARTIFACT_TRAITS;
         if ( RACE == RACE_DWARF || RACE == RACE_TAUREN )            cdb *= 1.02f;
     if ( DTYPE_PHYSICAL == dmgtype ){
-        if ( !ignore_armor )                                        dmg *= 0.650684f; // 0.680228f @110lvl
+        if ( !ignore_armor )                                        dmg *= 0.594043f; // 0.680228f @110lvl
     }
         if ( DICE_CRIT   == dice )                                  dmg *= cdb;
     if ( DICE_CRIT   == dice ){

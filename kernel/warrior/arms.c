@@ -145,7 +145,7 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
         if ( ENEMY_IS_DEMONIC && UP( gronntooth_war_horn_expire ) ) dmg *= 1.1f;
         if ( RACE == RACE_DWARF || RACE == RACE_TAUREN )            cdb *= 1.02f;
     if (DTYPE_PHYSICAL == dmgtype){
-        if ( !ignore_armor )                                        dmg *= 0.650684f; // 0.680228f @110lvl
+        if ( !ignore_armor )                                        dmg *= 0.594043f; // 0.680228f @110lvl
     }
         if ( DICE_CRIT == dice )                                    dmg *= cdb;
     if ( DICE_CRIT   == dice ){
