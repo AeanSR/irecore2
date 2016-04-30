@@ -148,20 +148,20 @@ QString script_scale_factor(
     int scale_stat_mask,
     bool scale_mh,
     bool scale_oh
-    );
+);
 QString script_trinket_ladder(
     int trinket_slot_str,
     int trinket_slot_crit,
     int trinket_slot_haste,
     int trinket_slot_mastery,
     int trinket_slot_vers
-    );
+);
 QString script_stat_maxima(
     float confidence,
     int delta,
     int min_delta,
     int max_iteration
-    );
+);
 QString script_contour_plot(
     int delta,
     float tolerance,
@@ -169,6 +169,6 @@ QString script_contour_plot(
     int stat1,
     int stat2,
     int stat3
-    );
+);
 
 #endif // GIC_H

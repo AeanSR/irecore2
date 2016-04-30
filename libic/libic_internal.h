@@ -42,7 +42,7 @@ struct ic_computedevice_t {
     cl_command_queue queue;
     char* platform_name;
     char* device_name;
-    ic_computedevice_t() : platform_name(0), device_name(0), context(0), queue(0) { }
+    ic_computedevice_t() : platform_name( 0 ), device_name( 0 ), context( 0 ), queue( 0 ) { }
 };
 
 struct config_t {
@@ -105,14 +105,14 @@ struct config_t {
         char* warrior_str;
         char* arms_str;
         char* fury_str;
-		char* paladin_str;
-		char* retribution_str;
+        char* paladin_str;
+        char* retribution_str;
     } kernel;
     FILE* output_file;
     std::vector<ic_computedevice_t> device_list;
     config_t() {
-        memset(this, 0, sizeof *this);
-        srand((unsigned int)time(NULL));
+        memset( this, 0, sizeof *this );
+        srand( ( unsigned int ) time( NULL ) );
         rng_engine = 32;
         strict_gcd = 1;
         sync_melee = 1;
@@ -134,8 +134,8 @@ struct config_t {
     }
 };
 
-IC_LOCAL int cbprintf(const char* format, ...);
+IC_LOCAL int cbprintf( const char* format, ... );
 // apltr
-IC_LOCAL int fapltr(std::string& input_file, std::string& output);
-IC_LOCAL int sapltr(std::string& input, std::string& output);
+IC_LOCAL int fapltr( std::string& input_file, std::string& output );
+IC_LOCAL int sapltr( std::string& input, std::string& output );
 #endif

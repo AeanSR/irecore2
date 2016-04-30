@@ -398,11 +398,11 @@ int wdb5_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::
         return 0;
     }
     for (int i = 0; i < header.field_count; i++) {
-        struct field_info_t{
+        struct field_info_t {
             UINT16 type;
             UINT16 pos;
         } field_info;
-        if (!CascReadFile( file, &field_info, sizeof(field_info_t), &read )) {
+        if (!CascReadFile( file, &field_info, sizeof( field_info_t ), &read )) {
             printf( "failed to read dbc field info\n" );
             return 0;
         }
@@ -410,9 +410,9 @@ int wdb5_reader( HANDLE file, std::vector<std::pair<UINT32, T> >& records, std::
             printf( "dbc field info broken\n" );
             return 0;
         }
-        printf("\tfield %d: type %d, pos %d\n", i+1, field_info.type, field_info.pos);
+        printf( "\tfield %d: type %d, pos %d\n", i + 1, field_info.type, field_info.pos );
     }
-    printf("%d, %d\n", sizeof(T), sizeof(std::string));
+    printf( "%d, %d\n", sizeof( T ), sizeof( std::string ) );
     if (header.flags & 0x01) {
         struct offset_map_entry_t {
             UINT32 offset;
@@ -559,11 +559,11 @@ int dbc_reader( HANDLE storage, const char* dbc_name, std::vector<std::pair<UINT
     }
     {
         DWORD size = CascGetFileSize( file, 0 );
-        char* buf = (char*) malloc(size);
+        char* buf = ( char* ) malloc( size );
         CascReadFile( file, buf, size, &read );
-        FILE* f = fopen(dbc_name, "wb");
-        fwrite(buf, 1, read, f);
-        fclose(f);
+        FILE* f = fopen( dbc_name, "wb" );
+        fwrite( buf, 1, read, f );
+        fclose( f );
         CascSetFilePointer( file, 0, 0, FILE_BEGIN );
     }
     if (!CascReadFile( file, &magic, sizeof( magic ), &read )) {
@@ -667,20 +667,20 @@ int _tmain( int argc, TCHAR* argv[] ) {
     }
     DWORD size = CascGetFileSize( file, 0 );
     std::string csv_buf;
-    csv_buf.resize(size);
+    csv_buf.resize( size );
     CascReadFile( file, &csv_buf[0], size, &read );
     CascCloseFile( file );
-    std::stringstream sss(csv_buf);
+    std::stringstream sss( csv_buf );
     std::string csv_line;
-    std::getline(sss, csv_line);
-    for(int i = 0; i < spell_scaling_levels; i++) {
-        std::getline(sss, csv_line);
-        std::stringstream ss2(csv_line);
+    std::getline( sss, csv_line );
+    for (int i = 0; i < spell_scaling_levels; i++) {
+        std::getline( sss, csv_line );
+        std::stringstream ss2( csv_line );
         std::string csv_item;
-        std::getline(ss2, csv_item, '\t');
-        for(int j = 0; j < spell_scaling_classes; j++) {
-            std::getline(ss2, csv_item, '\t');
-            spell_scaling[j][i] = atoi(csv_item.c_str());
+        std::getline( ss2, csv_item, '\t' );
+        for (int j = 0; j < spell_scaling_classes; j++) {
+            std::getline( ss2, csv_item, '\t' );
+            spell_scaling[j][i] = atoi( csv_item.c_str() );
         }
     }
 
@@ -691,18 +691,18 @@ int _tmain( int argc, TCHAR* argv[] ) {
         return 0;
     }
     size = CascGetFileSize( file, 0 );
-    csv_buf.resize(size);
+    csv_buf.resize( size );
     CascReadFile( file, &csv_buf[0], size, &read );
     CascCloseFile( file );
-    std::stringstream ssc(csv_buf);
-    std::getline(ssc, csv_line);
-    for(int i = 0; i < combat_ratings_mult_maxilvl; i++) {
-        std::getline(ssc, csv_line);
-        std::stringstream ss2(csv_line);
+    std::stringstream ssc( csv_buf );
+    std::getline( ssc, csv_line );
+    for (int i = 0; i < combat_ratings_mult_maxilvl; i++) {
+        std::getline( ssc, csv_line );
+        std::stringstream ss2( csv_line );
         std::string csv_item;
-        std::getline(ss2, csv_item, '\t');
-        std::getline(ss2, csv_item, '\t');
-        combat_ratings_mult[i] = atof(csv_item.c_str());
+        std::getline( ss2, csv_item, '\t' );
+        std::getline( ss2, csv_item, '\t' );
+        combat_ratings_mult[i] = atof( csv_item.c_str() );
     }
 
     struct item_t {
@@ -809,7 +809,7 @@ int _tmain( int argc, TCHAR* argv[] ) {
             enchant_data[i].value[0],
             enchant_data[i].value[1],
             enchant_data[i].value[2]
-            );
+        );
     }
     fprintf( f, "};\r\n" );
     fprintf( f, "_dbc_item_t _dbc_item_data[] = {\r\n" );
@@ -822,7 +822,7 @@ int _tmain( int argc, TCHAR* argv[] ) {
             item_data[i].itemsubclass,
             item_data[i].gem_enchant,
             item_data[i].name.c_str()
-            );
+        );
     }
     fprintf( f, "\t{%6d, %4d,%4d, %6d},\r\n", 0, 0, 0, 0 );
     fprintf( f, "};\r\n" );

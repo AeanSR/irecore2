@@ -31,7 +31,7 @@ IC_LOCAL const char* trinket_list[] = {
     "bonemaws_big_toe",
     "emberscale_talisman",
     "gronntooth_war_horn",
-	"libram_of_vindication",
+    "libram_of_vindication",
     0
 };
 
@@ -216,12 +216,12 @@ IC_LOCAL int trinket_scaling( int trinket, int itemlvl, int spec ) {
         }
     } else if (trinket == 19) {
         return 1152;
-	} else if (trinket == 20) {
-		switch (itemlvl) {
-		case 705: return 314;
-		default:  return ( int ) ( 314.0 * approx_scale_coeff( 705, itemlvl ) );
-		}
-	} else return 0;
+    } else if (trinket == 20) {
+        switch (itemlvl) {
+        case 705: return 314;
+        default:  return ( int ) ( 314.0 * approx_scale_coeff( 705, itemlvl ) );
+        }
+    } else return 0;
 }
 
 IC_LOCAL int trinket_from_id( int id ) {
@@ -245,7 +245,7 @@ IC_LOCAL int trinket_from_id( int id ) {
     case 110012: return 17;
     case 110013: return 18;
     case 133595: return 19;
-	case 124518: return 20;
+    case 124518: return 20;
     default: return 0;
     }
 }

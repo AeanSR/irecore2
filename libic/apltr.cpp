@@ -116,7 +116,7 @@ IC_LOCAL void veprintf( token_t tok, int type, const char* message, va_list vl )
     cbprintf( "\n" );
 }
 IC_LOCAL void eprintf( token_t tok, int type, const char* message, ... ) {
-    if (0 == tok.apl.compare(".precombat")) return;
+    if (0 == tok.apl.compare( ".precombat" )) return;
     va_list vl;
     va_start( vl, message );
     veprintf( tok, type, message, vl );
@@ -718,11 +718,11 @@ struct apl_t {
 
 void rule_t::dump( std::string& str ) {
     if (action < 0) return;
-    if (sync >= 0){
+    if (sync >= 0) {
         cond_node_t* sync_cond = new cond_node_t();
         sync_cond->op = SYNC;
         sync_cond->value = sync;
-        if (cond){
+        if (cond) {
             cond_node_t* sync_cond_and = new cond_node_t();
             sync_cond_and->op = AND;
             sync_cond_and->lvalue = sync_cond;
@@ -1233,7 +1233,7 @@ IC_LOCAL rule_t* rule_item() {
                     t.suppress = 1;
                 }
                 processed_if = 1;
-            }  else if (key == "cycle_targets") {
+            } else if (key == "cycle_targets") {
                 token_t& t = working->at( vpos );
                 if (!t.value.empty()) {
                     if (!t.suppress) eprintf( t, 1, "expected constant number for cycle_targets" );
@@ -1287,7 +1287,7 @@ IC_LOCAL rule_t* rule_item() {
                     t.suppress = 1;
                 }
                 processed_if = 1;
-            }  else if (key == "cycle_targets") {
+            } else if (key == "cycle_targets") {
                 token_t& t = working->at( vpos );
                 if (!t.value.empty()) {
                     if (!t.suppress) eprintf( t, 1, "expected constant number for cycle_targets" );
