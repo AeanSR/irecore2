@@ -193,7 +193,16 @@ void paperdoll_t::gear_summary_calculate() {
     ic_setparam( "plate_specialization", plate_specialization ? "1" : "0" );
 
     if (ui->checkRaidBuffFlask->isChecked()) str += 250;
-    if (ui->checkRaidBuffFood->isChecked()) crit += 125 * ( ui->comboRace->currentIndex() == 14 ? 2 : 1 );
+    int food_mult = (ui->comboRace->currentIndex() == 14 ? 2 : 1);
+    switch (spec) {
+    case SPEC_RET_PALADIN:
+    case SPEC_ARMS_WARRIOR:
+        if (ui->checkRaidBuffFood->isChecked()) mastery += 125 * food_mult;
+    case SPEC_FURY_WARRIOR:
+    default:
+        if (ui->checkRaidBuffFood->isChecked()) crit += 125 * food_mult;
+        break;
+    }
 
     int racial_base_str[] = {
         0, 0, 5, -5, -4, -4, 66, 3, 3, 1, 5, -1, -3, -3, 0,

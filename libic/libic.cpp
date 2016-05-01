@@ -689,7 +689,16 @@ IC_LOCAL config_t parameters_consistency() {
         blank.gear_str += 250;
     }
     if (blank.raidbuff.food) {
-        blank.gear_crit += 125 * ( blank.race == 14 ? 2 : 1 );
+        int food_mult = ( blank.race == 14 ? 2 : 1 );
+        switch (blank.spec) {
+        case SPEC_RET_PALADIN:
+        case SPEC_ARMS_WARRIOR:
+            blank.gear_mastery += 125 * food_mult;
+        case SPEC_FURY_WARRIOR:
+        default:
+            blank.gear_crit += 125 * food_mult;
+            break;
+        }
     }
     if (!blank.default_actions && !blank.simc_actions.empty()) {
         cbprintf( "SimC-style APL are set. Start APL translation.\n" );
