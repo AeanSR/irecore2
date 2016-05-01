@@ -103,6 +103,17 @@ struct common_state_t {
     #define potion_expire (0)
     #define potion_cd     (0)
     #endif
+    #if (BUFF_BLOODLUST == 1)
+    struct {
+        time_t expire;
+        time_t cd;
+    } bloodlust;
+    #define bloodlust_expire (rti->player.common->bloodlust.expire)
+    #define bloodlust_cd     (rti->player.common->bloodlust.cd)
+    #else
+    #define bloodlust_expire (0)
+    #define bloodlust_cd     (0)
+    #endif
     #if (archmages_incandescence || archmages_greater_incandescence)
     struct {
         time_t expire;
@@ -479,7 +490,7 @@ void refresh_haste( rtinfo_t* rti ) {
     if (( RACE == RACE_NIGHTELF_NIGHT ) || ( RACE == RACE_GOBLIN ) || ( RACE == RACE_GNOME ))
         haste *= 1.01f;
     if (UP( berserking_expire )) haste *= 1.15f;
-    if (BUFF_BLOODLUST hostonly( && rti->timestamp )) if (( rti->timestamp % FROM_SECONDS( 600 ) ) < FROM_SECONDS( 30 )) haste *= 1.3f;
+    if (UP(bloodlust_expire)) haste *= 1.3f;
     haste *= spec_haste_coefficient( rti );
     rti->player.stat.haste = haste - 1.0f;
 }
@@ -527,14 +538,14 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
 #define SPELL_ALIAS( alias, origin ) int spell_##alias ( rtinfo_t* rti ) { return spell_##origin ( rti ); }
 enum {
     routnum_gcd_expire,
-    #if (BUFF_BLOODLUST == 1)
-    routnum_bloodlust_start,
-    routnum_bloodlust_end,
-    #endif
     #if (BUFF_POTION == 1)
     routnum_potion_start,
     routnum_potion_cd,
     routnum_potion_expire,
+    #endif
+    #if (BUFF_BLOODLUST == 1)
+    routnum_bloodlust_cast,
+    routnum_bloodlust_expire,
     #endif
     #if (archmages_incandescence || archmages_greater_incandescence)
     routnum_incandescence_trigger,
@@ -666,21 +677,6 @@ DECL_EVENT( gcd_expire ) {
     /* Do nothing. */
 }
 
-// === bloodlust ==============================================================
-#if (BUFF_BLOODLUST == 1)
-DECL_EVENT( bloodlust_start ) {
-    lprintf( ( "bloodlust start" ) );
-    refresh_haste( rti );
-    eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 30 ) ), routnum_bloodlust_end, target_id );
-}
-
-DECL_EVENT( bloodlust_end ) {
-    lprintf( ( "bloodlust end" ) );
-    refresh_haste( rti );
-    eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 570 ) ), routnum_bloodlust_start, target_id );
-}
-#endif
-
 // === potion =================================================================
 #if (BUFF_POTION == 1)
 DECL_EVENT( potion_expire ) {
@@ -717,6 +713,23 @@ DECL_SPELL( potion ) {
 #else
 DECL_SPELL( potion ) {
     return 0;
+}
+#endif
+
+// === bloodlust ==============================================================
+#if (BUFF_BLOODLUST == 1)
+DECL_EVENT( bloodlust_expire ) {
+    lprintf( ( "blodlust end" ) );
+    refresh_haste( rti );
+}
+
+DECL_EVENT( bloodlust_cast ) {
+    bloodlust_expire = TIME_OFFSET( FROM_SECONDS( 30 ) );
+    eq_enqueue( rti, bloodlust_expire, routnum_bloodlust_expire, 0 );
+    bloodlust_cd = TIME_OFFSET( FROM_SECONDS( 600 ) );
+    eq_enqueue( rti, bloodlust_cd, routnum_bloodlust_cast, 0 );
+    refresh_haste( rti );
+    lprintf( ( "bloodlust start" ) );
 }
 #endif
 
@@ -1369,8 +1382,8 @@ void routine_entries( rtinfo_t* rti, _event_t e ) {
     } else switch (e.routine) {
         HOOK_EVENT( gcd_expire );
         #if (BUFF_BLOODLUST == 1)
-        HOOK_EVENT( bloodlust_start );
-        HOOK_EVENT( bloodlust_end );
+        HOOK_EVENT( bloodlust_cast );
+        HOOK_EVENT( bloodlust_expire );
         #endif
         #if (BUFF_POTION == 1)
         HOOK_EVENT( potion_start );
@@ -1521,7 +1534,7 @@ void module_init( rtinfo_t* rti ) {
     lprintf( ( "Raid buffed vers %f", rti->player.stat.vers ) );
 
     #if (BUFF_BLOODLUST == 1)
-    eq_enqueue( rti, hostonly( FROM_MILLISECONDS( 1 ) ) deviceonly( rti->timestamp ), routnum_bloodlust_start, 0 );
+    eq_enqueue( rti, rti->timestamp, routnum_bloodlust_cast, 0 );
     #endif
     #if (BUFF_POTION == 1)
     spell_potion( rti );

@@ -645,7 +645,40 @@ const char* ic_defaultapl( void ) {
         apl.append( "SPELL(bloodthirst);\n" );
         apl.append( "}\n" );
     }
-
+    if (config().spec == SPEC_RET_PALADIN) {
+        apl.append("if(((UP(bloodlust_expire)||UP(avenging_wrath_expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<=40.000000f)))SPELL(potion);\n");
+        apl.append("if(UP(avenging_wrath_expire))SPELL(thorasus_the_stone_heart_of_draenor);\n");
+        apl.append("if(!UP(avenging_wrath_expire))SPELL(avenging_wrath);\n");
+        apl.append("SPELL(blood_fury);\n");
+        apl.append("SPELL(berserking);\n");
+        apl.append("SPELL(arcane_torrent);\n");
+        apl.append("if((num_enemies>=3.000000f)){\n");
+        apl.append("SPELL(judgment);\n");
+        apl.append("if((rti->player.power>=4.000000f))SPELL(divine_storm);\n");
+        apl.append("if(((rti->player.power>=2.000000f)&&UP(the_fires_of_justice_expire)))SPELL(divine_storm);\n");
+        apl.append("SPELL(divine_hammer);\n");
+        apl.append("SPELL(blade_of_justice);\n");
+        apl.append("SPELL(consecration);\n");
+        apl.append("SPELL(execution_sentence);\n");
+        apl.append("SPELL(zeal);\n");
+        apl.append("SPELL(crusader_strike);\n");
+        apl.append("if((rti->player.power>=3.000000f))SPELL(divine_storm);\n");
+        apl.append("SPELL(blade_of_wrath);\n");
+        apl.append("}\n");
+        apl.append("{\n");
+        apl.append("SPELL(judgment);\n");
+        apl.append("if((rti->player.power>=4.000000f))SPELL(templars_verdict);\n");
+        apl.append("if(((rti->player.power>=2.000000f)&&UP(the_fires_of_justice_expire)))SPELL(templars_verdict);\n");
+        apl.append("SPELL(divine_hammer);\n");
+        apl.append("SPELL(blade_of_justice);\n");
+        apl.append("SPELL(execution_sentence);\n");
+        apl.append("SPELL(consecration);\n");
+        apl.append("SPELL(zeal);\n");
+        apl.append("SPELL(crusader_strike);\n");
+        apl.append("if((rti->player.power>=3.000000f))SPELL(templars_verdict);\n");
+        apl.append("SPELL(blade_of_wrath);\n");
+        apl.append("}\n");
+    }
 
     return apl.c_str();
 }

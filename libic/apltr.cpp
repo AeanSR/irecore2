@@ -143,7 +143,7 @@ IC_LOCAL void read_source( const char* filename ) {
     }
 }
 
-enum { VAR, VAR_CD, CONST, SYNC, AND, OR, NOT, EQ, NE, LT, GT, LE, GE, ADD, SUB, NEG, MUL, DIV };
+enum { VAR, VAR_CD, VAR_RT, CONST, SYNC, AND, OR, NOT, EQ, NE, LT, GT, LE, GE, ADD, SUB, NEG, MUL, DIV };
 
 typedef struct {
     const char* simc;
@@ -159,71 +159,249 @@ typedef struct {
 } item_context_dependent_t;
 
 namespace apltr {
+    IC_LOCAL const char* valid_spell_list[] = {
+        "battle_cry",
+        "berserker_rage",
+        "avatar",
+        "heroic_leap",
+        "potion",
+        "storm_bolt",
+        "shockwave",
+        "bladestorm",
+        "thorasus_the_stone_heart_of_draenor",
+        "arcane_torrent",
+        "blood_fury",
+        "berserking",
+        "vial_of_convulsive_shadows",
+        "scabbard_of_kyanos",
+        "bonemaws_big_toe",
+        "emberscale_talisman",
+        "execute",
+        "whirlwind",
+        "cleave",
+        "colossus_smash",
+        "hamstring",
+        "mortal_strike",
+        "slam",
+        "overpower",
+        "rend",
+        "focused_rage",
+        "ravager",
+        "bloodthirst",
+        "furious_slash",
+        "raging_blow",
+        "rampage",
+        "dragon_roar",
+        "avenging_wrath",
+        "blade_of_justice",
+        "blade_of_wrath",
+        "divine_hammer",
+        "judgment",
+        "crusader_strike",
+        "zeal",
+        "divine_storm",
+        "templars_verdict",
+        "execution_sentence",
+        "consecration",
+        "holy_wrath",
+        0,
+    };
     IC_LOCAL item_t act_list[] =
     {
         { "auto_attack", "0" },
         { "charge", "0" },
         { "wait", "return", 0 },
-        { "battle_cry", "SPELL(battle_cry)", 0 },
-        { "berserker_rage", "SPELL(berserker_rage)", 0 },
-        { "avatar", "SPELL(avatar)", 0 },
-        { "heroic_leap", "SPELL(heroic_leap)", 0 },
         { "heroic_charge", "SPELL(heroic_leap)", 0 }, /* I guess this is a typo. */
-        { "potion", "SPELL(potion)", 0 },
-        { "storm_bolt", "SPELL(storm_bolt)", 0 },
-        { "shockwave", "SPELL(shockwave)", 0 },
-        { "avatar", "SPELL(avatar)", 0 },
-        { "bladestorm", "SPELL(bladestorm)", 0 },
-        { "thorasus_the_stone_heart_of_draenor", "SPELL(thorasus_the_stone_heart_of_draenor)", 0 },
-        { "arcane_torrent", "SPELL(arcane_torrent)", 0 },
-        { "blood_fury", "SPELL(blood_fury)", 0 },
-        { "berserking", "SPELL(berserking)", 0 },
-        { "vial_of_convulsive_shadows", "SPELL(vial_of_convulsive_shadows)", 0 },
-        { "scabbard_of_kyanos", "SPELL(scabbard_of_kyanos)", 0 },
         { "primal_gladiators_badge_of_victory", "SPELL(badge_of_victory)", 0 },
         { "primal_combatants_badge_of_victory", "SPELL(badge_of_victory)", 0 },
         { "wild_gladiators_badge_of_victory", "SPELL(badge_of_victory)", 0 },
         { "wild_combatants_badge_of_victory", "SPELL(badge_of_victory)", 0 },
         { "warmongering_gladiators_badge_of_victory", "SPELL(badge_of_victory)", 0 },
         { "warmongering_combatants_badge_of_victory", "SPELL(badge_of_victory)", 0 },
-        { "bonemaws_big_toe", "SPELL(bonemaws_big_toe)", 0 },
-        { "emberscale_talisman", "SPELL(emberscale_talisman)", 0 },
-
-        { "execute", "SPELL(execute)", 0 },
-        { "whirlwind", "SPELL(whirlwind)", 0 },
-
-        { "cleave", "SPELL(cleave)", 0 },
-        { "colossus_smash", "SPELL(colossus_smash)", 0 },
-        { "hamstring", "SPELL(hamstring)", 0 },
-        { "mortal_strike", "SPELL(mortal_strike)", 0 },
-        { "slam", "SPELL(slam)", 0 },
-        { "overpower", "SPELL(overpower)", 0 },
-        { "rend", "SPELL(rend)", 0 },
-        { "focused_rage", "SPELL(focused_rage)", 0 },
-        { "ravager", "SPELL(ravager)", 0 },
-
-        { "bloodthirst", "SPELL(bloodthirst)", 0 },
-        { "furious_slash", "SPELL(furious_slash)", 0 },
-        { "raging_blow", "SPELL(raging_blow)", 0 },
-        { "rampage", "SPELL(rampage)", 0 },
-        { "dragon_roar", "SPELL(dragon_roar)", 0 },
         { 0 }
     };
 }
 
-IC_LOCAL int lookup_act( std::string name ) {
+IC_LOCAL int lookup_act( std::string name, std::string& rt ) {
     for (int i = 0; act_list[i].simc; i++) {
         if (0 == name.compare( act_list[i].simc )) return i;
+    }
+    for (int i = 0; valid_spell_list[i]; i++) {
+        if (0 == name.compare( valid_spell_list[i] )) {
+            rt = std::string( "SPELL(" ) + valid_spell_list[i] + std::string( ")" );
+            return 0x7fffffff;
+        }
     }
     return -1;
 }
 
 namespace apltr {
+    IC_LOCAL std::pair<const char*, int> spell_target_bound[] = {
+        {"bladestorm_mh", 0},
+        {"bladestorm_oh", 0},
+        {"whirlwind", 0},
+        {"shockwave", 0},
+        {"cleave", 5},
+        {"divine_storm", 0},
+        {"consecration", 0},
+        {"divine_hammer", 0},
+        {"zeal", 4},
+        {0,0},
+    };
+    IC_LOCAL const char* talent_list[] = {
+        "final_verdict",
+        "execution_sentence",
+        "consecration",
+        "the_fires_of_justice",
+        "zeal",
+        "greater_judgment",
+        "fist_of_justice",
+        "repentance",
+        "blinding_light",
+        "virtues_blade",
+        "blade_of_wrath",
+        "divine_hammer",
+        "justicars_vengeance",
+        "eye_for_an_eye",
+        "word_of_glory",
+        "divine_intervention",
+        "divine_steed",
+        "seal_of_light",
+        "divine_purpose",
+        "holy_wrath",
+        "equality",
+        "war_machine",
+        "endless_rage",
+        "fresh_meat",
+        "dauntless",
+        "overpower",
+        "sweeping_strikes",
+        "shockwave",
+        "storm_bolt",
+        "double_time",
+        "fervor_of_battle",
+        "rend",
+        "wrecking_ball",
+        "outburst",
+        "avatar",
+        "furious_charge",
+        "warpaint",
+        "second_wind",
+        "die_by_the_sword",
+        "bounding_stride",
+        "in_for_the_kill",
+        "mortal_combo",
+        "massacre",
+        "frothing_berserker",
+        "bladestorm",
+        "meat_grinder",
+        "frenzy",
+        "inner_rage",
+        "focused_rage",
+        "trauma",
+        "titanic_might",
+        "carnage",
+        "reckless_abandon",
+        "dragon_roar",
+        "anger_management",
+        "opportunity_strikes",
+        "ravager",
+        0,
+    };
+    IC_LOCAL const char* stack_buff_list[] = {
+        "taste_for_blood",
+        "frenzy",
+        "rampage",
+        "worldbreakers_resolve",
+        "cleave",
+        "focused_rage",
+        "zeal",
+        "libram_of_vindication",
+        0,
+    };
+    IC_LOCAL const char* expire_buff_list[] = {
+        "taste_for_blood",
+        "frenzy",
+        "rampage",
+        "worldbreakers_resolve",
+        "cleave",
+        "zeal",
+        "libram_of_vindication",
+        "avenging_wrath",
+        "consecration",
+        "the_fires_of_justice",
+        "divine_hammer",
+        "divine_purpose",
+        "holy_wrath",
+        "battle_cry",
+        "avatar",
+        "bladestorm",
+        "overpower",
+        "ravager",
+        "enrage",
+        "meat_cleaver",
+        "wrecking_ball",
+        "massacre",
+        "frothing_berserker",
+        "meat_grinder",
+        "dragon_roar",
+        "potion",
+        "bloodlust",
+        0,
+    };
+    IC_LOCAL const char* cooldown_list[] = {
+        "bloodthirst",
+        "raging_blow",
+        "dragon_roar",
+        "cleave",
+        "colossus_smash",
+        "hamstring",
+        "mortal_strike",
+        "focused_rage",
+        "ravager",
+        "battle_cry",
+        "berserker_rage",
+        "heroic_leap",
+        "shockwave",
+        "storm_bolt",
+        "avatar",
+        "bladestorm",
+        "judgment",
+        "crusader_strike",
+        "avenging_wrath",
+        "blade_of_justice",
+        "execution_sentence",
+        "consecration",
+        "zeal",
+        "divine_hammer",
+        "holy_wrath",
+        "thorasus_the_stone_heart_of_draenor",
+        "arcane_torrent",
+        "blood_fury",
+        "berserking",
+        "vial_of_convulsive_shadows",
+        "scabbard_of_kyanos",
+        "bonemaws_big_toe",
+        "emberscale_talisman",
+        "potion",
+        "bloodlust",
+        0,
+    };
+    IC_LOCAL const char* stack_debuff_list[] = {
+        0,
+    };
+    IC_LOCAL const char* expire_debuff_list[] = {
+        "judgment",
+        "execution_sentence",
+        "colossus_smash",
+        "rend",
+        0,
+    };
     IC_LOCAL item_t var_list[] =
     {
-        { "spell_targets.bladestorm_mh", "num_enemies", 0 },
-        { "spell_targets.cleave", "min(num_enemies,5)", 0 },
-        { "spell_targets.whirlwind", "num_enemies", 0 },
+        { "spell_targets.judgment", "(TALENT_GREATER_JUDGMENT?min(num_enemies,4):1)", 0 },
+        { "spell_targets.zeal", "min(num_enemies,zeal_stack)", 0 },
+
         { "enemies", "num_enemies", 0 },
         { "active_enemies", "num_enemies", 0 },
         { "desired_targets", "num_enemies", 0 },
@@ -232,6 +410,9 @@ namespace apltr {
         { "rage", "rti->player.power", 0 },
         { "rage.max", "power_max", 0 },
         { "rage.deficit", "(power_max-rti->player.power)", 0 },
+        { "holy_power", "rti->player.power", 0 },
+        { "holy_power.max", "power_max", 0 },
+        { "holy_power.deficit", "(power_max-rti->player.power)", 0 },
         { "gcd", "TO_SECONDS(REMAIN(rti->player.gcd))", 0 },
         { "set_bonus.tier18_4pc", "t18_4pc", 0 },
         { "set_bonus.tier18_2pc", "t18_2pc", 0 },
@@ -245,103 +426,6 @@ namespace apltr {
         { "raid_event.movement.exists", "0", 0 },
         { "raid_event.movement.cooldown", "65535", 0 },
 
-        { "cooldown.bloodthirst.up", "UP(bloodthirst_cd)", 0 },
-        { "cooldown.bloodthirst.down", "!UP(bloodthirst_cd)", 0 },
-        { "cooldown.bloodthirst.remains", "TO_SECONDS(REMAIN(bloodthirst_cd))", 0 },
-        { "buff.enrage.down", "!UP(enrage_expire)", 0 },
-        { "buff.enrage.up", "UP(enrage_expire)", 0 },
-        { "buff.enrage.remains", "TO_SECONDS(REMAIN(enrage_expire))", 0 },
-        { "buff.enrage.react", "UP(enrage_expire)", 0 },
-        { "buff.taste_for_blood.down", "!UP(taste_for_blood_expire)", 0 },
-        { "buff.taste_for_blood.up", "UP(taste_for_blood_expire)", 0 },
-        { "buff.taste_for_blood.remains", "TO_SECONDS(REMAIN(taste_for_blood_expire))", 0 },
-        { "buff.taste_for_blood.react", "taste_for_blood_stack", 0 },
-        { "buff.taste_for_blood.stack", "taste_for_blood_stack", 0 },
-        { "buff.meat_cleaver.down", "!UP(meat_cleaver_expire)", 0 },
-        { "buff.meat_cleaver.up", "UP(meat_cleaver_expire)", 0 },
-        { "buff.meat_cleaver.remains", "TO_SECONDS(REMAIN(meat_cleaver_expire))", 0 },
-        { "buff.meat_cleaver.react", "UP(meat_cleaver_expire)", 0 },
-        { "buff.wrecking_ball.down", "!UP(wrecking_ball_expire)", 0 },
-        { "buff.wrecking_ball.up", "UP(wrecking_ball_expire)", 0 },
-        { "buff.wrecking_ball.remains", "TO_SECONDS(REMAIN(wrecking_ball_expire))", 0 },
-        { "buff.wrecking_ball.react", "UP(wrecking_ball_expire)", 0 },
-        { "buff.massacre.down", "!UP(massacre_expire)", 0 },
-        { "buff.massacre.up", "UP(massacre_expire)", 0 },
-        { "buff.massacre.remains", "TO_SECONDS(REMAIN(massacre_expire))", 0 },
-        { "buff.massacre.react", "UP(massacre_expire)", 0 },
-        { "buff.frothing_berserker.down", "!UP(frothing_berserker_expire)", 0 },
-        { "buff.frothing_berserker.up", "UP(frothing_berserker_expire)", 0 },
-        { "buff.frothing_berserker.remains", "TO_SECONDS(REMAIN(frothing_berserker_expire))", 0 },
-        { "buff.frothing_berserker.react", "UP(frothing_berserker_expire)", 0 },
-        { "buff.meat_grinder.down", "!UP(meat_grinder_expire)", 0 },
-        { "buff.meat_grinder.up", "UP(meat_grinder_expire)", 0 },
-        { "buff.meat_grinder.remains", "TO_SECONDS(REMAIN(meat_grinder_expire))", 0 },
-        { "buff.meat_grinder.react", "UP(meat_grinder_expire)", 0 },
-        { "buff.frenzy.down", "!UP(frenzy_expire)", 0 },
-        { "buff.frenzy.up", "UP(frenzy_expire)", 0 },
-        { "buff.frenzy.remains", "TO_SECONDS(REMAIN(frenzy_expire))", 0 },
-        { "buff.frenzy.react", "frenzy_stack", 0 },
-        { "buff.frenzy.stack", "frenzy_stack", 0 },
-        { "cooldown.raging_blow.up", "UP(raging_blow_cd)", 0 },
-        { "cooldown.raging_blow.down", "!UP(raging_blow_cd)", 0 },
-        { "cooldown.raging_blow.remains", "TO_SECONDS(REMAIN(raging_blow_cd))", 0 },
-        { "buff.dragon_roar.down", "!UP(dragon_roar_expire)", 0 },
-        { "buff.dragon_roar.up", "UP(dragon_roar_expire)", 0 },
-        { "buff.dragon_roar.remains", "TO_SECONDS(REMAIN(dragon_roar_expire))", 0 },
-        { "buff.dragon_roar.react", "UP(dragon_roar_expire)", 0 },
-        { "cooldown.dragon_roar.up", "UP(dragon_roar_cd)", 0 },
-        { "cooldown.dragon_roar.down", "!UP(dragon_roar_cd)", 0 },
-        { "cooldown.dragon_roar.remains", "TO_SECONDS(REMAIN(dragon_roar_cd))", 0 },
-        { "buff.rampage.down", "!UP(rampage_expire)", 0 },
-        { "buff.rampage.up", "UP(rampage_expire)", 0 },
-        { "buff.rampage.remains", "TO_SECONDS(REMAIN(rampage_expire))", 0 },
-        { "buff.rampage.react", "rampage_stack", 0 },
-        { "buff.rampage.stack", "rampage_stack", 0 },
-        { "buff.worldbreakers_resolve.down", "!UP(worldbreakers_resolve_expire)", 0 },
-        { "buff.worldbreakers_resolve.up", "UP(worldbreakers_resolve_expire)", 0 },
-        { "buff.worldbreakers_resolve.remains", "TO_SECONDS(REMAIN(worldbreakers_resolve_expire))", 0 },
-        { "buff.worldbreakers_resolve.react", "worldbreakers_resolve_stack", 0 },
-        { "buff.worldbreakers_resolve.stack", "worldbreakers_resolve_stack", 0 },
-
-        { "cooldown.cleave.up", "UP(cleave_cd)", 0 },
-        { "cooldown.cleave.down", "!UP(cleave_cd)", 0 },
-        { "cooldown.cleave.remains", "TO_SECONDS(REMAIN(cleave_cd))", 0 },
-        { "buff.cleave.down", "!UP(cleave_expire)", 0 },
-        { "buff.cleave.up", "UP(cleave_expire)", 0 },
-        { "buff.cleave.remains", "TO_SECONDS(REMAIN(cleave_expire))", 0 },
-        { "buff.cleave.react", "cleave_stack", 0 },
-        { "buff.cleave.stack", "cleave_stack", 0 },
-        { "cooldown.colossus_smash.up", "UP(colossus_smash_cd)", 0 },
-        { "cooldown.colossus_smash.down", "!UP(colossus_smash_cd)", 0 },
-        { "cooldown.colossus_smash.remains", "TO_SECONDS(REMAIN(colossus_smash_cd))", 0 },
-        { "cooldown.hamstring.up", "UP(hamstring_cd)", 0 },
-        { "cooldown.hamstring.down", "!UP(hamstring_cd)", 0 },
-        { "cooldown.hamstring.remains", "TO_SECONDS(REMAIN(hamstring_cd))", 0 },
-        { "cooldown.mortal_strike.up", "UP(mortal_strike_cd)", 0 },
-        { "cooldown.mortal_strike.down", "!UP(mortal_strike_cd)", 0 },
-        { "cooldown.mortal_strike.remains", "TO_SECONDS(REMAIN(mortal_strike_cd))", 0 },
-        { "buff.overpower.down", "!UP(overpower_expire)", 0 },
-        { "buff.overpower.up", "UP(overpower_expire)", 0 },
-        { "buff.overpower.remains", "TO_SECONDS(REMAIN(overpower_expire))", 0 },
-        { "buff.overpower.react", "UP(overpower_expire)", 0 },
-        { "cooldown.focused_rage.up", "UP(focused_rage_cd)", 0 },
-        { "cooldown.focused_rage.down", "!UP(focused_rage_cd)", 0 },
-        { "cooldown.focused_rage.remains", "TO_SECONDS(REMAIN(focused_rage_cd))", 0 },
-        { "buff.focused_rage.down", "!(focused_rage_stack)", 0 },
-        { "buff.focused_rage.up", "!!(focused_rage_stack)", 0 },
-        { "buff.focused_rage.react", "focused_rage_stack", 0 },
-        { "buff.focused_rage.stack", "focused_rage_stack", 0 },
-        { "cooldown.ravager.up", "UP(ravager_cd)", 0 },
-        { "cooldown.ravager.down", "!UP(ravager_cd)", 0 },
-        { "cooldown.ravager.remains", "TO_SECONDS(REMAIN(ravager_cd))", 0 },
-        { "buff.ravager.down", "!UP(ravager_expire)", 0 },
-        { "buff.ravager.up", "UP(ravager_expire)", 0 },
-        { "buff.ravager.remains", "TO_SECONDS(REMAIN(ravager_expire))", 0 },
-        { "buff.ravager.react", "UP(ravager_expire)", 0 },
-        { "debuff.colossus_smash.down", "!UP(colossus_smash_expire(rti->player.target))", 0 },
-        { "debuff.colossus_smash.up", "UP(colossus_smash_expire(rti->player.target))", 0 },
-        { "debuff.colossus_smash.remains", "TO_SECONDS(REMAIN(colossus_smash_expire(rti->player.target)))", 0 },
-        { "debuff.colossus_smash.react", "UP(colossus_smash_expire(rti->player.target))", 0 },
         /* wtf are you doing dear collision... */
         { "buff.colossus_smash_up.down", "!UP(colossus_smash_expire(rti->player.target))", 0 },
         { "buff.colossus_smash_up.up", "UP(colossus_smash_expire(rti->player.target))", 0 },
@@ -352,100 +436,7 @@ namespace apltr {
         { "dot.rend.remains", "TO_SECONDS(REMAIN(rend_expire(rti->player.target)))", 0 },
         { "dot.rend.duration", "15", 0 },
 
-        { "talent.war_machine.enabled", "TALENT_WAR_MACHINE", 0 },
-        { "talent.endless_rage.enabled", "TALENT_ENDLESS_RAGE", 0 },
-        { "talent.fresh_meat.enabled", "TALENT_FRESH_MEAT", 0 },
-        { "talent.dauntless.enabled", "TALENT_DAUNTLESS", 0 },
-        { "talent.overpower.enabled", "TALENT_OVERPOWER", 0 },
-        { "talent.sweeping_strikes.enabled", "TALENT_SWEEPING_STRIKES", 0 },
-        { "talent.shockwave.enabled", "TALENT_SHOCKWAVE", 0 },
-        { "talent.storm_bolt.enabled", "TALENT_STORM_BOLT", 0 },
-        { "talent.double_time.enabled", "TALENT_DOUBLE_TIME", 0 },
-        { "talent.fervor_of_battle.enabled", "TALENT_FERVOR_OF_BATTLE", 0 },
-        { "talent.rend.enabled", "TALENT_REND", 0 },
-        { "talent.wrecking_ball.enabled", "TALENT_WRECKING_BALL", 0 },
-        { "talent.outburst.enabled", "TALENT_OUTBURST", 0 },
-        { "talent.avatar.enabled", "TALENT_AVATAR", 0 },
-        { "talent.furious_charge.enabled", "TALENT_FURIOUS_CHARGE", 0 },
-        { "talent.warpaint.enabled", "TALENT_WARPAINT", 0 },
-        { "talent.second_wind.enabled", "TALENT_SECOND_WIND", 0 },
-        { "talent.die_by_the_sword.enabled", "TALENT_DIE_BY_THE_SWORD", 0 },
-        { "talent.bounding_stride.enabled", "TALENT_BOUNDING_STRIDE", 0 },
-        { "talent.in_for_the_kill.enabled", "TALENT_IN_FOR_THE_KILL", 0 },
-        { "talent.mortal_combo.enabled", "TALENT_MORTAL_COMBO", 0 },
-        { "talent.massacre.enabled", "TALENT_MASSACRE", 0 },
-        { "talent.frothing_berserker.enabled", "TALENT_FROTHING_BERSERKER", 0 },
-        { "talent.bladestorm.enabled", "TALENT_BLADESTORM", 0 },
-        { "talent.meat_grinder.enabled", "TALENT_MEAT_GRINDER", 0 },
-        { "talent.frenzy.enabled", "TALENT_FRENZY", 0 },
-        { "talent.inner_rage.enabled", "TALENT_INNER_RAGE", 0 },
-        { "talent.focused_rage.enabled", "TALENT_FOCUSED_RAGE", 0 },
-        { "talent.trauma.enabled", "TALENT_TRAUMA", 0 },
-        { "talent.titanic_might.enabled", "TALENT_TITANIC_MIGHT", 0 },
-        { "talent.carnage.enabled", "TALENT_CARNAGE", 0 },
-        { "talent.reckless_abandon.enabled", "TALENT_RECKLESS_ABANDON", 0 },
-        { "talent.dragon_roar.enabled", "TALENT_DRAGON_ROAR", 0 },
-        { "talent.anger_management.enabled", "TALENT_ANGER_MANAGEMENT", 0 },
-        { "talent.opportunity_strikes.enabled", "TALENT_OPPORTUNITY_STRIKES", 0 },
-        { "talent.ravager.enabled", "TALENT_RAVAGER", 0 },
-        { "cooldown.battle_cry.up", "UP(battle_cry_cd)", 0 },
-        { "cooldown.battle_cry.down", "!UP(battle_cry_cd)", 0 },
-        { "cooldown.battle_cry.remains", "TO_SECONDS(REMAIN(battle_cry_cd))", 0 },
-        { "buff.battle_cry.down", "!UP(battle_cry_expire)", 0 },
-        { "buff.battle_cry.up", "UP(battle_cry_expire)", 0 },
-        { "buff.battle_cry.remains", "TO_SECONDS(REMAIN(battle_cry_expire))", 0 },
-        { "buff.battle_cry.react", "UP(battle_cry_expire)", 0 },
-        { "cooldown.berserker_rage.up", "UP(berserker_rage_cd)", 0 },
-        { "cooldown.berserker_rage.down", "!UP(berserker_rage_cd)", 0 },
-        { "cooldown.berserker_rage.remains", "TO_SECONDS(REMAIN(berserker_rage_cd))", 0 },
-        { "cooldown.heroic_leap.up", "UP(heroic_leap_cd)", 0 },
-        { "cooldown.heroic_leap.down", "!UP(heroic_leap_cd)", 0 },
-        { "cooldown.heroic_leap.remains", "TO_SECONDS(REMAIN(heroic_leap_cd))", 0 },
-        { "cooldown.potion.up", "UP(potion_cd)", 0 },
-        { "cooldown.potion.down", "!UP(potion_cd)", 0 },
-        { "cooldown.potion.remains", "TO_SECONDS(REMAIN(potion_cd))", 0 },
-        { "buff.potion.down", "!UP(potion_expire)", 0 },
-        { "buff.potion.up", "UP(potion_expire)", 0 },
-        { "buff.potion.remains", "TO_SECONDS(REMAIN(potion_expire))", 0 },
-        { "buff.potion.react", "UP(potion_expire)", 0 },
-        { "cooldown.shockwave.up", "UP(shockwave_cd)", 0 },
-        { "cooldown.shockwave.down", "!UP(shockwave_cd)", 0 },
-        { "cooldown.shockwave.remains", "TO_SECONDS(REMAIN(shockwave_cd))", 0 },
-        { "cooldown.storm_bolt.up", "UP(storm_bolt_cd)", 0 },
-        { "cooldown.storm_bolt.down", "!UP(storm_bolt_cd)", 0 },
-        { "cooldown.storm_bolt.remains", "TO_SECONDS(REMAIN(storm_bolt_cd))", 0 },
-        { "cooldown.avatar.up", "UP(avatar_cd)", 0 },
-        { "cooldown.avatar.down", "!UP(avatar_cd)", 0 },
-        { "cooldown.avatar.remains", "TO_SECONDS(REMAIN(avatar_cd))", 0 },
-        { "buff.avatar.down", "!UP(avatar_expire)", 0 },
-        { "buff.avatar.up", "UP(avatar_expire)", 0 },
-        { "buff.avatar.remains", "TO_SECONDS(REMAIN(avatar_expire))", 0 },
-        { "buff.avatar.react", "UP(avatar_expire)", 0 },
-        { "cooldown.bladestorm.up", "UP(bladestorm_cd)", 0 },
-        { "cooldown.bladestorm.down", "!UP(bladestorm_cd)", 0 },
-        { "cooldown.bladestorm.remains", "TO_SECONDS(REMAIN(bladestorm_cd))", 0 },
-        { "buff.bladestorm.down", "!UP(bladestorm_expire)", 0 },
-        { "buff.bladestorm.up", "UP(bladestorm_expire)", 0 },
-        { "buff.bladestorm.remains", "TO_SECONDS(REMAIN(bladestorm_expire))", 0 },
-        { "buff.bladestorm.react", "UP(bladestorm_expire)", 0 },
-        { "cooldown.arcane_torrent.up", "UP(arcane_torrent_cd)", 0 },
-        { "cooldown.arcane_torrent.down", "!UP(arcane_torrent_cd)", 0 },
-        { "cooldown.arcane_torrent.remains", "TO_SECONDS(REMAIN(arcane_torrent_cd))", 0 },
-        { "cooldown.berserking.up", "UP(berserking_cd)", 0 },
-        { "cooldown.berserking.down", "!UP(berserking_cd)", 0 },
-        { "cooldown.berserking.remains", "TO_SECONDS(REMAIN(berserking_cd))", 0 },
-        { "buff.berserking.down", "!UP(berserking_expire)", 0 },
-        { "buff.berserking.up", "UP(berserking_expire)", 0 },
-        { "buff.berserking.remains", "TO_SECONDS(REMAIN(berserking_expire))", 0 },
-        { "buff.berserking.react", "UP(berserking_expire)", 0 },
-        { "cooldown.blood_fury.up", "UP(blood_fury_cd)", 0 },
-        { "cooldown.blood_fury.down", "!UP(blood_fury_cd)", 0 },
-        { "cooldown.blood_fury.remains", "TO_SECONDS(REMAIN(blood_fury_cd))", 0 },
-        { "buff.blood_fury.down", "!UP(blood_fury_expire)", 0 },
-        { "buff.blood_fury.up", "UP(blood_fury_expire)", 0 },
-        { "buff.blood_fury.remains", "TO_SECONDS(REMAIN(blood_fury_expire))", 0 },
-        { "buff.blood_fury.react", "UP(blood_fury_expire)", 0 },
-
+        // temporary.
         { "buff.shattered_defenses.down", "1", 0 },
         { "buff.precise_strikes.down", "1", 0 },
         { 0 }
@@ -476,6 +467,220 @@ IC_LOCAL int lookup_var_context_dependent( std::string context, std::string name
     for (int i = 0; var_cd_list[i].simc1; i++) {
         if (0 == context.compare( var_cd_list[i].simc1 ) && 0 == name.compare( var_cd_list[i].simc2 )) return i;
     }
+    return -1;
+}
+
+IC_LOCAL int runtime_var_constructor( std::string context, std::string name, std::string& rt ) {
+    std::stringstream ss( name );
+    std::string seg;
+    char buf[32];
+    std::getline( ss, seg, '.' );
+    if (seg == "spell_targets") {
+        std::string spell;
+        std::getline( ss, spell, '.' );
+        for (int i = 0; spell_target_bound[i].first; i++) {
+            if (0 == spell.compare( spell_target_bound[i].first )) {
+                if (spell_target_bound[i].second) {
+                    rt = "min(num_enemies,";
+                    rt += _itoa( spell_target_bound[i].second, buf, 10 );
+                    rt += ")";
+                } else {
+                    rt = "num_enemies";
+                }
+                return 0x7fffffff;
+            }
+        }
+    } else if (seg == "talent") {
+        std::string talent;
+        std::getline( ss, talent, '.' );
+        for (int i = 0; talent_list[i]; i++) {
+            if (0 == talent.compare( talent_list[i] )) {
+                std::transform(talent.begin(), talent.end(), talent.begin(), ::toupper);
+                rt = "TALENT_";
+                rt += talent;
+                return 0x7fffffff;
+            }
+        }
+    } else if (seg == "buff") {
+        std::string buff;
+        std::getline( ss, buff, '.' );
+        std::string var;
+        std::getline( ss, var, '.' );
+        if (var == "up") {
+            for (int i = 0; expire_buff_list[i]; i++) {
+                if (0 == buff.compare( expire_buff_list[i] )) {
+                    rt = "UP(";
+                    rt += buff;
+                    rt += "_expire)";
+                    return 0x7fffffff;
+                }
+            }
+            for (int i = 0; stack_buff_list[i]; i++) {
+                if (0 == buff.compare( stack_buff_list[i] )) {
+                    rt = "(";
+                    rt += buff;
+                    rt += "_stack>0)";
+                    return 0x7fffffff;
+                }
+            }
+        } else if (var == "down") {
+            for (int i = 0; expire_buff_list[i]; i++) {
+                if (0 == buff.compare( expire_buff_list[i] )) {
+                    rt = "!UP(";
+                    rt += buff;
+                    rt += "_expire)";
+                    return 0x7fffffff;
+                }
+            }
+            for (int i = 0; stack_buff_list[i]; i++) {
+                if (0 == buff.compare( stack_buff_list[i] )) {
+                    rt = "(";
+                    rt += buff;
+                    rt += "_stack==0)";
+                    return 0x7fffffff;
+                }
+            }
+        } else if (var == "react") {
+            for (int i = 0; stack_buff_list[i]; i++) {
+                if (0 == buff.compare( stack_buff_list[i] )) {
+                    rt = buff;
+                    rt += "_stack";
+                    return 0x7fffffff;
+                }
+            }
+            for (int i = 0; expire_buff_list[i]; i++) {
+                if (0 == buff.compare( expire_buff_list[i] )) {
+                    rt = "UP(";
+                    rt += buff;
+                    rt += "_expire)";
+                    return 0x7fffffff;
+                }
+            }
+        } else if (var == "remains") {
+            for (int i = 0; expire_buff_list[i]; i++) {
+                if (0 == buff.compare( expire_buff_list[i] )) {
+                    rt = "TO_SECONDS(REMAIN(";
+                    rt += buff;
+                    rt += "_expire))";
+                    return 0x7fffffff;
+                }
+            }
+        } else if (var == "stack") {
+            for (int i = 0; stack_buff_list[i]; i++) {
+                if (0 == buff.compare( stack_buff_list[i] )) {
+                    rt = buff;
+                    rt += "_stack";
+                    return 0x7fffffff;
+                }
+            }
+        }
+    } else if (seg == "cooldown") {
+        std::string spell;
+        std::getline( ss, spell, '.' );
+        std::string var;
+        std::getline( ss, var, '.' );
+        if (var == "up") {
+            for (int i = 0; cooldown_list[i]; i++) {
+                if (0 == spell.compare( cooldown_list[i] )) {
+                    rt = "UP(";
+                    rt += spell;
+                    rt += "_cd)";
+                    return 0x7fffffff;
+                }
+            }
+        } else if (var == "down") {
+            for (int i = 0; cooldown_list[i]; i++) {
+                if (0 == spell.compare( cooldown_list[i] )) {
+                    rt = "!UP(";
+                    rt += spell;
+                    rt += "_cd)";
+                    return 0x7fffffff;
+                }
+            }
+        } else if (var == "remains") {
+            for (int i = 0; cooldown_list[i]; i++) {
+                if (0 == spell.compare( cooldown_list[i] )) {
+                    rt = "TO_SECONDS(REMAIN(";
+                    rt += spell;
+                    rt += "_cd))";
+                    return 0x7fffffff;
+                }
+            }
+        }
+    } else if (seg == "debuff") {
+        std::string debuff;
+        std::getline( ss, debuff, '.' );
+        std::string var;
+        std::getline( ss, var, '.' );
+        if (var == "up") {
+            for (int i = 0; expire_debuff_list[i]; i++) {
+                if (0 == debuff.compare( expire_debuff_list[i] )) {
+                    rt = "UP(";
+                    rt += debuff;
+                    rt += "_expire(rti->player.target))";
+                    return 0x7fffffff;
+                }
+            }
+            for (int i = 0; stack_debuff_list[i]; i++) {
+                if (0 == debuff.compare( stack_debuff_list[i] )) {
+                    rt = "(";
+                    rt += debuff;
+                    rt += "_stack(rti->player.target)>0)";
+                    return 0x7fffffff;
+                }
+            }
+        } else if (var == "down") {
+            for (int i = 0; expire_debuff_list[i]; i++) {
+                if (0 == debuff.compare( expire_debuff_list[i] )) {
+                    rt = "!UP(";
+                    rt += debuff;
+                    rt += "_expire(rti->player.target))";
+                    return 0x7fffffff;
+                }
+            }
+            for (int i = 0; stack_debuff_list[i]; i++) {
+                if (0 == debuff.compare( stack_debuff_list[i] )) {
+                    rt = "(";
+                    rt += debuff;
+                    rt += "_stack(rti->player.target)==0)";
+                    return 0x7fffffff;
+                }
+            }
+        } else if (var == "react") {
+            for (int i = 0; stack_debuff_list[i]; i++) {
+                if (0 == debuff.compare( stack_debuff_list[i] )) {
+                    rt = debuff;
+                    rt += "_stack(rti->player.target)";
+                    return 0x7fffffff;
+                }
+            }
+            for (int i = 0; expire_debuff_list[i]; i++) {
+                if (0 == debuff.compare( expire_debuff_list[i] )) {
+                    rt = "UP(";
+                    rt += debuff;
+                    rt += "_expire(rti->player.target))";
+                    return 0x7fffffff;
+                }
+            }
+        } else if (var == "remains") {
+            for (int i = 0; expire_debuff_list[i]; i++) {
+                if (0 == debuff.compare( expire_debuff_list[i] )) {
+                    rt = "TO_SECONDS(REMAIN(";
+                    rt += debuff;
+                    rt += "_expire(rti->player.target)))";
+                    return 0x7fffffff;
+                }
+            }
+        } else if (var == "stack") {
+            for (int i = 0; stack_debuff_list[i]; i++) {
+                if (0 == debuff.compare( stack_debuff_list[i] )) {
+                    rt = debuff;
+                    rt += "_stack(rti->player.target)";
+                    return 0x7fffffff;
+                }
+            }
+        }
+    } 
     return -1;
 }
 
@@ -566,6 +771,7 @@ struct cond_node_t {
     cond_node_t* rvalue;
     int op;
     double value;
+    std::string rt;
     cond_node_t() {
         lvalue = 0;
         rvalue = 0;
@@ -579,6 +785,9 @@ struct cond_node_t {
             break;
         case VAR_CD:
             str.append( var_cd_list[( int ) value].ic );
+            break;
+        case VAR_RT:
+            str.append( rt );
             break;
         case CONST:
         {
@@ -691,6 +900,7 @@ struct apl_t;
 struct rule_t {
     cond_node_t* cond;
     int action;
+    std::string rt;
     apl_t* run_list;
     int ret_on_call;
     int sync;
@@ -755,10 +965,12 @@ void rule_t::dump( std::string& str ) {
         str.append( "if(" );
         cond->dump( str );
         str.append( ")" );
-        str.append( act_list[action].ic );
+        if (action < 0x7fffffff) str.append( act_list[action].ic );
+        else str.append( rt );
         str.append( ";" );
     } else {
-        str.append( act_list[action].ic );
+        if (action < 0x7fffffff) str.append( act_list[action].ic );
+        else str.append( rt );
         str.append( ";" );
     }
     str.append( "\r\n" );
@@ -931,6 +1143,10 @@ IC_LOCAL cond_node_t* variable() {
         if (node->value < 0) {
             node->op = VAR_CD;
             node->value = lookup_var_context_dependent( processing_action, t.value );
+        }
+        if (node->value < 0) {
+            node->op = VAR_RT;
+            node->value = runtime_var_constructor( processing_action, t.value, node->rt );
         }
         if (node->value < 0) {
             if (!t.suppress) eprintf( t, 0, "unknown variable '%s', assumed as constant false", t.value.c_str() );
@@ -1150,7 +1366,7 @@ IC_LOCAL rule_t* rule_item() {
                     if (!t.suppress) eprintf( t, 0, "name duplicated, overwritten" );
                     t.suppress = 1;
                 }
-                node->action = lookup_act( working->at( vpos ).value );
+                node->action = lookup_act( working->at( vpos ).value, node->rt );
                 processing_action = working->at( vpos ).value;
                 if (node->action < 0) {
                     token_t& t = working->at( vpos );
@@ -1256,7 +1472,7 @@ IC_LOCAL rule_t* rule_item() {
         return node;
     } else {
         auto node = new rule_t;
-        node->action = lookup_act( action );
+        node->action = lookup_act( action, node->rt );
         if (node->action < 0) {
             pos--;
             token_t& t = get();

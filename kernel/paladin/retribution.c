@@ -658,7 +658,7 @@ DECL_EVENT( zeal_expire ) {
 }
 DECL_EVENT( zeal_trigger ) {
     zeal_expire = TIME_OFFSET( FROM_SECONDS( 12 ) );
-    zeal_stack = min( zeal_stack + 1, 3 );
+    zeal_stack = min( (k32u)zeal_stack + 1, (k32u)3 );
     eq_enqueue( rti, zeal_expire, routnum_zeal_expire, 0 );
     lprintf( ( "zeal stack %d", zeal_stack ) );
 }
@@ -721,7 +721,7 @@ DECL_SPELL( holy_wrath ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( holy_wrath_cd > rti->timestamp ) return 0;
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
-    holy_wrath_cd = TIME_OFFSET( FROM_SECONDS( 120 ) );
+    holy_wrath_cd = TIME_OFFSET( FROM_SECONDS( 60 ) );
     rti->player.spec->holy_wrath.tick_period = FROM_SECONDS( 0.5f / ( 1.0f + rti->player.stat.haste ) );
     holy_wrath_expire = TIME_OFFSET( 5 * rti->player.spec->holy_wrath.tick_period );
     eq_enqueue( rti, holy_wrath_cd, routnum_holy_wrath_cd, 0 );
@@ -746,7 +746,7 @@ DECL_EVENT( libram_of_vindication_expire ) {
 DECL_EVENT( libram_of_vindication_trigger ) {
     libram_of_vindication_expire = TIME_OFFSET( FROM_SECONDS( 10 ) );
     if (target_id == rti->player.spec->libram_of_vindication.target) {
-        libram_of_vindication_stack = min( libram_of_vindication_stack + 1, 3 );
+        libram_of_vindication_stack = min( (k32u)libram_of_vindication_stack + 1, (k32u)3 );
     }else{
         libram_of_vindication_stack = 1;
         rti->player.spec->libram_of_vindication.target = target_id;
