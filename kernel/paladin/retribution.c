@@ -89,6 +89,14 @@ struct spec_state_t {
 #define divine_hammer_expire (0)
 #endif
 #define divine_hammer_cd (blade_of_justice_cd)
+#if (TALENT_DIVINE_PURPOSE)
+    struct {
+        time_t expire;
+    } divine_purpose;
+#define divine_purpose_expire (rti->player.spec->divine_purpose.expire)
+#else
+#define divine_purpose_expire (0)
+#endif
 #if (TALENT_HOLY_WRATH)
     struct {
         time_t cd;
@@ -252,6 +260,10 @@ enum {
 #if (TALENT_DIVINE_HAMMER)
     routnum_divine_hammer_tick,
 #endif
+#if (TALENT_DIVINE_PURPOSE)
+    routnum_divine_purpose_trigger,
+    routnum_divine_purpose_expire,
+#endif
 #if (TALENT_HOLY_WRATH)
     routnum_holy_wrath_tick,
     routnum_holy_wrath_cd,
@@ -340,7 +352,6 @@ SPELL_ALIAS( divine_hammer, blade_of_justice )
 DECL_EVENT( judgment_cast ) {
     float d = ap_dmg( rti, 1.5f );
     d *= 1.0f + rti->player.stat.mastery;
-    if ( TALENT_GREATER_JUDGMENT ) d *= 1.5;
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 ); // TODO: does judgment triggers as yellow melee or spell? or both?
     deal_damage( rti, target_id, d, DTYPE_HOLY, dice, 0, 0 );
     if ( TALENT_GREATER_JUDGMENT ) {
@@ -350,10 +361,12 @@ DECL_EVENT( judgment_cast ) {
             c++;
             dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 ); // TODO: does judgment triggers as yellow melee or spell? or both?
             deal_damage( rti, i, d, DTYPE_HOLY, dice, 0, 0 );
+            judgment_expire( i ) = TIME_OFFSET( FROM_SECONDS( 6 ) );  // TODO: does this duration scales with haste?
+            eq_enqueue( rti, judgment_expire( i ), routnum_judgment_expire, i );
         }
         lprintf( ( "judgment multi-hit" ) );
     }
-    judgment_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( ( TALENT_GREATER_JUDGMENT ? 2 : 1 ) * 6 ) );  // TODO: does this duration scales with haste?
+    judgment_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 6 ) );  // TODO: does this duration scales with haste?
     eq_enqueue( rti, judgment_expire( target_id ), routnum_judgment_expire, target_id );
     lprintf( ( "judgment hit" ) );
 }
@@ -371,7 +384,7 @@ DECL_EVENT( judgment_cd ) {
 DECL_SPELL( judgment ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( judgment_cd > rti->timestamp ) return 0;
-    judgment_cd = TIME_OFFSET( FROM_SECONDS( 12.0f / ( 1.0f + rti->player.stat.haste ) ) );
+    judgment_cd = TIME_OFFSET( FROM_SECONDS( ( TALENT_GREATER_JUDGMENT ? 10.0f : 12.0f ) / ( 1.0f + rti->player.stat.haste ) ) );
     eq_enqueue( rti, judgment_cd, routnum_judgment_cd, 0 );
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_judgment_cast, rti->player.target );
@@ -435,6 +448,7 @@ DECL_SPELL( crusader_strike ) {
     return 1;
 }
 SPELL_ALIAS( zeal, crusader_strike )
+
 // === divine storm ===========================================================
 DECL_EVENT( divine_storm_cast ) {
     for ( int i = 0; i < num_enemies; i++ ) {
@@ -445,19 +459,32 @@ DECL_EVENT( divine_storm_cast ) {
         deal_damage( rti, i, d, DTYPE_HOLY, dice, 0, 0 );
         lprintf( ( "divine_storm hit @tar%d", i ) );
     }
+#if (TALENT_DIVINE_PURPOSE)
+    if ( uni_rng( rti ) < 0.2f ) {
+        eq_enqueue( rti, rti->timestamp, routnum_divine_purpose_trigger, 0 );
+    }
+#endif
 }
 DECL_SPELL( divine_storm ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     float cost = 3.0f;
-    if ( UP( the_fires_of_justice_expire ) ) cost -= 1.0f;
+    if ( UP( divine_purpose_expire ) ) cost = 0.0f;
+    else if ( UP( the_fires_of_justice_expire ) ) cost -= 1.0f;
     if ( !power_check( rti, cost ) ) return 0;
     power_consume( rti, cost );
+#if (TALENT_DIVINE_PURPOSE)
+    if ( UP( divine_purpose_expire ) ) {
+        divine_purpose_expire = rti->timestamp;
+        eq_enqueue( rti, rti->timestamp, routnum_divine_purpose_expire, 0 );
+    } else
+#endif
 #if (TALENT_THE_FIRES_OF_JUSTICE)
     if ( UP( the_fires_of_justice_expire ) ) {
         the_fires_of_justice_expire = rti->timestamp;
         eq_enqueue( rti, rti->timestamp, routnum_the_fires_of_justice_expire, 0 );
     }
 #endif
+    ;
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_divine_storm_cast, rti->player.target );
     lprintf( ( "cast divine_storm" ) );
@@ -472,19 +499,32 @@ DECL_EVENT( templars_verdict_cast ) {
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );  // TODO: does templars_verdict triggers as yellow melee or spell? or both?
     deal_damage( rti, target_id, d, DTYPE_HOLY, dice, 0, 0 );
     lprintf( ( "templars_verdict hit" ) );
+#if (TALENT_DIVINE_PURPOSE)
+    if ( uni_rng( rti ) < 0.2f ) {
+        eq_enqueue( rti, rti->timestamp, routnum_divine_purpose_trigger, 0 );
+    }
+#endif
 }
 DECL_SPELL( templars_verdict ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     float cost = 3.0f;
-    if ( UP( the_fires_of_justice_expire ) ) cost -= 1.0f;
+    if ( UP( divine_purpose_expire ) ) cost = 0.0f;
+    else if ( UP( the_fires_of_justice_expire ) ) cost -= 1.0f;
     if ( !power_check( rti, cost ) ) return 0;
     power_consume( rti, cost );
+#if (TALENT_DIVINE_PURPOSE)
+    if ( UP( divine_purpose_expire ) ) {
+        divine_purpose_expire = rti->timestamp;
+        eq_enqueue( rti, rti->timestamp, routnum_divine_purpose_expire, 0 );
+    } else
+#endif
 #if (TALENT_THE_FIRES_OF_JUSTICE)
     if ( UP( the_fires_of_justice_expire ) ) {
         the_fires_of_justice_expire = rti->timestamp;
         eq_enqueue( rti, rti->timestamp, routnum_the_fires_of_justice_expire, 0 );
     }
 #endif
+    ;
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_templars_verdict_cast, rti->player.target );
     lprintf( ( "cast templars_verdict" ) );
@@ -497,6 +537,11 @@ DECL_EVENT( execution_sentence_cast ) {
     execution_sentence_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 8.0f / ( 1.0f + rti->player.stat.haste ) ) );
     eq_enqueue( rti, execution_sentence_expire( target_id ), routnum_execution_sentence_expire, target_id );
     lprintf( ( "execution_sentence apply @tar%d", target_id ) );
+#if (TALENT_DIVINE_PURPOSE)
+    if ( uni_rng( rti ) < 0.2f ) {
+        eq_enqueue( rti, rti->timestamp, routnum_divine_purpose_trigger, 0 );
+    }
+#endif
 }
 DECL_EVENT( execution_sentence_expire ) {
     if ( execution_sentence_expire( target_id ) == rti->timestamp ) {
@@ -516,15 +561,23 @@ DECL_SPELL( execution_sentence ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( execution_sentence_cd > rti->timestamp ) return 0;
     float cost = 3.0f;
-    if ( UP( the_fires_of_justice_expire ) ) cost -= 1.0f;
+    if ( UP( divine_purpose_expire ) ) cost = 0.0f;
+    else if ( UP( the_fires_of_justice_expire ) ) cost -= 1.0f;
     if ( !power_check( rti, cost ) ) return 0;
     power_consume( rti, cost );
+#if (TALENT_DIVINE_PURPOSE)
+    if ( UP( divine_purpose_expire ) ) {
+        divine_purpose_expire = rti->timestamp;
+        eq_enqueue( rti, rti->timestamp, routnum_divine_purpose_expire, 0 );
+    } else
+#endif
 #if (TALENT_THE_FIRES_OF_JUSTICE)
     if ( UP( the_fires_of_justice_expire ) ) {
         the_fires_of_justice_expire = rti->timestamp;
         eq_enqueue( rti, rti->timestamp, routnum_the_fires_of_justice_expire, 0 );
     }
 #endif
+    ;
     execution_sentence_cd = TIME_OFFSET( FROM_SECONDS( 20.0f / ( 1.0f + rti->player.stat.haste ) ) );
     eq_enqueue( rti, execution_sentence_cd, routnum_execution_sentence_cd, 0 );
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
@@ -629,6 +682,20 @@ DECL_EVENT( divine_hammer_tick ) {
 }
 #endif
 
+// === divine purpose =========================================================
+#if (TALENT_DIVINE_PURPOSE)
+DECL_EVENT( divine_purpose_expire ) {
+    if ( divine_purpose_expire == rti->timestamp ) {
+        lprintf( ( "divine_purpose expire" ) );
+    }
+}
+DECL_EVENT( divine_purpose_trigger ) {
+    divine_purpose_expire = TIME_OFFSET( FROM_SECONDS( 10 ) );
+    eq_enqueue( rti, divine_purpose_expire, routnum_divine_purpose_expire, 0 );
+    lprintf( ( "divine_purpose trigger" ) );
+}
+#endif
+
 // === holy wrath =============================================================
 #if (TALENT_HOLY_WRATH)
 DECL_EVENT( holy_wrath_cd ) {
@@ -637,10 +704,10 @@ DECL_EVENT( holy_wrath_cd ) {
     }
 }
 DECL_EVENT( holy_wrath_tick ) {
-    float d = ap_dmg( rti, 1.0f );
+    float d = ap_dmg( rti, 1.5f );
     k32u dice = round_table_dice( rti, target_id, ATYPE_SPELL, 0 );  // TODO: does holy wrath triggers as yellow melee or spell? or both?
     deal_damage( rti, target_id, d, DTYPE_HOLY, dice, 0, 0 );
-    dice = round_table_dice( rti, target_id, ATYPE_SPELL, 0 );  // TODO: how holy wrath deal damages? 2 * 100%ap * 5ticks?
+    dice = round_table_dice( rti, target_id, ATYPE_SPELL, 0 );  // TODO: how holy wrath deal damages? 2 * 150%ap * 5ticks?
     deal_damage( rti, target_id, d, DTYPE_HOLY, dice, 0, 0 );
     power_gain( rti, 1.0f );
     lprintf( ( "holy wrath hit" ) );
@@ -725,6 +792,10 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
 #endif
 #if (TALENT_DIVINE_HAMMER)
         HOOK_EVENT( divine_hammer_tick );
+#endif
+#if (TALENT_DIVINE_PURPOSE)
+        HOOK_EVENT( divine_purpose_trigger );
+        HOOK_EVENT( divine_purpose_expire );
 #endif
 #if (TALENT_HOLY_WRATH)
         HOOK_EVENT( holy_wrath_tick );

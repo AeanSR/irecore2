@@ -44,7 +44,7 @@
 #define TALENT_SEAL_OF_LIGHT        (TALENT_TIER6 == 3)
 
 /* Tier 7 */
-#define TALENT_BLESSINGS_OF_JUSTICE (TALENT_TIER7 == 1)
+#define TALENT_DIVINE_PURPOSE       (TALENT_TIER7 == 1)
 #define TALENT_HOLY_WRATH           (TALENT_TIER7 == 2)
 #define TALENT_EQUALITY             (TALENT_TIER7 == 3)
 
