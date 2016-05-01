@@ -27,9 +27,6 @@ trinket1_ilvl=745
 trinket2=empty_drinking_horn
 trinket2_ilvl=740
 
-# SimC do not use legendary ring. Add it.
-actions=SPELL(thorasus_the_stone_heart_of_draenor);
-
 # Translated from "Paladin_Retribution_T18M.simc" by apltr.
 actions+=if(((UP(bloodlust_expire)||UP(avenging_wrath_expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<=40.000000f)))SPELL(potion);
 actions+=if(UP(avenging_wrath_expire))SPELL(thorasus_the_stone_heart_of_draenor);
