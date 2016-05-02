@@ -581,7 +581,7 @@ DECL_SPELL( overpower ) {
 DECL_EVENT( rend_tick ) {
     if ( rend_expire( target_id ) < rti->timestamp ) return; // last tick evaluates as equal.
     float d = ap_dmg( rti, 1.5f );
-    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 ); // TODO: does rend proc? is rend effected by battle cry?
+    k32u dice = round_table_dice2( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     lprintf( ( "rend tick" ) );
     if ( TIME_DISTANT( rend_expire( target_id ) ) >= FROM_SECONDS( 3 ) ) {
