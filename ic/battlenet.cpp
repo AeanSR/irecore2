@@ -157,8 +157,8 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
     }
     bn.set_url( url );
     rapidjson::Document j = bn.get();
-
-    if (j["class"].GetInt() != 1 && j["class"].GetInt() != 2) {
+    int class_id = j["class"].GetInt();
+    if (class_id != 1 && class_id != 2) {
         if (!silence)
             QMessageBox::information( this, QApplication::translate( "gicClass", "Import Fail" ), QApplication::translate( "gicClass", "This character's class is not supported by IreCore." ), QMessageBox::Ok );
         return -1;
@@ -172,11 +172,11 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
     talent = -1;
     for (int i = 0; i < jtalentlist.Size(); i++) {
         if (( jtalentlist[i]["selected"].GetBool() == !!active )) {
-            if (0 == std::string( "Z" ).compare( jtalentlist[i]["calcSpec"].GetString() )) {
+            if (class_id == 1 && 0 == std::string( "Z" ).compare( jtalentlist[i]["calcSpec"].GetString() )) {
                 spec = SPEC_FURY_WARRIOR;
-            } else if (0 == std::string( "a" ).compare( jtalentlist[i]["calcSpec"].GetString() )) {
+            } else if (class_id == 1 && 0 == std::string( "a" ).compare( jtalentlist[i]["calcSpec"].GetString() )) {
                 spec = SPEC_ARMS_WARRIOR;
-            } else if (0 == std::string( "b" ).compare( jtalentlist[i]["calcSpec"].GetString() )) {
+            } else if (class_id == 2 && 0 == std::string( "b" ).compare( jtalentlist[i]["calcSpec"].GetString() )) {
                 spec = SPEC_RET_PALADIN;
             } else {
                 if (!silence)

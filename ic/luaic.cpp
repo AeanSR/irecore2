@@ -213,6 +213,45 @@ extern "C" int FinishContourChart( lua_State *L ) {
     return 0;
 }
 
+// Create a bar chart.
+extern "C" int CreatePlotChart( lua_State *L ) {
+    int sets = 1;
+    int n = lua_gettop( L );
+    if (n >= 1 && lua_isnumber( L, 1 )) {
+        sets = lua_tonumber( L, 1 );
+    }
+    QMetaObject::invokeMethod( gic::static_this, "new_plot_chart", Q_ARG( int, sets ) );
+    return 0;
+}
+
+// Add data to bar chart.
+extern "C" int AddPlotData( lua_State *L ) {
+    int n = lua_gettop( L );
+    if (n > 4) {
+        std::string emsg = "wrong number arguments, expected 4 or less, given ";
+        char buf[32];
+        emsg += _itoa( n, buf, 10 );
+        lua_pushlstring( L, emsg.c_str(), emsg.length() );
+        lua_error( L );
+    }
+    double value[4] = { 0 };
+    for (int i = 0; i < n && i < 4; i++) {
+        if (!lua_isnumber( L, i + 1 )) {
+            lua_pushliteral( L, "expected numberic arguments" );
+            lua_error( L );
+        }
+        value[i] = lua_tonumber( L, i + 1 );
+    }
+    QMetaObject::invokeMethod( gic::static_this, "add_plot", Q_ARG( double, value[0] ), Q_ARG( double, value[1] ), Q_ARG( double, value[2] ), Q_ARG( double, value[3] ) );
+    return 0;
+}
+
+// Finish and show bar chart.
+extern "C" int FinishPlotChart( lua_State *L ) {
+    QMetaObject::invokeMethod( gic::static_this, "finish_plot" );
+    return 0;
+}
+
 // DPS Compare Confidence.
 extern "C" int DPSCompareConfidence( lua_State *L ) {
     int n = lua_gettop( L );
@@ -273,6 +312,12 @@ extern "C" int Run( lua_State *L ) {
     return 3;
 }
 
+// Get signature - find equivalent APL when deterministic seed is set.
+extern "C" int GetLastSignature( lua_State *L ) {
+    lua_pushinteger( L, ic_getlastsignature() );
+    return 1;
+}
+
 #define lua_nregister(L, f) lua_register(L, #f, f)
 void gic::run_scripts() {
     lua_State *L = luaL_newstate();
@@ -290,12 +335,16 @@ void gic::run_scripts() {
 
     lua_nregister( L, CreateBarChart );
     lua_nregister( L, CreateContourChart );
+    lua_nregister( L, CreatePlotChart );
     lua_nregister( L, AddBarData );
     lua_nregister( L, AddContourData );
+    lua_nregister( L, AddPlotData );
     lua_nregister( L, FinishBarChart );
     lua_nregister( L, FinishContourChart );
+    lua_nregister( L, FinishPlotChart );
 
     lua_nregister( L, DPSCompareConfidence );
+    lua_nregister( L, GetLastSignature );
 
     lua_getglobal( L, "_G" );
     luaL_setfuncs( L, printlib, 0 );

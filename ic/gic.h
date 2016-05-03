@@ -62,6 +62,12 @@ struct contour_data_t {
     contour_data_t( int x, int y, double value ) : x( x ), y( y ), value( value ) { }
     bool operator<( const contour_data_t& rhs ) { return value < rhs.value; }
 };
+struct plot_data_t {
+    double x;
+    double y[3];
+    plot_data_t( double x, double y1, double y2, double y3 ) : x( x ) { y[0] = y1; y[1] = y2; y[2] = y3; }
+    bool operator<( const plot_data_t& rhs ) { return x < rhs.x; }
+};
 
 class gic : public QMainWindow {
     Q_OBJECT
@@ -109,6 +115,9 @@ public:
     void new_contour_chart( QString xlbl, QString ylbl, QString zlbl );
     void add_contour( int x, int y, double value );
     void finish_contour();
+    void new_plot_chart( int sets );
+    void add_plot( double x, double y1, double y2, double y3 );
+    void finish_plot();
 
 private:
     Ui::gicClass ui;

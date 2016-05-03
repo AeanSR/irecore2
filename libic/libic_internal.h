@@ -110,6 +110,7 @@ struct config_t {
     } kernel;
     FILE* output_file;
     std::vector<ic_computedevice_t> device_list;
+    unsigned long long last_signature;
     config_t() {
         memset( this, 0, sizeof *this );
         srand( ( unsigned int ) time( NULL ) );

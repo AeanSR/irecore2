@@ -1030,6 +1030,10 @@ IC_LOCAL std::unordered_map<std::string, cl_program>& clptt( void ) {
     static std::unordered_map<std::string, cl_program> tt;
     return tt;
 }
+IC_LOCAL std::list<std::string>& clplst( void ) {
+    static std::list<std::string> lst;
+    return lst;
+}
 IC_LOCAL int ttprobe( std::string hashkey, cl_program* p ) {
     auto i = clptt().find( hashkey );
     if (i != clptt().end()) {
@@ -1041,6 +1045,13 @@ IC_LOCAL int ttprobe( std::string hashkey, cl_program* p ) {
 }
 IC_LOCAL void ttsave( std::string hashkey, cl_program p ) {
     clptt()[hashkey] = p;
+    clplst().push_back(hashkey);
+    if (clplst().size() > 1000) {
+        auto p = clptt().find(clplst().front());
+        clReleaseProgram(p->second);
+        clptt().erase(p);
+        clplst().pop_front();
+    }
 }
 
 // API: start simulation.
@@ -1178,7 +1189,6 @@ int ic_runsim( float* dps, float* dpsr, float* dpse, float* sim_time ) {
 
 
     float ret, dev;
-
     if (err == CL_SUCCESS) {
         err = clEnqueueReadBuffer( queue, cl_res, CL_TRUE, 0, sizeof( float ) * blank.iterations, &res[0], 0, 0, 0 );
         if (err != CL_SUCCESS) {
@@ -1196,6 +1206,21 @@ int ic_runsim( float* dps, float* dpsr, float* dpse, float* sim_time ) {
     if (dpsr) *dpsr = dev;
     if (dpse) *dpse = 2.0 * dev / sqrt( blank.iterations );
 
+    std::mt19937_64 rng;
+    config().last_signature = 4262ULL;
+    for (int i = 0; i < blank.iterations; i++) {
+        union {
+            struct {
+                int i;
+                float r;
+            } s;
+            unsigned long long ll;
+        }u;
+        u.s.i = i;
+        u.s.r = res[i];
+        rng.seed( u.ll );
+        config().last_signature ^= rng();
+    }
 
     cbprintf( "DPS %.3f\n", ret );
     cbprintf( "DPS Range(stddev) %.3f\n", dev );
@@ -1231,4 +1256,8 @@ const char* ic_apltranslate_f( const char* filename ) {
     output.clear();
     fapltr( input, output );
     return output.c_str();
+}
+
+unsigned long long ic_getlastsignature( void ) {
+    return config().last_signature;
 }

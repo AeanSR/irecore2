@@ -71,4 +71,5 @@ IC_API const char* ic_apltranslate_s( const char* simc_style );
 IC_API const char* ic_apltranslate_f( const char* filename );
 
 IC_API int ic_runsim( float* dps, float* dpsr, float* dpse, float* sim_time );
+IC_API unsigned long long ic_getlastsignature( void );
 #endif

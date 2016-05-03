@@ -23,6 +23,14 @@ QString& contour_zlbl() {
     static QString zlbl;
     return zlbl;
 }
+std::vector<plot_data_t>& plot_data() {
+    static std::vector<plot_data_t> vec;
+    return vec;
+}
+int& plot_sets() {
+    static int sets = 3;
+    return sets;
+}
 
 void QChartDialog::setQCP( QCustomPlot* pqcp ) {
     qcp = pqcp;
@@ -170,5 +178,51 @@ void gic::finish_contour() {
     customPlot->axisRect()->setMarginGroup( QCP::msBottom | QCP::msTop, marginGroup );
     colorScale->setMarginGroup( QCP::msBottom | QCP::msTop, marginGroup );
     customPlot->rescaleAxes();
+    dlgCharts->show();
+}
+
+void gic::new_plot_chart( int sets ) {
+    delete uiCharts.customPlot;
+    delete dlgCharts;
+    dlgCharts = new QChartDialog();
+    uiCharts.setupUi( dlgCharts );
+    dlgCharts->setQCP( uiCharts.customPlot );
+
+    plot_data().clear();
+    uiCharts.customPlot->axisRect()->setupFullAxesBox( true );
+    uiCharts.customPlot->xAxis->setLabel( "" );
+    uiCharts.customPlot->yAxis->setLabel( "" );
+    sets = std::min( sets, 3 );
+    sets = std::max( sets, 1 );
+    for( int i = 0; i < sets; i++ ) uiCharts.customPlot->addGraph();
+    plot_sets() = sets;
+}
+void gic::add_plot( double x, double y1, double y2, double y3 ) {
+    plot_data().push_back( plot_data_t( x, y1, y2, y3 ) );
+}
+void gic::finish_plot() {
+    std::sort(plot_data().begin(), plot_data().end());
+    QVector<double> x(plot_data().size());
+    QVector<double> y[3];
+    for( int i = 0; i < plot_sets(); i++ )
+        y[i].resize(plot_data().size());
+    for( int i = 0; i <= plot_data().size(); i++ ) {
+        x[i] = plot_data()[i].x;
+        for( int j = 0; j < plot_sets(); j++ ) {
+            y[j][i] = plot_data()[i].y[j];
+        }
+    }
+    for( int i = 0; i < plot_sets(); i++ )
+        uiCharts.customPlot->graph(i)->setData(x, y[i]);
+    QPen pen;
+    pen.setWidthF( 1.2 );
+    pen.setColor( QColor( 0, 0, 0 ) );
+    if (plot_sets() >= 1) uiCharts.customPlot->graph(0)->setPen(pen);
+    pen.setColor( QColor( 225, 30, 30 ) );
+    if (plot_sets() >= 2) uiCharts.customPlot->graph(1)->setPen(pen);
+    pen.setColor( QColor( 30, 30, 225 ) );
+    if (plot_sets() >= 3) uiCharts.customPlot->graph(2)->setPen(pen);
+    uiCharts.customPlot->rescaleAxes();
+    uiCharts.customPlot->replot();
     dlgCharts->show();
 }

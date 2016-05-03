@@ -635,11 +635,11 @@ void gic::on_comboSpec_currentIndexChanged( int idx ) {
     ui.listActions->clear();
     if (idx == SPEC_FURY_WARRIOR) {
         ui.listActions->addItems( listFury );
-        ui.listConditions->addItems( listWarrior );
+        ui.listActions->addItems( listWarrior );
     }
     if (idx == SPEC_ARMS_WARRIOR) {
         ui.listActions->addItems( listArms );
-        ui.listConditions->addItems( listWarrior );
+        ui.listActions->addItems( listWarrior );
     }
     listWarrior.clear();
     listArms.clear();
