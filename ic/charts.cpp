@@ -39,14 +39,13 @@ void QChartDialog::setQCP( QCustomPlot* pqcp ) {
 void QChartDialog::resizeEvent( QResizeEvent * e ) {
     qcp->setGeometry( QRect( 10, 10, size().width() - 20, size().height() - 20 ) );
 }
-void QChartDialog::closeEvent( QCloseEvent * e ) {
-    hide();
-    e->ignore();
-}
 
 void gic::new_bar_chart() {
-    uiCharts.customPlot->clearPlottables();
-    uiCharts.customPlot->clearGraphs();
+    delete uiCharts.customPlot;
+    delete dlgCharts;
+    dlgCharts = new QChartDialog();
+    uiCharts.setupUi( dlgCharts );
+    dlgCharts->setQCP( uiCharts.customPlot );
 
     bar_data().clear();
     uiCharts.customPlot->axisRect()->setupFullAxesBox( false );
@@ -116,8 +115,11 @@ void gic::finish_bar() {
 }
 
 void gic::new_contour_chart( QString xlbl, QString ylbl, QString zlbl ) {
-    uiCharts.customPlot->clearPlottables();
-    uiCharts.customPlot->clearGraphs();
+    delete uiCharts.customPlot;
+    delete dlgCharts;
+    dlgCharts = new QChartDialog();
+    uiCharts.setupUi( dlgCharts );
+    dlgCharts->setQCP( uiCharts.customPlot );
 
     contour_data().clear();
     uiCharts.customPlot->axisRect()->setupFullAxesBox( true );
@@ -180,11 +182,14 @@ void gic::finish_contour() {
 }
 
 void gic::new_plot_chart( int sets ) {
-    uiCharts.customPlot->clearPlottables();
-    uiCharts.customPlot->clearGraphs();
+    delete uiCharts.customPlot;
+    delete dlgCharts;
+    dlgCharts = new QChartDialog();
+    uiCharts.setupUi( dlgCharts );
+    dlgCharts->setQCP( uiCharts.customPlot );
 
     plot_data().clear();
-    uiCharts.customPlot->axisRect()->setupFullAxesBox( false );
+    uiCharts.customPlot->axisRect()->setupFullAxesBox( true );
     uiCharts.customPlot->xAxis->setLabel( "" );
     uiCharts.customPlot->yAxis->setLabel( "" );
     sets = std::min( sets, 3 );
@@ -199,7 +204,6 @@ void gic::finish_plot() {
     std::sort(plot_data().begin(), plot_data().end());
     QVector<double> x(plot_data().size());
     QVector<double> y[3];
-    QCPGraph* graph[3];
     for( int i = 0; i < plot_sets(); i++ )
         y[i].resize(plot_data().size());
     for( int i = 0; i <= plot_data().size(); i++ ) {
