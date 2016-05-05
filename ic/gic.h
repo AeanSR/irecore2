@@ -45,6 +45,7 @@ struct paperdoll_t {
 class QChartDialog : public QDialog {
     QCustomPlot* qcp;
     virtual void resizeEvent( QResizeEvent* e );
+    virtual void closeEvent( QCloseEvent* e );
 public:
     void setQCP( QCustomPlot* pqcp );
 };

@@ -39,13 +39,14 @@ void QChartDialog::setQCP( QCustomPlot* pqcp ) {
 void QChartDialog::resizeEvent( QResizeEvent * e ) {
     qcp->setGeometry( QRect( 10, 10, size().width() - 20, size().height() - 20 ) );
 }
+void QChartDialog::closeEvent( QCloseEvent * e ) {
+    hide();
+    e->ignore();
+}
 
 void gic::new_bar_chart() {
-    delete uiCharts.customPlot;
-    delete dlgCharts;
-    dlgCharts = new QChartDialog();
-    uiCharts.setupUi( dlgCharts );
-    dlgCharts->setQCP( uiCharts.customPlot );
+    uiCharts.customPlot->clearPlottables();
+    uiCharts.customPlot->clearGraphs();
 
     bar_data().clear();
     uiCharts.customPlot->axisRect()->setupFullAxesBox( false );
@@ -115,11 +116,8 @@ void gic::finish_bar() {
 }
 
 void gic::new_contour_chart( QString xlbl, QString ylbl, QString zlbl ) {
-    delete uiCharts.customPlot;
-    delete dlgCharts;
-    dlgCharts = new QChartDialog();
-    uiCharts.setupUi( dlgCharts );
-    dlgCharts->setQCP( uiCharts.customPlot );
+    uiCharts.customPlot->clearPlottables();
+    uiCharts.customPlot->clearGraphs();
 
     contour_data().clear();
     uiCharts.customPlot->axisRect()->setupFullAxesBox( true );
@@ -182,14 +180,11 @@ void gic::finish_contour() {
 }
 
 void gic::new_plot_chart( int sets ) {
-    delete uiCharts.customPlot;
-    delete dlgCharts;
-    dlgCharts = new QChartDialog();
-    uiCharts.setupUi( dlgCharts );
-    dlgCharts->setQCP( uiCharts.customPlot );
+    uiCharts.customPlot->clearPlottables();
+    uiCharts.customPlot->clearGraphs();
 
     plot_data().clear();
-    uiCharts.customPlot->axisRect()->setupFullAxesBox( true );
+    uiCharts.customPlot->axisRect()->setupFullAxesBox( false );
     uiCharts.customPlot->xAxis->setLabel( "" );
     uiCharts.customPlot->yAxis->setLabel( "" );
     sets = std::min( sets, 3 );
@@ -204,6 +199,7 @@ void gic::finish_plot() {
     std::sort(plot_data().begin(), plot_data().end());
     QVector<double> x(plot_data().size());
     QVector<double> y[3];
+    QCPGraph* graph[3];
     for( int i = 0; i < plot_sets(); i++ )
         y[i].resize(plot_data().size());
     for( int i = 0; i <= plot_data().size(); i++ ) {
@@ -223,6 +219,8 @@ void gic::finish_plot() {
     pen.setColor( QColor( 30, 30, 225 ) );
     if (plot_sets() >= 3) uiCharts.customPlot->graph(2)->setPen(pen);
     uiCharts.customPlot->rescaleAxes();
+    uiCharts.customPlot->xAxis->setTickStep(std::ceil(uiCharts.customPlot->xAxis->tickStep()));
+    uiCharts.customPlot->yAxis->setRangeUpper(uiCharts.customPlot->yAxis->range().upper * 1.05);
     uiCharts.customPlot->replot();
     dlgCharts->show();
 }

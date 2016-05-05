@@ -1030,10 +1030,6 @@ IC_LOCAL std::unordered_map<std::string, cl_program>& clptt( void ) {
     static std::unordered_map<std::string, cl_program> tt;
     return tt;
 }
-IC_LOCAL std::list<std::string>& clplst( void ) {
-    static std::list<std::string> lst;
-    return lst;
-}
 IC_LOCAL int ttprobe( std::string hashkey, cl_program* p ) {
     auto i = clptt().find( hashkey );
     if (i != clptt().end()) {
@@ -1045,13 +1041,6 @@ IC_LOCAL int ttprobe( std::string hashkey, cl_program* p ) {
 }
 IC_LOCAL void ttsave( std::string hashkey, cl_program p ) {
     clptt()[hashkey] = p;
-    clplst().push_back(hashkey);
-    if (clplst().size() > 1000) {
-        auto p = clptt().find(clplst().front());
-        clReleaseProgram(p->second);
-        clptt().erase(p);
-        clplst().pop_front();
-    }
 }
 
 // API: start simulation.

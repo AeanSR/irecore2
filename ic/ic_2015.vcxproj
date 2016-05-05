@@ -161,7 +161,7 @@ pack_release_x86.bat</Command>
       <SubSystem>Console</SubSystem>
       <OutputFile>$(OutDir)\irecore.exe</OutputFile>
       <AdditionalLibraryDirectories>$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>No</GenerateDebugInformation>
       <AdditionalDependencies>qcustomplot1.lib;lua53.lib;libic.lib;qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5Network.lib;Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
