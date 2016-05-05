@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libic_2015", "libic\libic_2015.vcxproj", "{D5778C57-4C21-474C-B1A3-F48AFCFE7089}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libic", "libic\libic_2015.vcxproj", "{D5778C57-4C21-474C-B1A3-F48AFCFE7089}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ic", "ic\ic_2015.vcxproj", "{B12702AD-ABFB-343A-A199-8E24837244A3}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -14,22 +14,22 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dbc_extract", "dbc_extract\
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Win32 = Debug|Win32
 		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D5778C57-4C21-474C-B1A3-F48AFCFE7089}.Debug|Win32.ActiveCfg = Debug|Win32
-		{D5778C57-4C21-474C-B1A3-F48AFCFE7089}.Debug|Win32.Build.0 = Debug|Win32
 		{D5778C57-4C21-474C-B1A3-F48AFCFE7089}.Release|Win32.ActiveCfg = Release|Win32
 		{D5778C57-4C21-474C-B1A3-F48AFCFE7089}.Release|Win32.Build.0 = Release|Win32
-		{B12702AD-ABFB-343A-A199-8E24837244A3}.Debug|Win32.ActiveCfg = Debug|Win32
-		{B12702AD-ABFB-343A-A199-8E24837244A3}.Debug|Win32.Build.0 = Debug|Win32
+		{D5778C57-4C21-474C-B1A3-F48AFCFE7089}.Release|x64.ActiveCfg = Release|x64
+		{D5778C57-4C21-474C-B1A3-F48AFCFE7089}.Release|x64.Build.0 = Release|x64
 		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|Win32.ActiveCfg = Release|Win32
 		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|Win32.Build.0 = Release|Win32
-		{5D21EB55-880A-4FF8-ABFC-3C251B881A8D}.Debug|Win32.ActiveCfg = Debug|Win32
-		{5D21EB55-880A-4FF8-ABFC-3C251B881A8D}.Debug|Win32.Build.0 = Debug|Win32
+		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|x64.ActiveCfg = Release|x64
+		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|x64.Build.0 = Release|x64
 		{5D21EB55-880A-4FF8-ABFC-3C251B881A8D}.Release|Win32.ActiveCfg = Release|Win32
 		{5D21EB55-880A-4FF8-ABFC-3C251B881A8D}.Release|Win32.Build.0 = Release|Win32
+		{5D21EB55-880A-4FF8-ABFC-3C251B881A8D}.Release|x64.ActiveCfg = Release|Win32
+		{5D21EB55-880A-4FF8-ABFC-3C251B881A8D}.Release|x64.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

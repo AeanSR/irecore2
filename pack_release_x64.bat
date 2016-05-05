@@ -1,0 +1,17 @@
+call pack_release.bat
+
+:: Update the qt_dir as necessary
+set qt_dir=E:\Qt\5.6\msvc2015_64
+
+copy "%VS140COMNTOOLS%..\..\VC\redist\x64\Microsoft.VC140.CRT"\vcruntime140.dll release\vcruntime140.dll
+copy "%VS140COMNTOOLS%..\..\VC\redist\x64\Microsoft.VC140.CRT"\msvcp140.dll release\msvcp140.dll
+copy %qt_dir%\bin\Qt5Core.dll release\Qt5Core.dll
+copy %qt_dir%\bin\Qt5GUI.dll release\Qt5GUI.dll
+copy %qt_dir%\bin\Qt5Widgets.dll release\Qt5Widgets.dll
+copy %qt_dir%\bin\Qt5Network.dll release\Qt5Network.dll
+copy %qt_dir%\bin\Qt5PrintSupport.dll release\Qt5PrintSupport.dll
+copy %qt_dir%\plugins\platforms\qwindows.dll release\platforms\qwindows.dll
+copy lua\x64\lua53.dll release\lua53.dll
+copy %windir%\System32\ssleay32.dll release\ssleay32.dll
+copy %windir%\System32\libeay32.dll release\libeay32.dll
+copy qcplib\x64\qcustomplot1.dll release\qcustomplot1.dll

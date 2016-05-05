@@ -1,6 +1,3 @@
-:: Update the qt_dir as necessary
-set qt_dir=E:\Qt\5.6\msvc2015
-
 rd /S /Q release
 rd /S /Q release_nolib
 rd /S /Q release_libic
@@ -17,6 +14,7 @@ mkdir release_nolib\kernel\paladin
 mkdir release_nolib\profile
 mkdir release_libic
 mkdir release_libic\Win32
+mkdir release_libic\x64
 mkdir release_libic\kernel
 mkdir release_libic\kernel\warrior
 mkdir release_libic\kernel\paladin
@@ -49,16 +47,6 @@ copy kernel\paladin\paladin.c release\kernel\paladin\paladin.c
 copy kernel\paladin\retribution.c release\kernel\paladin\retribution.c
 copy ic\gic_zh.qm release\gic_zh.qm
 copy LICENSE release\LICENSE
-copy %qt_dir%\bin\Qt5Core.dll release\Qt5Core.dll
-copy %qt_dir%\bin\Qt5GUI.dll release\Qt5GUI.dll
-copy %qt_dir%\bin\Qt5Widgets.dll release\Qt5Widgets.dll
-copy %qt_dir%\bin\Qt5Network.dll release\Qt5Network.dll
-copy %qt_dir%\bin\Qt5PrintSupport.dll release\Qt5PrintSupport.dll
-copy %qt_dir%\plugins\platforms\qwindows.dll release\platforms\qwindows.dll
-copy lua\lua53.dll release\lua53.dll
-copy %windir%\SYSWOW64\ssleay32.dll release\ssleay32.dll
-copy %windir%\SYSWOW64\libeay32.dll release\libeay32.dll
-copy qcplib\qcustomplot1.dll release\qcustomplot1.dll
 
 :: libic release
 copy libic\README.MD release_libic\README.MD
@@ -72,4 +60,5 @@ copy kernel\warrior\arms.c release_libic\kernel\warrior\arms.c
 copy kernel\warrior\fury.c release_libic\kernel\warrior\fury.c
 copy kernel\paladin\paladin.c release_libic\kernel\paladin\paladin.c
 copy kernel\paladin\retribution.c release_libic\kernel\paladin\retribution.c
-copy libic\libic.lib release_libic\Win32\libic.lib
+copy libic\Win32\libic.lib release_libic\Win32\libic.lib
+copy libic\x64\libic.lib release_libic\x64\libic.lib
