@@ -203,7 +203,7 @@ namespace apltr {
         "templars_verdict",
         "execution_sentence",
         "consecration",
-        "holy_wrath",
+        "sanctified_wrath",
         0,
     };
     IC_LOCAL item_t act_list[] =
@@ -268,7 +268,7 @@ namespace apltr {
         "divine_steed",
         "seal_of_light",
         "divine_purpose",
-        "holy_wrath",
+        "sanctified_wrath",
         "equality",
         "war_machine",
         "endless_rage",
@@ -316,6 +316,7 @@ namespace apltr {
         "cleave",
         "focused_rage",
         "zeal",
+        "sanctified_wrath",
         "libram_of_vindication",
         0,
     };
@@ -332,7 +333,7 @@ namespace apltr {
         "the_fires_of_justice",
         "divine_hammer",
         "divine_purpose",
-        "holy_wrath",
+        "sanctified_wrath",
         "battle_cry",
         "avatar",
         "bladestorm",
@@ -374,7 +375,7 @@ namespace apltr {
         "consecration",
         "zeal",
         "divine_hammer",
-        "holy_wrath",
+        "sanctified_wrath",
         "thorasus_the_stone_heart_of_draenor",
         "arcane_torrent",
         "blood_fury",

@@ -375,7 +375,7 @@ DECL_EVENT( bloodthirst_cd ) {
 }
 DECL_EVENT( bloodthirst_cast ) {
     kbool have_crit = 0;
-    float d = weapon_dmg( rti, 3.5f, 1, 0 );
+    float d = weapon_dmg( rti, 3.25f, 1, 0 );
     float cr = 0.15f * taste_for_blood_stack;
     if ( TALENT_FRESH_MEAT && enemy_health_percent( rti ) > 80.0f ) cr += 0.3f;
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, cr );
@@ -390,7 +390,7 @@ DECL_EVENT( bloodthirst_cast ) {
         for( int i = 0; c < 4 && i < num_enemies; i++ ) {
             if ( i == target_id ) continue;
             c++;
-            d = weapon_dmg( rti, 3.5f, 1, 0 );
+            d = weapon_dmg( rti, 3.25f, 1, 0 );
             dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, cr );
             deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
             if ( DICE_CRIT == dice ) {
@@ -435,7 +435,7 @@ DECL_EVENT( enrage_trigger ) {
 
 // === execute ================================================================
 DECL_EVENT( execute_cast ) {
-    float d = weapon_dmg( rti, 5.0f, 1, 0 );
+    float d = weapon_dmg( rti, 4.65f, 1, 0 );
     if ( MH_TYPE == WEAPON_1H ) d *= 1.15f; // TODO: check if SMF need both weapon to be 1h when go live.
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
@@ -443,7 +443,7 @@ DECL_EVENT( execute_cast ) {
     if ( DICE_CRIT == dice ) // TODO: see if massacre triggers from off-hand execute when go live.
         eq_enqueue( rti, rti->timestamp, routnum_massacre_trigger, 0 );
 #endif
-    d = weapon_dmg( rti, 5.0f, 1, 1 );
+    d = weapon_dmg( rti, 4.65f, 1, 1 );
     if ( OH_TYPE == WEAPON_1H ) d *= 1.15f;
     dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
@@ -462,7 +462,7 @@ DECL_SPELL( execute ) {
 
 // === furious slash ==========================================================
 DECL_EVENT( furious_slash_cast ) {
-    float d = weapon_dmg( rti, 2.0f, 1, 1 );
+    float d = weapon_dmg( rti, 1.85f, 1, 1 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, ( t18_2pc ? 0.05f : 0.0f ) );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, ( t18_2pc ? 0.12f : 0.0f ) , 0 );
     eq_enqueue( rti, rti->timestamp, routnum_taste_for_blood_trigger, 0 );
@@ -505,13 +505,13 @@ DECL_EVENT( meat_cleaver_trigger ) {
 
 // === raging blow ============================================================
 DECL_EVENT( raging_blow_cast ) {
-    float d = weapon_dmg( rti, 2.3f * ( TALENT_INNER_RAGE ? 2.0f : 1.0f ), 1, 0 );
+    float d = weapon_dmg( rti, 2.15f * ( TALENT_INNER_RAGE ? 2.0f : 1.0f ), 1, 0 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     if ( t17_2pc && DICE_CRIT == dice && uni_rng( rti ) < 0.2 ) {
         eq_enqueue( rti, rti->timestamp, routnum_enrage_trigger, target_id );
     }
-    d = weapon_dmg( rti, 2.3f * ( TALENT_INNER_RAGE ? 2.0f : 1.0f ), 1, 1 );
+    d = weapon_dmg( rti, 2.15f * ( TALENT_INNER_RAGE ? 2.0f : 1.0f ), 1, 1 );
     dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     if ( t17_2pc && DICE_CRIT == dice && uni_rng( rti ) < 0.2 ) {
@@ -551,7 +551,7 @@ DECL_EVENT( rampage_cast_1 ) {
         target_id -= num_enemies;
     }
 #endif
-    float d = weapon_dmg( rti, 0.6f, 1, 0 ) * ( multihit_signal ? 0.5f : 1.0f );
+    float d = weapon_dmg( rti, 0.5f, 1, 0 ) * ( multihit_signal ? 0.5f : 1.0f );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     eq_enqueue( rti, rti->timestamp, routnum_enrage_trigger, 0 );
@@ -566,7 +566,7 @@ DECL_EVENT( rampage_cast_2 ) {
         target_id -= num_enemies;
     }
 #endif
-    float d = weapon_dmg( rti, 1.8f, 1, 1 ) * ( multihit_signal ? 0.5f : 1.0f );
+    float d = weapon_dmg( rti, 1.5f, 1, 1 ) * ( multihit_signal ? 0.5f : 1.0f );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     eq_enqueue( rti, TIME_OFFSET( FROM_MILLISECONDS( 333 ) ), routnum_rampage_cast_3, target_id + multihit_signal );
@@ -580,7 +580,7 @@ DECL_EVENT( rampage_cast_3 ) {
         target_id -= num_enemies;
     }
 #endif
-    float d = weapon_dmg( rti, 1.2f, 1, 0 ) * ( multihit_signal ? 0.5f : 1.0f );
+    float d = weapon_dmg( rti, 1.0f, 1, 0 ) * ( multihit_signal ? 0.5f : 1.0f );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     eq_enqueue( rti, TIME_OFFSET( FROM_MILLISECONDS( 667 ) ), routnum_rampage_cast_4, target_id + multihit_signal );
@@ -597,7 +597,7 @@ DECL_EVENT( rampage_cast_4 ) {
     float d = weapon_dmg( rti, 3.0f, 1, 1 ) * ( multihit_signal ? 0.5f : 1.0f );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
-    d = weapon_dmg( rti, 1.8f, 1, 0 ) * ( multihit_signal ? 0.5f : 1.0f );
+    d = weapon_dmg( rti, 1.75f, 1, 0 ) * ( multihit_signal ? 0.5f : 1.0f );
     dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     lprintf( ( "rampage 4/5th hit" ) );

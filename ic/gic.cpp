@@ -594,7 +594,7 @@ void gic::on_comboSpec_currentIndexChanged( int idx ) {
         ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Seal of Light" ) );
 
         ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Divine Purpose" ) );
-        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Holy Wrath" ) );
+        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Sanctified Wrath" ) );
         ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Equality" ) );
     }
     // Policy Action List.

@@ -366,7 +366,7 @@ DECL_EVENT( execute_cast ) {
     } else {
         power_consume( rti, r );
     }
-    float d = weapon_dmg( rti, 2.00f, 1, 0 ) * multiplier;
+    float d = weapon_dmg( rti, 1.20f, 1, 0 ) * multiplier;
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     if ( uni_rng( rti ) < 0.15f ) {
@@ -376,7 +376,7 @@ DECL_EVENT( execute_cast ) {
     if ( TALENT_SWEEPING_STRIKES ) {
         for ( int i = 0; i < num_enemies; i++ ) {
             if ( i == target_id ) continue;
-            d = weapon_dmg( rti, 2.00f, 1, 0 ) * multiplier;
+            d = weapon_dmg( rti, 1.20f, 1, 0 ) * multiplier;
             dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
             deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
             if ( uni_rng( rti ) < 0.15f ) { // TODO: does sweeping strike execute proc tactician?
@@ -434,14 +434,14 @@ DECL_EVENT( mortal_strike_cast ) {
 #if (TALENT_FOCUSED_RAGE)
     focused_rage_stack = 0;
 #endif
-    float d = weapon_dmg( rti, 3.5f + addition, 1, 0 );
+    float d = weapon_dmg( rti, 2.8f + addition, 1, 0 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     lprintf( ( "mortal_strike hit" ) );
     if ( TALENT_SWEEPING_STRIKES ) {
         for ( int i = 0; i < num_enemies; i++ ) {
             if ( i == target_id ) continue;
-            d = weapon_dmg( rti, 3.5f + addition, 1, 0 );
+            d = weapon_dmg( rti, 2.8f + addition, 1, 0 );
             dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
             deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
             lprintf( ( "mortal_strike sweepstrike" ) );
@@ -473,7 +473,7 @@ DECL_SPELL( mortal_strike ) {
 void trigger_trauma( rtinfo_t* rti, float dmg, k32u target_id );
 #endif
 DECL_EVENT( slam_cast ) {
-    float d = weapon_dmg( rti, 2.25f, 1, 0 );
+    float d = weapon_dmg( rti, 1.8f, 1, 0 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     if ( uni_rng( rti ) < 0.15f ) {
@@ -580,7 +580,7 @@ DECL_SPELL( overpower ) {
 #if (TALENT_REND)
 DECL_EVENT( rend_tick ) {
     if ( rend_expire( target_id ) < rti->timestamp ) return; // last tick evaluates as equal.
-    float d = ap_dmg( rti, 1.5f );
+    float d = ap_dmg( rti, 1.2f );
     k32u dice = round_table_dice2( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     lprintf( ( "rend tick" ) );
@@ -688,7 +688,7 @@ void anger_management_count( rtinfo_t* rti, float rage ) {
 // === opportunity strikes ====================================================
 #if (TALENT_OPPORTUNITY_STRIKES)
 DECL_EVENT( opportunity_strikes_trigger ) {
-    float d = weapon_dmg( rti, 2.0f, 1, 0 );
+    float d = weapon_dmg( rti, 1.6f, 1, 0 );
     k32u dice = round_table_dice2( rti, target_id, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     lprintf( ( "opportunity_strikes hit" ) );
@@ -704,7 +704,7 @@ DECL_EVENT( ravager_cd ) {
 }
 DECL_EVENT( ravager_tick ) {
     for( int i = 0; i < num_enemies; i++ ) {
-        float d = ap_dmg( rti, 0.738f );
+        float d = ap_dmg( rti, 0.888f );
         k32u dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
         deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         lprintf( ( "ravager tick" ) );
