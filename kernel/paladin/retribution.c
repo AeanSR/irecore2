@@ -227,7 +227,7 @@ float spec_power_check( rtinfo_t* rti, float cost ) {
 }
 float spec_power_consume( rtinfo_t* rti, float cost ) {
 #if (TALENT_SANCTIFIED_WRATH)
-    sanctified_wrath_stack += cost;
+    sanctified_wrath_stack = min( sanctified_wrath_stack + cost, 15.0f );
     refresh_haste( rti );
 #endif
     return cost;
