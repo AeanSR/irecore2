@@ -40,6 +40,11 @@ void QChartDialog::resizeEvent( QResizeEvent * e ) {
     qcp->setGeometry( QRect( 10, 10, size().width() - 20, size().height() - 20 ) );
 }
 
+void QChartDialog::closeEvent( QCloseEvent * e ) {
+    hide();
+    e->ignore();
+}
+
 void gic::new_bar_chart() {
     delete uiCharts.customPlot;
     delete dlgCharts;
@@ -189,7 +194,7 @@ void gic::new_plot_chart( int sets ) {
     dlgCharts->setQCP( uiCharts.customPlot );
 
     plot_data().clear();
-    uiCharts.customPlot->axisRect()->setupFullAxesBox( true );
+    uiCharts.customPlot->axisRect()->setupFullAxesBox( false );
     uiCharts.customPlot->xAxis->setLabel( "" );
     uiCharts.customPlot->yAxis->setLabel( "" );
     sets = std::min( sets, 3 );

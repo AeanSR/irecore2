@@ -390,11 +390,6 @@ QString script_stat_maxima(
     script += "for i,v in ipairs(os) do\n";
     script += "  print(stats_name[i]..\": \"..string.format(\"%d\",v))\n";
     script += "end\n";
-    script += "os[1] = math.floor(os[1] * 1.05 + 0.5)\n";
-    script += QString( "print(\"" ) + QApplication::translate( "script", "Unbuffed character sheet value:" ) + "\")\n";
-    script += "for i,v in ipairs(os) do\n";
-    script += "  print(stats_name[i]..\": \"..string.format(\"%d\",v))\n";
-    script += "end\n";
 
     return script;
 }
