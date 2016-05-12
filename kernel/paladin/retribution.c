@@ -283,10 +283,6 @@ enum {
 
 // === auto-attack ============================================================
 DECL_EVENT( auto_attack ) {
-    if ( UP( holy_wrath_expire ) ) {
-        eq_enqueue( rti, holy_wrath_expire, routnum_auto_attack, rti->player.target );
-        return;
-    }
     float d = weapon_dmg( rti, 1.0f, 0, 0 );
     k32u dice = round_table_dice( rti, rti->player.target, ATYPE_WHITE_MELEE, 0 );
     deal_damage( rti, rti->player.target, d, DTYPE_PHYSICAL, dice, 0, 0 );
