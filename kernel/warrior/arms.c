@@ -188,7 +188,7 @@ void anger_management_count( rtinfo_t* rti, float rage );
 float spec_power_consume( rtinfo_t* rti, float cost ) {
     cost = (float)(int)( cost * ( TALENT_DAUNTLESS ? 0.8f : 1.0f ) );
 #if (TALENT_ANGER_MANAGEMENT)
-    anger_management_count( rti, *cost );
+    anger_management_count( rti, cost );
 #endif
     return cost;
 }
