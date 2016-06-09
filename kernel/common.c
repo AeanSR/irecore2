@@ -435,6 +435,7 @@ void refresh_str( rtinfo_t* rti ) {
     k32u str;
     float coeff = 1.0f;
     if (PLATE_SPECIALIZATION) coeff *= 1.05f;
+    if (UP( pillar_of_frost_expire )) coeff *= 1.20f;//TODO: confirm if this is the correct way
     #if (archmages_incandescence || archmages_greater_incandescence)
     if (UP( incandescence_expire )) coeff *= archmages_greater_incandescence ? 1.15f : 1.1f;
     #endif
