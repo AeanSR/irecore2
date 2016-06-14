@@ -15,33 +15,33 @@
 
 /* class state infos. */
 /* Tier 1 */
-#define TALENT_SHATTERING_STRIKE             ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1)
-#define TALENT_ICY_TALONS                    ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2)
-#define TALENT_MURDEROUS_EFFICIENCY          ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3)
+#define TALENT_SHATTERING_STRIKE             ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1))
+#define TALENT_ICY_TALONS                    ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2))
+#define TALENT_MURDEROUS_EFFICIENCY          ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3))
 /* Tier 2 */
-#define TALENT_FREEZING_FOG                  ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1)
-#define TALENT_FROZEN_PULSE                  ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2)
-#define TALENT_HORN_OF_WINTER                ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3)
+#define TALENT_FREEZING_FOG                  ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1))
+#define TALENT_FROZEN_PULSE                  ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2))
+#define TALENT_HORN_OF_WINTER                ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3))
 /* Tier 3 */
-#define TALENT_ICECAP                        ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1)
-#define TALENT_HUNGERING_RUNE_WEAPON         ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2)
-#define TALENT_AVALANCHE                     ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3)
+#define TALENT_ICECAP                        ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1))
+#define TALENT_HUNGERING_RUNE_WEAPON         ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2))
+#define TALENT_AVALANCHE                     ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3))
 /* Tier 4 */
-#define TALENT_ABOMINATIONS_MIGHT            ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1)
-#define TALENT_BLINIDING_SHEET               ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2)
-#define TALENT_WINTER_IS_COMING              ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3)
+#define TALENT_ABOMINATIONS_MIGHT            ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1))
+#define TALENT_BLINIDING_SHEET               ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2))
+#define TALENT_WINTER_IS_COMING              ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3))
 /* Tier 5 */
-#define TALENT_VOLATILE_SHIELDING            ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1)
-#define TALENT_PERMAFROST                    ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2)
-#define TALENT_WHITE_STALKER                 ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3)
+#define TALENT_VOLATILE_SHIELDING            ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1))
+#define TALENT_PERMAFROST                    ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2))
+#define TALENT_WHITE_STALKER                 ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3))
 /* Tier 6 */
-#define TALENT_FROSTSCYTHE                   ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1)
-#define TALENT_RUNIC_ATTENUATION             ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2)
-#define TALENT_GATHERING_STORM               ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3)
+#define TALENT_FROSTSCYTHE                   ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1))
+#define TALENT_RUNIC_ATTENUATION             ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2))
+#define TALENT_GATHERING_STORM               ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3))
 /* Tier 7 */
-#define TALENT_OBLITERATION                  ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1)
-#define TALENT_BREATH_OF_SINDRAGOSA          ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2)
-#define TALENT_GLACIAL_ADVANCE               ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3)
+#define TALENT_OBLITERATION                  ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1))
+#define TALENT_BREATH_OF_SINDRAGOSA          ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2))
+#define TALENT_GLACIAL_ADVANCE               ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3))
 struct class_state_t {
     struct {
         k32u ready;
@@ -69,13 +69,13 @@ kbool rune_check( rtinfo_t* rti, k32u count ) {
     if ( rune_ready >= count ) return 1;
     return 0;
 }
-void spec_rune_consume(k32u amount);
+void spec_rune_consume(rtinfo_t* rti, k32u amount);
 void rune_consume( rtinfo_t* rti, k32u count ) {
-    spec_rune_consume(count);
+    spec_rune_consume(rti,count);
     assert( rune_ready >= count );
     k32u rune_on_cd = min( rune_max - rune_ready, 3 );
     rune_ready -= count;
-    power_gain(count * 10.0f);
+    power_gain(rti, count * 10.0f);
     if ( rune_on_cd < 3 ) {
         for ( int i = 0; i < count && i < 3 - rune_on_cd; i++ ) {
             rti->player.class->rune.charge_progress[i + rune_on_cd] = 1.0f;
