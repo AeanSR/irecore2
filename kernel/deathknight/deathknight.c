@@ -59,6 +59,12 @@ void rune_reactive( rtinfo_t* rti ) {
     if ( rune_ready >= rune_max - 3 ) return;
     rune_ready ++;
 }
+void rune_reactive_all( rtinfo_t* rti ) {
+    rune_ready = rune_max;
+    for ( int i = 0; i < 3; i++ ) {
+        rti->player.class->rune.charge_progress[i] = 0.0f;
+    }
+}
 kbool rune_check( rtinfo_t* rti, k32u count ) {
     if ( rune_ready >= count ) return 1;
     return 0;

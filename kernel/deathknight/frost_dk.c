@@ -6,6 +6,35 @@
 //
 //
 
+/**
+    Comment by Aean:
+
+    I did not read in depth. added several comments in the code where I have checked.
+    the code remains unchanged, it is up to you to edit.
+
+    gcd_start() is misused. the 3rd arg indicates whether the gcd is affected by haste.
+    all your calls to gcd_start() gives constant 0 as the 3rd arg, which means the gcd is NOT scaled with haste.
+    you used gcd_start() in several off-gcd spells. double check it.
+
+    you want some abilities to use same crit dice for both hand.
+        float d = weapon_dmg(rti, 3.0f, 1, 0)+weapon_dmg(rti, 3.0f, 1, 1);
+        k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0.0f);
+        deal_damage(rti, target_id, d, DTYPE_PHYSICAL, dice, 0,0);
+    your implement will result in only one bigger hit landing on the target.
+    it is equivalent under most situation. but imagine when the player have empty_drinking_horn as his trinket.
+    your implement will apply only 1 stack of fel fire, while in actual game it should be 2.
+    what you should do: calculate and deal damages for both hand respectively, but use the same dice result.
+        float d = weapon_dmg(rti, 3.0f, 1, 0);                                  // calculate dmg for mh.
+        k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0.0f); // dice for both.
+        deal_damage(rti, target_id, d, DTYPE_PHYSICAL, dice, 0,0);              // deal dmg for mh.
+        d = weapon_dmg(rti, 3.0f, 1, 1);                                        // calculate dmg for oh.
+        deal_damage(rti, target_id, d, DTYPE_PHYSICAL, dice, 0,0);              // deal dmg for oh, with the same dice result from mh.
+    for most spells, you just write what happens in the actual game AS IS.
+    hacks should be carefully used, double check if the hack is equivalent to the actual game, under ANY situation.
+
+    good job this time. your code quality has improved significantly.
+**/
+
 struct spec_state_t{
     struct{
         time_t cd;
@@ -156,7 +185,7 @@ float spec_power_check( rtinfo_t* rti, float cost ) {
     return cost;
 }
 float spec_power_consume( rtinfo_t* rti, float cost ) {
-    if(uni_rng(rti)<cost)
+    if(uni_rng(rti)<cost) // Comment by Aean: uni_rng(rti) gives random numbers between [0,1), so it is guaranteed to be lesser than cost, since cost is at least 1.0
     {
         rune_reactive(rti);
     }
@@ -173,7 +202,7 @@ void spec_rune_consume( k32u count)
             remorseless_winter_stack += count;
             lprintf( ( "gthering storm triggered" ) );
         }
-    #endif
+    #endif // Comment by Aean: this is added by me, otherwise my editor keeps complaining about the miss of endif.
 }
 k32u round_table_dice( rtinfo_t* rti, k32u target_id, k32u attacktype, float extra_crit_rate ) {
     k32u dice = round_table_dice2( rti, target_id, attacktype, extra_crit_rate );
@@ -235,7 +264,7 @@ void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_
     if( DICE_MISS != dice && ( ATYPE_WHITE_MELEE == attacktype)
        {
            proc_RPPM( rti, &rti->player.spec->killing_machine.proc, 4.5f/* * ( 1.0f + rti->player.stat.haste )*/, routnum_killing_machine_trigger, 0 );
-       }
+       } // Comment by Aean: missed right braces?
 //Skills=======================================================================
 enum {
     END_OF_CLASS_ROUTNUM = START_OF_SPEC_ROUTNUM - 1,
@@ -550,7 +579,7 @@ DECL_EVENT( frost_fever_tick ) {
     float d = ap_dmg(rti, .55f);
     //freezing fog implementation
     #if(TALENT_FREEZING_FOG)
-        d * 1.5f;
+        d * 1.5f; // Comment by Aean: '*' or '*=' ?
     #endif
     k32u dice = round_table_dice( rti, target_id, ATYPE_SPELL, 0)//TODO: does this proc trinks?Is disease a special atype?
     deal_damage( rti, target_id, d, DTYPE_FROST, dice, 0, 0);
@@ -616,6 +645,52 @@ DECL_EVENT( remorseless_winter_cast) {
     for ( int i = 0; i < num_enemies; i++ ) {
         eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 0.0f ) ), routnum_remorseless_winter_tick, i);
     }
+    /**
+        Comment by Aean:
+        what you did is right, but not optimal. the event triggering map for your implement, when there is multiple targets:
+
+             tick@1-tick@1-tick@1-...
+            /      \      \      \
+        cast        expire expire expire
+            \
+             tick@2-tick@2-tick@2-...
+                   \      \      \
+                    expire expire expire
+
+        lines means the former event will enqueue the later event.
+        could you combine multiple tick events for multiple targets, so there would be significantly less events enqueued?
+
+        cast---tick---tick---tick---...
+                   \      \      \
+                    expire expire expire
+
+        or even better, to avoid hanging expire events?
+
+        cast---tick---tick---tick---tick---tick---expire
+
+        less events means faster simulation, and lower probability to overfill the event queue, which will cause UB or crashes.
+
+        UPD: sorry, I mistakenly thought remorseless_winter_expire is the expiration for the debuff(should be the buff) when write these comments.
+        that would be a better example if the debuff expire event is necessary. what you've done is actually this:
+
+                 tick@1-tick@1-tick@1-...
+                /
+            cast
+           /    \
+     (spell)     tick@2-tick@2-tick@2-...
+           \
+            ------------------------------------expire
+
+        but the optimal implement should be
+
+        cast---tick---tick---tick---tick---tick-expire
+
+        thus there is only 1 event kept in the queue at any time, and only 1 event processed per second, no matter the number of targets.
+        even you can combine expire routine into tick routine, since the buff always expires at the same time of the last tick, so the expire routine hook may be cut off.
+
+        cast---tick---tick---tick---tick---tick(expire is processed in the last tick event)
+
+    **/
     lprintf( ( "remorseless winter starts" ) );
 }
 DECL_EVENT ( remorseless_winter_cd) {
@@ -631,18 +706,18 @@ DECL_EVENT( remorseless_winter_tick){
     deal_damage( rti, target_id, d, DTYPE_FROST, dice, 0, 0);
     lprintf( ( "remorseless winter does damage to tar %d", target_id ) );
 }
-DECL_EVENT( remorseLess_winter_expire){
+DECL_EVENT( remorseLess_winter_expire){ // Comment by Aean: typo?
     if(remorseless_winter_expire == rti->timestamp)
         lprintf( ( "remorse winter expired" ) );
 }
 // === pillar of frost ========================================================
-//totally not sure if this is correct
+//totally not sure if this is correct // Comment by Aean: good job.
 DECL_SPELL( pillar_of_frost){
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( pillar_of_frost_cd > rti->timestamp ) return 0;
     pillar_of_frost_cd = TIME_OFFSET( FROM_SECONDS( 60.0f) );//TODO: check cd
     eq_enqueue( rti, pillar_of_frost_cd, routnum_pillar_of_frost_cd, 0 );
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 0); // Comment by Aean: does pof trigger gcd? double check it.
     eq_enqueue( rti, rti->timestamp, routnum_pillar_of_frost_cast, 0);
     pillar_of_frost_expire = TIME_OFFSET( FROM_SECONDS ( 20.0f));
     eq_enqueue(rti, pillar_of_frost_expire, routnum_pillar_of_frost_expire, 0);
@@ -671,7 +746,7 @@ DECL_SPELL( empower_rune_weapon ) {
     if ( empower_rune_weapon_cd > rti->timestamp ) return 0;
     empower_rune_weapon_cd = TIME_OFFSET( FROM_SECONDS( 180.0f) );//TODO: check cd
     eq_enqueue( rti, empower_rune_weapon_cd, routnum_empower_rune_weapon_cd, 0 );
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 0); // Comment by Aean: does empower trigger gcd? double check it.
     eq_enqueue( rti, rti->timestamp, routnum_empower_rune_weapon_cast, 0);
     lprintf( ( "empower rune weapon casted" ) );
 }
@@ -682,6 +757,7 @@ DECL_EVENT ( empower_rune_weapon_cd) {
 }
 DECL_EVENT ( empower_rune_weapon_cast) {
     rune_ready = rune_max;//TODO: check if this is correct
+    // Comment by Aean: use this instead: rune_reactive_all(rti);
     power_gain(rti,25);
 }
 // === icy talons =============================================================
