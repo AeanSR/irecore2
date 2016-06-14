@@ -130,6 +130,11 @@ struct class_debuff_t {
     #define razorice_stack (rti->player.spec->razorice.stack)
 
 //Stat&Uitility=====================================================================
+float spec_str_coefficient( rtinfo_t* rti ){
+    float coeff = 1.0f;
+    if (UP( pillar_of_frost_expire )) coeff *= 1.20f;
+    return coeff;
+}
 float spec_mastery_coefficient( rtinfo_t* rti ){
     return 1.0f; //TODO: find out the coefficient
 }
@@ -168,7 +173,7 @@ void spec_rune_consume( k32u count)
             remorseless_winter_stack += count;
             lprintf( ( "gthering storm triggered" ) );
         }
-
+    #endif
 }
 k32u round_table_dice( rtinfo_t* rti, k32u target_id, k32u attacktype, float extra_crit_rate ) {
     k32u dice = round_table_dice2( rti, target_id, attacktype, extra_crit_rate );
@@ -206,7 +211,7 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
         if ( !ignore_armor )                                        dmg *= 0.650684f; // 0.680228f @110lvl
     }
     if ( DICE_CRIT == dice )                                        dmg *= cdb;
-    if(rti->enemy[target].class->razorice.stack > 0 && DTYPE_FROST == dmgtype) 
+    if(rti->enemy[target].class->razorice.stack > 0 && DTYPE_FROST == dmgtype)
                                                                     dmg *= (1.0f + 0.02f * rti->enemy[target].class->razorice.stack)
     //TODO: check on razorice later
     //TODO: extra damage
@@ -303,7 +308,7 @@ DECL_EVENT( auto_attack_mh ) {
     #if(TALENT_FROZEN_PULSE)
         if(!rune_check(rti,1))
         {
-            for ( int i = 1; i < num_enemies; i++ ) 
+            for ( int i = 1; i < num_enemies; i++ )
             {
                 float d = ap_dmg(rti,0.72f);//TODO: potential constant damage
                 k32u dice = round_table_dice(rti, i, ATYPE_YELLOW_MELEE, 0);
@@ -314,7 +319,7 @@ DECL_EVENT( auto_attack_mh ) {
     #endif
     float aspeed = (1.0f + rti->player.stat.haste);
     #if(/*razorice blahblahblah*/)
-        
+
     #endif
     //icy talon implementation
     #if(TALENT_ICY_TALONS)
@@ -361,7 +366,7 @@ DECL_EVENT( auto_attack_oh ) {
     #endif
     float aspeed = (1.0f + rti->player.stat.haste);
     #if(/*razorice blahblahblah*/)
-        
+
     #endif
     //icy talon implementation
     #if(TALENT_ICY_TALONS)
@@ -485,11 +490,11 @@ DECL_SPELL( obliterate ) {
         }
         else
         {
-            if ( !rune_check( rti, 2 ) ) return 0;   
+            if ( !rune_check( rti, 2 ) ) return 0;
             rune_consume(rti, 2);
         }
     #else
-        if ( !rune_check( rti, 2 ) ) return 0;   
+        if ( !rune_check( rti, 2 ) ) return 0;
         rune_consume(rti, 2);
     #endif
     gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
@@ -558,12 +563,12 @@ DECL_EVENT( frost_fever_cast ) {
     if ( UP( frost_fever_expire( target_id ) ) ) {
         if (REMAIN( frost_fever_expire( target_id ) ) > FROM_SECONDS( .3f*24 )){
             frost_fever_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 1.3f*24 ) );
-        } 
+        }
         else {
             frost_fever_expire( target_id ) += FROM_SECONDS( 24.0f );
         }
         lprintf( ( "frost_fever_expire extends to %f sec", TO_SECONDS( TIME_DISTANT( frost_fever_expire( target_id ) ) ) ) );
-    } 
+    }
     else {
         frost_fever_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 24.0f ) );
         eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 3.0f ) ), routnum_frost_fever_tick, target_id );
@@ -592,7 +597,7 @@ DECL_EVENT( rime_trigger ) {
     eq_enqueue(rti,rime_expire,routnum_rime_expire,0);
     lprintf( ( "rime buff gained" ) );
 }
-// === remorseless winter =====================================================                                 
+// === remorseless winter =====================================================
 DECL_SPELL( remorseless_winter) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( !rune_check( rti, 1 ) ) return 0;
@@ -643,7 +648,7 @@ DECL_SPELL( pillar_of_frost){
     eq_enqueue(rti, pillar_of_frost_expire, routnum_pillar_of_frost_expire, 0);
     lprintf( ( "pillar of frost casted" ) );     
 }
-DECL_EVENT( pillar_of_frost_cast ) { 
+DECL_EVENT( pillar_of_frost_cast ) {
     refresh_str(rti);
     refresh_ap(rti);
 }

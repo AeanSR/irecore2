@@ -429,13 +429,14 @@ void power_consume( rtinfo_t* rti, float cost ) {
     rti->player.power -= cost;
 }
 
+float spec_str_coefficient( rtinfo_t* rti );
+
 /* stat processor */
 void refresh_str( rtinfo_t* rti ) {
     float fstr = ( float ) rti->player.stat.gear_str;
     k32u str;
-    float coeff = 1.0f;
+    float coeff = spec_str_coefficient( rti );
     if (PLATE_SPECIALIZATION) coeff *= 1.05f;
-    if (UP( pillar_of_frost_expire )) coeff *= 1.20f;//TODO: confirm if this is the correct way
     #if (archmages_incandescence || archmages_greater_incandescence)
     if (UP( incandescence_expire )) coeff *= archmages_greater_incandescence ? 1.15f : 1.1f;
     #endif

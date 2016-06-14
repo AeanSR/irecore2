@@ -145,6 +145,10 @@ float spec_power_consume( rtinfo_t* rti, float cost ) {
     return cost;
 }
 
+float spec_str_coefficient( rtinfo_t* rti ){
+    return 1.0f;
+}
+
 float spec_mastery_coefficient( rtinfo_t* rti ){
     return 1.4f;
 }

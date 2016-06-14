@@ -93,6 +93,10 @@ struct spec_debuff_t{
 #endif
 };
 
+float spec_str_coefficient( rtinfo_t* rti ){
+    return 1.0f;
+}
+
 float spec_mastery_coefficient( rtinfo_t* rti ){
     return 2.0f;
 }
