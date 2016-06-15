@@ -155,7 +155,7 @@ struct spec_debuff_t {
         time_t expire;
         k32u stack;
     }razorice;
-    #define razorise_expire(target) (rti->enemy[target].spec->razorice.expire)
+    #define razorice_expire(target) (rti->enemy[target].spec->razorice.expire)
     #define razorice_stack(target) (rti->enemy[target].spec->razorice.stack)
 };
 //Skills=======================================================================
