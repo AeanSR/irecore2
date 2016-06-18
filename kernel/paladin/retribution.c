@@ -97,16 +97,16 @@ struct spec_state_t {
 #else
 #define divine_purpose_expire (0)
 #endif
-#if (TALENT_SANCTIFIED_WRATH)
+#if (TALENT_CRUSADE)
     struct {
         k32u stack;
-    } sanctified_wrath;
-#define sanctified_wrath_stack  (rti->player.spec->sanctified_wrath.stack)
+    } crusade;
+#define crusade_stack  (rti->player.spec->crusade.stack)
 #else
-#define sanctified_wrath_stack  (0)
+#define crusade_stack  (0)
 #endif
-#define sanctified_wrath_expire (avenging_wrath_expire)
-#define sanctified_wrath_cd     (avenging_wrath_cd)
+#define crusade_expire (avenging_wrath_expire)
+#define crusade_cd     (avenging_wrath_cd)
 #if defined(trinket_libram_of_vindication)
     struct {
         time_t expire;
@@ -134,6 +134,15 @@ struct spec_debuff_t {
 #else
 #define execution_sentence_expire(target) (0)
 #endif
+#if (TALENT_BLADE_OF_WRATH)
+    struct {
+        time_t expire;
+    } blade_of_wrath;
+#define blade_of_wrath_expire(target) (rti->enemy[target].spec->blade_of_wrath.expire)
+#else
+#define blade_of_wrath_expire(target) (0)
+#endif
+
 };
 
 float spec_str_coefficient( rtinfo_t* rti ){
@@ -154,8 +163,8 @@ float spec_crit_increament( rtinfo_t* rti ) {
 
 float spec_haste_coefficient( rtinfo_t* rti ) {
     float coeff = 1.0f;
-#if (TALENT_SANCTIFIED_WRATH)
-    if ( UP( avenging_wrath_expire ) ) coeff *= 1.0f + 0.05f * sanctified_wrath_stack;
+#if (TALENT_CRUSADE)
+    if ( UP( avenging_wrath_expire ) ) coeff *= 1.0f + 0.02f * crusade_stack;
 #endif
     return coeff;
 }
@@ -184,8 +193,8 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
     }
     float cdb = ( 1.0f + extra_crit_bonus ) * 2.0f;
     dmg *= 1.0f + rti->player.stat.vers;
-#if (TALENT_SANCTIFIED_WRATH)
-    if ( UP( avenging_wrath_expire ) )                          dmg *= 1.0f + 0.05f * sanctified_wrath_stack;
+#if (TALENT_CRUSADE)
+    if ( UP( avenging_wrath_expire ) )                          dmg *= 1.0f + 0.05f * crusade_stack;
 #else
     if ( UP( avenging_wrath_expire ) )                          dmg *= 1.35f;
 #endif
@@ -230,8 +239,8 @@ float spec_power_check( rtinfo_t* rti, float cost ) {
     return cost;
 }
 float spec_power_consume( rtinfo_t* rti, float cost ) {
-#if (TALENT_SANCTIFIED_WRATH)
-    sanctified_wrath_stack = min( sanctified_wrath_stack + cost, 15.0f );
+#if (TALENT_CRUSADE)
+    crusade_stack = min( crusade_stack + cost, 15.0f );
     refresh_haste( rti );
 #endif
     return cost;
@@ -271,6 +280,9 @@ enum {
     routnum_zeal_trigger,
     routnum_zeal_expire,
 #endif
+#if (TALENT_BLADE_OF_WRATH)
+    routnum_blade_of_wrath_tick,
+#endif
 #if (TALENT_DIVINE_HAMMER)
     routnum_divine_hammer_tick,
 #endif
@@ -300,16 +312,16 @@ DECL_EVENT( auto_attack ) {
 DECL_EVENT( avenging_wrath_cast ) {
     avenging_wrath_expire = TIME_OFFSET( FROM_SECONDS( 20 ) );
     eq_enqueue( rti, avenging_wrath_expire, routnum_avenging_wrath_expire, 0 );
-#if (TALENT_SANCTIFIED_WRATH)
-    sanctified_wrath_stack = 1;
+#if (TALENT_CRUSADE)
+    crusade_stack = 1;
     refresh_haste( rti );
 #endif
     lprintf( ( "avenging_wrath start" ) );
 }
 DECL_EVENT( avenging_wrath_expire ) {
     if ( avenging_wrath_expire == rti->timestamp ) {
-#if (TALENT_SANCTIFIED_WRATH)
-        sanctified_wrath_stack = 0;
+#if (TALENT_CRUSADE)
+        crusade_stack = 0;
         refresh_haste( rti );
 #endif
         lprintf( ( "avenging_wrath expire" ) );
@@ -328,7 +340,7 @@ DECL_SPELL( avenging_wrath ) {
     lprintf( ( "cast avenging_wrath" ) );
     return 1;
 }
-SPELL_ALIAS( sanctified_wrath, avenging_wrath )
+SPELL_ALIAS( crusade, avenging_wrath )
 
 // === blade of justice =======================================================
 DECL_EVENT( blade_of_justice_cd ) {
@@ -337,12 +349,35 @@ DECL_EVENT( blade_of_justice_cd ) {
     }
 }
 DECL_EVENT( blade_of_justice_cast ) {
-    float d = weapon_dmg( rti, ( TALENT_BLADE_OF_WRATH ? 1.2f : 4.05f ), 1, 0 );
+    float d = weapon_dmg( rti, ( TALENT_BLADE_OF_WRATH ? 2.4f : 4.05f ), 1, 0 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, ( TALENT_BLADE_OF_WRATH ? DTYPE_HOLY : DTYPE_PHYSICAL ), dice, ( TALENT_VIRTUES_BLADE ? 0.5f : 0 ), 0 );
     power_gain( rti, 2.0f );
     lprintf( ( "blade_of_justice hit" ) );
+#if (TALENT_BLADE_OF_WRATH)
+    if ( UP( blade_of_wrath_expire( target_id ) ) ) {
+        k32u ticks_remain = TIME_DISTANT( blade_of_wrath_expire( target_id ) ) / FROM_SECONDS( 2 );
+        blade_of_wrath_expire( target_id ) += TIME_OFFSET( FROM_SECONDS( 2 * ( 4 - ticks_remain ) ) );
+        lprintf( ( "blade_of_wrath_expire extends to %f sec", TO_SECONDS( TIME_DISTANT( blade_of_wrath_expire( target_id ) ) ) ) );
+    } else {
+        blade_of_wrath_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 8 ) );
+        eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 2 ) ), routnum_blade_of_wrath_tick, target_id );
+        lprintf( ( "blade_of_wrath start" ) );
+    }
+#endif
 }
+#if (TALENT_BLADE_OF_WRATH)
+DECL_EVENT( blade_of_wrath_tick ) {
+    if ( blade_of_wrath_expire( target_id ) < rti->timestamp ) return; // last tick evaluates as equal.
+    float d = ap_dmg( rti, 0.5f );
+    k32u dice = round_table_dice2( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
+    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    lprintf( ( "blade_of_wrath tick" ) );
+    if ( TIME_DISTANT( blade_of_wrath_expire( target_id ) ) >= FROM_SECONDS( 2 ) ) {
+        eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 2 ) ), routnum_blade_of_wrath_tick, target_id );
+    }
+}
+#endif
 DECL_SPELL( blade_of_justice ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( blade_of_justice_cd > rti->timestamp ) return 0;
@@ -351,8 +386,9 @@ DECL_SPELL( blade_of_justice ) {
     divine_hammer_expire = TIME_OFFSET( 4 * rti->player.spec->divine_hammer.tick_period );
     blade_of_justice_cd = TIME_OFFSET( FROM_SECONDS( 8.0f / ( 1.0f + rti->player.stat.haste ) ) );
     eq_enqueue( rti, rti->timestamp, routnum_divine_hammer_tick, ( k32u )divine_hammer_expire );
+    power_gain( rti, 1.0f );
 #else
-    blade_of_justice_cd = TIME_OFFSET( FROM_SECONDS( ( TALENT_BLADE_OF_WRATH ? 8.0f : 12.0f ) / ( 1.0f + rti->player.stat.haste ) ) );
+    blade_of_justice_cd = TIME_OFFSET( FROM_SECONDS( 12.0f / ( 1.0f + rti->player.stat.haste ) ) );
     eq_enqueue( rti, rti->timestamp, routnum_blade_of_justice_cast, rti->player.target );
 #endif
     eq_enqueue( rti, blade_of_justice_cd, routnum_blade_of_justice_cd, 0 );
@@ -367,14 +403,16 @@ SPELL_ALIAS( divine_hammer, blade_of_justice )
 DECL_EVENT( judgment_cast ) {
     float d = ap_dmg( rti, 2.0f );
     d *= 1.0f + rti->player.stat.mastery;
-    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 ); // TODO: does judgment triggers as yellow melee or spell? or both?
+    float excr = 0.0f;
+    if ( TALENT_GREATER_JUDGMENT && enemy_health_percent( rti ) >= 85.0f ) excr += 1.0f;
+    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, excr ); // TODO: does judgment triggers as yellow melee or spell? or both?
     deal_damage( rti, target_id, d, DTYPE_HOLY, dice, 0, 0 );
     if ( TALENT_GREATER_JUDGMENT ) {
         k32u c = 0;
-        for ( int i = 0; c < 3 && i < num_enemies; i++ ) {
+        for ( int i = 0; c < 2 && i < num_enemies; i++ ) {
             if ( i == target_id ) continue;
             c++;
-            dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 ); // TODO: does judgment triggers as yellow melee or spell? or both?
+            dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, excr ); // TODO: does judgment triggers as yellow melee or spell? or both?
             deal_damage( rti, i, d, DTYPE_HOLY, dice, 0, 0 );
             judgment_expire( i ) = TIME_OFFSET( FROM_SECONDS( 6 ) );  // TODO: does this duration scales with haste?
             eq_enqueue( rti, judgment_expire( i ), routnum_judgment_expire, i );
@@ -408,7 +446,7 @@ DECL_SPELL( judgment ) {
 }
 
 // === crusader strike ========================================================
-#define crusader_strike_recharge_time (TALENT_THE_FIRES_OF_JUSTICE ? 3.5f : 4.5f)
+#define crusader_strike_recharge_time (TALENT_THE_FIRES_OF_JUSTICE ? 3.0f : 4.5f)
 DECL_EVENT( crusader_strike_charge ) {
     if ( crusader_strike_cd == rti->timestamp && crusader_strike_charge < crusader_strike_maxcharge ) {
         crusader_strike_charge++;
@@ -425,7 +463,7 @@ DECL_EVENT( crusader_strike_cast ) {
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     power_gain( rti, 1.0f );
 #if (TALENT_THE_FIRES_OF_JUSTICE)
-    if ( uni_rng( rti ) < 0.25f ) {
+    if ( uni_rng( rti ) < 0.20f ) {
         eq_enqueue( rti, rti->timestamp, routnum_the_fires_of_justice_trigger, 0 );
     }
 #endif
@@ -467,7 +505,7 @@ SPELL_ALIAS( zeal, crusader_strike )
 // === divine storm ===========================================================
 DECL_EVENT( divine_storm_cast ) {
     for ( int i = 0; i < num_enemies; i++ ) {
-        float multiplier = TALENT_FINAL_VERDICT ? 1.2f : 1.0f;
+        float multiplier = TALENT_FINAL_VERDICT ? 1.1f : 1.0f;
         if ( UP( judgment_expire( i ) ) ) multiplier *= 1.0f + 0.5f * rti->player.stat.mastery;
         float d = weapon_dmg( rti, 2.25f, 1, 0 ) * multiplier;
         k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );  // TODO: does divine storm triggers as yellow melee or spell? or both?
@@ -475,7 +513,7 @@ DECL_EVENT( divine_storm_cast ) {
         lprintf( ( "divine_storm hit @tar%d", i ) );
     }
 #if (TALENT_DIVINE_PURPOSE)
-    if ( uni_rng( rti ) < 0.2f ) {
+    if ( uni_rng( rti ) < 0.15f ) {
         eq_enqueue( rti, rti->timestamp, routnum_divine_purpose_trigger, 0 );
     }
 #endif
@@ -515,7 +553,7 @@ DECL_EVENT( templars_verdict_cast ) {
     deal_damage( rti, target_id, d, DTYPE_HOLY, dice, 0, 0 );
     lprintf( ( "templars_verdict hit" ) );
 #if (TALENT_DIVINE_PURPOSE)
-    if ( uni_rng( rti ) < 0.2f ) {
+    if ( uni_rng( rti ) < 0.15f ) {
         eq_enqueue( rti, rti->timestamp, routnum_divine_purpose_trigger, 0 );
     }
 #endif
@@ -553,7 +591,7 @@ DECL_EVENT( execution_sentence_cast ) {
     eq_enqueue( rti, execution_sentence_expire( target_id ), routnum_execution_sentence_expire, target_id );
     lprintf( ( "execution_sentence apply @tar%d", target_id ) );
 #if (TALENT_DIVINE_PURPOSE)
-    if ( uni_rng( rti ) < 0.2f ) {
+    if ( uni_rng( rti ) < 0.15f ) {
         eq_enqueue( rti, rti->timestamp, routnum_divine_purpose_trigger, 0 );
     }
 #endif
@@ -616,7 +654,7 @@ DECL_EVENT( consecration_cd ) {
 DECL_EVENT( consecration_tick ) {
     if ( ( k32u )consecration_expire != target_id ) return; // target_id is the distinction of hanging tick events.
     for ( int i = 0; i < num_enemies; i++ ) {
-        float d = ap_dmg( rti, 0.27f );
+        float d = ap_dmg( rti, 0.45f );
         k32u dice = round_table_dice( rti, i, ATYPE_SPELL, 0 );  // TODO: does consecration triggers as yellow melee or spell? or both?
         deal_damage( rti, i, d, DTYPE_HOLY, dice, 0, 0 );
         lprintf( ( "consecration hit @tar%d", i ) );
@@ -765,6 +803,9 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
 #if (TALENT_ZEAL)
         HOOK_EVENT( zeal_trigger );
         HOOK_EVENT( zeal_expire );
+#endif
+#if (TALENT_BLADE_OF_WRATH)
+        HOOK_EVENT( blade_of_wrath_tick );
 #endif
 #if (TALENT_DIVINE_HAMMER)
         HOOK_EVENT( divine_hammer_tick );

@@ -45,8 +45,8 @@
 
 /* Tier 7 */
 #define TALENT_DIVINE_PURPOSE       (TALENT_TIER7 == 1)
-#define TALENT_SANCTIFIED_WRATH     (TALENT_TIER7 == 2)
-#define TALENT_EQUALITY             (TALENT_TIER7 == 3)
+#define TALENT_CRUSADE              (TALENT_TIER7 == 2)
+#define TALENT_HOLY_WRATH           (TALENT_TIER7 == 3)
 
 /*
     Paladin only have one DPS Spec, so all models goes into retribution.c

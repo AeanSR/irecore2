@@ -37,26 +37,27 @@
 #define TALENT_FURIOUS_CHARGE      ((SPEC == SPEC_FURY) && (TALENT_TIER4 == 1))
 #define TALENT_WARPAINT            ((SPEC == SPEC_FURY) && (TALENT_TIER4 == 3))
 #define TALENT_SECOND_WIND         ((SPEC == SPEC_ARMS) && (TALENT_TIER4 == 1))
-#define TALENT_DIE_BY_THE_SWORD    ((SPEC == SPEC_ARMS) && (TALENT_TIER4 == 3))
+#define TALENT_DEFENSIVE_STANCE    ((SPEC == SPEC_ARMS) && (TALENT_TIER4 == 3))
 #define TALENT_BOUNDING_STRIDE     (TALENT_TIER4 == 2)
 
 /* Tier 5 */
 #define TALENT_IN_FOR_THE_KILL     ((SPEC == SPEC_ARMS) && (TALENT_TIER5 == 1))
 #define TALENT_MORTAL_COMBO        ((SPEC == SPEC_ARMS) && (TALENT_TIER5 == 2))
+#define TALENT_FOCUSED_RAGE        ((SPEC == SPEC_ARMS) && (TALENT_TIER5 == 3))
 #define TALENT_MASSACRE            ((SPEC == SPEC_FURY) && (TALENT_TIER5 == 1))
 #define TALENT_FROTHING_BERSERKER  ((SPEC == SPEC_FURY) && (TALENT_TIER5 == 2))
-#define TALENT_BLADESTORM          (TALENT_TIER5 == 3)
+#define TALENT_CARNAGE             ((SPEC == SPEC_FURY) && (TALENT_TIER5 == 3))
 
 /* Tier 6 */
-#define TALENT_MEAT_GRINDER        ((SPEC == SPEC_FURY) && (TALENT_TIER6 == 1))
+#define TALENT_BLOODBATH           ((SPEC == SPEC_FURY) && (TALENT_TIER6 == 1))
 #define TALENT_FRENZY              ((SPEC == SPEC_FURY) && (TALENT_TIER6 == 2))
 #define TALENT_INNER_RAGE          ((SPEC == SPEC_FURY) && (TALENT_TIER6 == 3))
-#define TALENT_FOCUSED_RAGE        ((SPEC == SPEC_ARMS) && (TALENT_TIER6 == 1))
+#define TALENT_DEADLY_CALM         ((SPEC == SPEC_ARMS) && (TALENT_TIER6 == 1))
 #define TALENT_TRAUMA              ((SPEC == SPEC_ARMS) && (TALENT_TIER6 == 2))
 #define TALENT_TITANIC_MIGHT       ((SPEC == SPEC_ARMS) && (TALENT_TIER6 == 3))
 
 /* Tier 7 */
-#define TALENT_CARNAGE             ((SPEC == SPEC_FURY) && (TALENT_TIER7 == 1))
+#define TALENT_BLADESTORM          (((SPEC == SPEC_FURY) && (TALENT_TIER7 == 1)) || (SPEC == SPEC_ARMS))
 #define TALENT_RECKLESS_ABANDON    ((SPEC == SPEC_FURY) && (TALENT_TIER7 == 2))
 #define TALENT_DRAGON_ROAR         ((SPEC == SPEC_FURY) && (TALENT_TIER7 == 3))
 #define TALENT_ANGER_MANAGEMENT    ((SPEC == SPEC_ARMS) && (TALENT_TIER7 == 1))
@@ -194,7 +195,7 @@ void spec_berserker_rage_cast( rtinfo_t* rti );
 DECL_SPELL( berserker_rage ) {
     if ( berserker_rage_cd > rti->timestamp ) return 0;
     spec_berserker_rage_cast( rti );
-    berserker_rage_cd = TIME_OFFSET( FROM_SECONDS( (TALENT_OUTBURST) ? 90 : 60 ) );
+    berserker_rage_cd = TIME_OFFSET( FROM_SECONDS( 60 ) );
     eq_enqueue( rti, berserker_rage_cd, routnum_berserker_rage_cd, 0 );
     lprintf( ( "cast berserker_rage" ) );
     return 1;

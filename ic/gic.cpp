@@ -529,9 +529,9 @@ void gic::on_comboSpec_currentIndexChanged( int idx ) {
 
         ui.comboTalent5->addItem( QApplication::translate( "gicClass", "In For The Kill" ) );
         ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Mortal Combo" ) );
-        ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Bladestorm" ) );
+        ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Focused Rage" ) );
 
-        ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Focused Rage" ) );
+        ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Deadly Calm" ) );
         ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Trauma" ) );
         ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Titanic Might" ) );
 
@@ -558,13 +558,13 @@ void gic::on_comboSpec_currentIndexChanged( int idx ) {
 
         ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Massacre" ) );
         ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Frothing Berserker" ) );
-        ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Bladestorm" ) );
+        ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Carnage" ) );
 
-        ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Meat Grinder" ) );
+        ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Bloodbath" ) );
         ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Frenzy" ) );
         ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Inner Rage" ) );
 
-        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Carnage" ) );
+        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Bladestorm" ) );
         ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Reckless Abandon" ) );
         ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Dragon Roar" ) );
     }
@@ -577,7 +577,7 @@ void gic::on_comboSpec_currentIndexChanged( int idx ) {
         ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Zeal" ) );
         ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Greater Judgment" ) );
 
-        ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Fist of Judgment" ) );
+        ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Fist of Justice" ) );
         ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Repentance" ) );
         ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Blinding Light" ) );
 
@@ -594,8 +594,8 @@ void gic::on_comboSpec_currentIndexChanged( int idx ) {
         ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Seal of Light" ) );
 
         ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Divine Purpose" ) );
-        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Sanctified Wrath" ) );
-        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Equality" ) );
+        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Crusade" ) );
+        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Holy Wrath" ) );
     }
     // Policy Action List.
     QStringList listWarrior, listArms, listFury;
