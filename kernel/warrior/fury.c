@@ -58,13 +58,16 @@ struct spec_state_t{
 #else
     #define frothing_berserker_expire (0)
 #endif
-#if (TALENT_MEAT_GRINDER)
+#if (TALENT_BLOODBATH)
     struct {
         time_t expire;
-    } meat_grinder;
-    #define meat_grinder_expire (rti->player.spec->meat_grinder.expire)
+        time_t cd;
+    } bloodbath;
+    #define bloodbath_expire (rti->player.spec->bloodbath.expire)
+    #define bloodbath_cd     (rti->player.spec->bloodbath.cd)
 #else
-    #define meat_grinder_expire (0)
+    #define bloodbath_expire (0)
+    #define bloodbath_cd     (0)
 #endif
 #if (TALENT_FRENZY)
     struct {
@@ -121,6 +124,13 @@ struct spec_state_t{
 #endif
 };
 struct spec_debuff_t{
+#if (TALENT_BLOODBATH)
+    struct {
+        time_t dot_start;
+        float pool;
+        float ticks;
+    } bloodbath;
+#endif
 };
 
 /* Reimplemented power gain. */
@@ -129,8 +139,8 @@ void frothing_berserker_trigger( rtinfo_t* rti );
 #endif
 float spec_power_gain( rtinfo_t* rti, float power ) {
     int frothing = 1;
-    frothing &= rti->player.power < power_max;
-    frothing &= rti->player.power + power >= power_max;
+    frothing &= rti->player.power < 100.0f;
+    frothing &= rti->player.power + power >= 100.0f;
 #if (TALENT_FROTHING_BERSERKER)
     if( frothing ) frothing_berserker_trigger( rti );
 #endif
@@ -193,6 +203,8 @@ k32u round_table_dice( rtinfo_t* rti, k32u target_id, k32u attacktype, float ext
     special_procs( rti, attacktype, dice, target_id );
     return dice;
 }
+
+void trigger_dots( rtinfo_t* rti, float dmg, k32u target_id );
 
 float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u dice, float extra_crit_bonus, kbool ignore_armor ) {
     if ( DICE_MISS == dice ) return .0f;
@@ -273,9 +285,11 @@ enum{
     routnum_frothing_berserker_trigger,
     routnum_frothing_berserker_expire,
 #endif
-#if (TALENT_MEAT_GRINDER)
-    routnum_meat_grinder_trigger,
-    routnum_meat_grinder_expire,
+#if (TALENT_BLOODBATH)
+    routnum_bloodbath_start,
+    routnum_bloodbath_expire,
+    routnum_bloodbath_cd,
+    routnum_bloodbath_tick,
 #endif
 #if (TALENT_FRENZY)
     routnum_frenzy_trigger,
@@ -305,7 +319,8 @@ DECL_EVENT( auto_attack_mh ) {
     float d = weapon_dmg( rti, 1.0f, 0, 0 );
 
     k32u dice = round_table_dice( rti, rti->player.target, ATYPE_WHITE_MELEE, 0 );
-    deal_damage( rti, rti->player.target, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    float final_dmg = deal_damage( rti, rti->player.target, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    trigger_dots( rti, final_dmg, rti->player.target );
     if ( dice == DICE_MISS ) {
         /* Miss */
         lprintf( ( "mh miss" ) );
@@ -325,7 +340,8 @@ DECL_EVENT( auto_attack_mh ) {
 DECL_EVENT( auto_attack_oh ) {
     float d = weapon_dmg( rti, 1.0f, 0, 1 );
     k32u dice = round_table_dice( rti, rti->player.target, ATYPE_WHITE_MELEE, 0 );
-    deal_damage( rti, rti->player.target, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    float final_dmg = deal_damage( rti, rti->player.target, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    trigger_dots( rti, final_dmg, rti->player.target );
     if ( dice == DICE_MISS ) {
         /* Miss */
         lprintf( ( "oh miss" ) );
@@ -383,7 +399,8 @@ DECL_EVENT( bloodthirst_cast ) {
     float cr = 0.15f * taste_for_blood_stack;
     if ( TALENT_FRESH_MEAT && enemy_health_percent( rti ) > 80.0f ) cr += 0.3f;
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, cr );
-    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    trigger_dots( rti, final_dmg, target_id );
     if ( DICE_CRIT == dice ) {
         have_crit = 1;
     }
@@ -396,7 +413,8 @@ DECL_EVENT( bloodthirst_cast ) {
             c++;
             d = weapon_dmg( rti, 3.25f, 1, 0 );
             dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, cr );
-            deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+            final_dmg = deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+            trigger_dots( rti, final_dmg, target_id );
             if ( DICE_CRIT == dice ) {
                 have_crit = 1;
             }
@@ -442,7 +460,7 @@ DECL_EVENT( execute_cast ) {
     float d = weapon_dmg( rti, 4.65f, 1, 0 );
     if ( MH_TYPE == WEAPON_1H ) d *= 1.15f; // TODO: check if SMF need both weapon to be 1h when go live.
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
-    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
 #if (TALENT_MASSACRE)
     if ( DICE_CRIT == dice ) // TODO: see if massacre triggers from off-hand execute when go live.
         eq_enqueue( rti, rti->timestamp, routnum_massacre_trigger, 0 );
@@ -450,7 +468,8 @@ DECL_EVENT( execute_cast ) {
     d = weapon_dmg( rti, 4.65f, 1, 1 );
     if ( OH_TYPE == WEAPON_1H ) d *= 1.15f;
     dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
-    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    final_dmg += deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    trigger_dots( rti, final_dmg, target_id );
     lprintf( ( "execute hit" ) );
 }
 DECL_SPELL( execute ) {
@@ -468,7 +487,8 @@ DECL_SPELL( execute ) {
 DECL_EVENT( furious_slash_cast ) {
     float d = weapon_dmg( rti, 1.85f, 1, 1 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, ( t18_2pc ? 0.05f : 0.0f ) );
-    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, ( t18_2pc ? 0.12f : 0.0f ) , 0 );
+    float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, ( t18_2pc ? 0.12f : 0.0f ) , 0 );
+    trigger_dots( rti, final_dmg, target_id );
     eq_enqueue( rti, rti->timestamp, routnum_taste_for_blood_trigger, 0 );
 #if (TALENT_FRENZY)
     eq_enqueue( rti, rti->timestamp, routnum_frenzy_trigger, 0 );
@@ -511,13 +531,14 @@ DECL_EVENT( meat_cleaver_trigger ) {
 DECL_EVENT( raging_blow_cast ) {
     float d = weapon_dmg( rti, 2.15f * ( TALENT_INNER_RAGE ? 2.0f : 1.0f ), 1, 0 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
-    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     if ( t17_2pc && DICE_CRIT == dice && uni_rng( rti ) < 0.2 ) {
         eq_enqueue( rti, rti->timestamp, routnum_enrage_trigger, target_id );
     }
     d = weapon_dmg( rti, 2.15f * ( TALENT_INNER_RAGE ? 2.0f : 1.0f ), 1, 1 );
     dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
-    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    final_dmg += deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    trigger_dots( rti, final_dmg, target_id );
     if ( t17_2pc && DICE_CRIT == dice && uni_rng( rti ) < 0.2 ) {
         eq_enqueue( rti, rti->timestamp, routnum_enrage_trigger, target_id );
     }
@@ -549,61 +570,57 @@ DECL_SPELL( raging_blow ) {
 // === rampage ================================================================
 DECL_EVENT( rampage_cast_1 ) {
     k32u multihit_signal = 0;
-#if (TALENT_MEAT_GRINDER)
     if ( target_id >= num_enemies ) {
         multihit_signal = num_enemies;
         target_id -= num_enemies;
     }
-#endif
     float d = weapon_dmg( rti, 0.5f, 1, 0 ) * ( multihit_signal ? 0.5f : 1.0f );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
-    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    trigger_dots( rti, final_dmg, target_id );
     eq_enqueue( rti, rti->timestamp, routnum_enrage_trigger, 0 );
     eq_enqueue( rti, TIME_OFFSET( FROM_MILLISECONDS( 200 ) ), routnum_rampage_cast_2, target_id + multihit_signal );
     lprintf( ( "rampage 1st hit" ) );
 }
 DECL_EVENT( rampage_cast_2 ) {
     k32u multihit_signal = 0;
-#if (TALENT_MEAT_GRINDER)
     if ( target_id >= num_enemies ) {
         multihit_signal = num_enemies;
         target_id -= num_enemies;
     }
-#endif
     float d = weapon_dmg( rti, 1.5f, 1, 1 ) * ( multihit_signal ? 0.5f : 1.0f );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
-    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    trigger_dots( rti, final_dmg, target_id );
     eq_enqueue( rti, TIME_OFFSET( FROM_MILLISECONDS( 333 ) ), routnum_rampage_cast_3, target_id + multihit_signal );
     lprintf( ( "rampage 2nd hit" ) );
 }
 DECL_EVENT( rampage_cast_3 ) {
     k32u multihit_signal = 0;
-#if (TALENT_MEAT_GRINDER)
     if ( target_id >= num_enemies ) {
         multihit_signal = num_enemies;
         target_id -= num_enemies;
     }
-#endif
     float d = weapon_dmg( rti, 1.0f, 1, 0 ) * ( multihit_signal ? 0.5f : 1.0f );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
-    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    trigger_dots( rti, final_dmg, target_id );
     eq_enqueue( rti, TIME_OFFSET( FROM_MILLISECONDS( 667 ) ), routnum_rampage_cast_4, target_id + multihit_signal );
     lprintf( ( "rampage 3rd hit" ) );
 }
 DECL_EVENT( rampage_cast_4 ) {
     k32u multihit_signal = 0;
-#if (TALENT_MEAT_GRINDER)
     if ( target_id >= num_enemies ) {
         multihit_signal = num_enemies;
         target_id -= num_enemies;
     }
-#endif
     float d = weapon_dmg( rti, 3.0f, 1, 1 ) * ( multihit_signal ? 0.5f : 1.0f );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
-    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     d = weapon_dmg( rti, 1.75f, 1, 0 ) * ( multihit_signal ? 0.5f : 1.0f );
     dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
-    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    final_dmg += deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    trigger_dots( rti, final_dmg, target_id );
     lprintf( ( "rampage 4/5th hit" ) );
 }
 DECL_SPELL( rampage ) {
@@ -614,8 +631,7 @@ DECL_SPELL( rampage ) {
     }
     gcd_start( rti, FROM_SECONDS( 2.0f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_rampage_cast_1, rti->player.target );
-#if (TALENT_MEAT_GRINDER)
-    if ( UP( meat_grinder_expire ) ){
+    if ( UP( meat_cleaver_expire ) ){
         k32u c = 0;
         for( int i = 0; c < 4 && i < num_enemies; i++ ) {
             if ( i == rti->player.target ) continue;
@@ -624,10 +640,9 @@ DECL_SPELL( rampage ) {
             // dirty hack via manipulating target_id, not elegant, but space efficient.
             eq_enqueue( rti, rti->timestamp, routnum_rampage_cast_1, rti->player.target + num_enemies );
         }
-        meat_grinder_expire = rti->timestamp;
-        eq_enqueue( rti, rti->timestamp, routnum_meat_grinder_expire, 0 );
+        meat_cleaver_expire = rti->timestamp;
+        eq_enqueue( rti, rti->timestamp, routnum_meat_cleaver_expire, 0 );
     }
-#endif
     lprintf( ( "cast rampage" ) );
     return 1;
 }
@@ -645,28 +660,26 @@ DECL_EVENT( whirlwind_cast ) {
     for( int i = 0; i < num_enemies; i++ ){
         float d = weapon_dmg( rti, 0.48f, 1, 0 ) * multiplier;
         k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
-        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        float final_dmg = deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         d = weapon_dmg( rti, 0.48f, 1, 1 ) * multiplier;
         dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
-        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        final_dmg += deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         d = weapon_dmg( rti, 0.48f, 1, 0 ) * multiplier;
         dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
-        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        final_dmg += deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         d = weapon_dmg( rti, 0.48f, 1, 1 ) * multiplier;
         dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
-        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        final_dmg += deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         d = weapon_dmg( rti, 0.48f, 1, 0 ) * multiplier;
         dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
-        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        final_dmg += deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         d = weapon_dmg( rti, 0.48f, 1, 1 ) * multiplier;
         dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
-        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        final_dmg += deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        trigger_dots( rti, final_dmg, i );
         lprintf( ( "whirlwind hit @tar%d", i ) );
     }
     eq_enqueue( rti, rti->timestamp, routnum_meat_cleaver_trigger, 0 );
-#if (TALENT_MEAT_GRINDER)
-    eq_enqueue( rti, rti->timestamp, routnum_meat_grinder_trigger, 0 );
-#endif
 }
 DECL_SPELL( whirlwind ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
@@ -729,28 +742,66 @@ void frothing_berserker_trigger( rtinfo_t* rti ) {
 #if (TALENT_BLADESTORM)
 void spec_bladestorm_tick( rtinfo_t* rti ) {
     for( int i = 0; i < num_enemies; i++ ) {
-        float d = weapon_dmg( rti, 2.88f, 1, 0 );
+        float d = weapon_dmg( rti, 1.45f, 1, 0 );
         k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
-        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
-        d = weapon_dmg( rti, 2.88f, 1, 1 );
+        float final_dmg = deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        d = weapon_dmg( rti, 1.45f, 1, 1 );
         dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
-        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        final_dmg += deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        trigger_dots( rti, final_dmg, i );
         lprintf( ( "bladestorm tick @tar%d", i ) );
     }
 }
 #endif
 
-// === meat grinder ===========================================================
-#if (TALENT_MEAT_GRINDER)
-DECL_EVENT( meat_grinder_expire ) {
-    if ( meat_grinder_expire == rti->timestamp ) {
-        lprintf( ( "meat_grinder expire" ) );
+// === bloodbath ==============================================================
+#if (TALENT_BLOODBATH)
+DECL_EVENT( bloodbath_tick ) {
+    if ( rti->enemy[target_id].spec->bloodbath.ticks < 1.0f ) return;
+    if ( rti->enemy[target_id].spec->bloodbath.dot_start + FROM_SECONDS( 8.0f - 2.0f * rti->enemy[target_id].spec->bloodbath.ticks ) != rti->timestamp ) return;
+    float dmg = rti->enemy[target_id].spec->bloodbath.pool / rti->enemy[target_id].spec->bloodbath.ticks;
+    rti->enemy[target_id].spec->bloodbath.pool -= dmg;
+    deal_damage( rti, target_id, dmg, DTYPE_DIRECT, DICE_HIT, 0, 0 );
+    lprintf( ( "bloodbath ticks" ) );
+    rti->enemy[target_id].spec->bloodbath.ticks -= 1.0f;
+    if ( rti->enemy[target_id].spec->bloodbath.ticks >= 1.0f )
+        eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 2 ) ), routnum_bloodbath_tick, target_id );
+}
+void trigger_bloodbath( rtinfo_t* rti, float dmg, k32u target_id ) {
+    rti->enemy[target_id].spec->bloodbath.pool += dmg * 0.2f;
+    if ( rti->enemy[target_id].spec->bloodbath.ticks < 1.0f ) {
+        rti->enemy[target_id].spec->bloodbath.dot_start = rti->timestamp;
+        rti->enemy[target_id].spec->bloodbath.ticks = 3.0f;
+        eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 2 ) ), routnum_bloodbath_tick, target_id );
+        lprintf( ( "bloodbath apply @tar%d", target_id ) );
+    } else {
+        float new_ticks = 3.0f - rti->enemy[target_id].spec->bloodbath.ticks;
+        rti->enemy[target_id].spec->bloodbath.ticks = 3.0f;
+        rti->enemy[target_id].spec->bloodbath.dot_start += FROM_SECONDS( new_ticks * 2 );
+        lprintf( ( "bloodbath @tar%d extends", target_id ) );
     }
 }
-DECL_EVENT( meat_grinder_trigger ) {
-    meat_grinder_expire = TIME_OFFSET( FROM_SECONDS( 60 ) );
-    eq_enqueue( rti, meat_grinder_expire, routnum_meat_grinder_expire, 0 );
-    lprintf( ( "meat_grinder trigger" ) );
+DECL_EVENT( bloodbath_cd ) {
+    lprintf( ( "bloodbath cd" ) );
+}
+DECL_EVENT( bloodbath_expire ) {
+    lprintf( ( "bloodbath expire" ) );
+}
+DECL_EVENT( bloodbath_start ) {
+    lprintf( ( "bloodbath start" ) );
+}
+DECL_SPELL( bloodbath ) {
+    if ( bloodbath_cd > rti->timestamp ) return 0;
+    bloodbath_expire = TIME_OFFSET( FROM_SECONDS( 8 ) );
+    eq_enqueue( rti, bloodbath_expire, routnum_bloodbath_expire, 0 );
+    eq_enqueue( rti, rti->timestamp, routnum_bloodbath_start, 0 );
+    bloodbath_cd = TIME_OFFSET( FROM_SECONDS( 30 ) );
+    eq_enqueue( rti, bloodbath_cd, routnum_bloodbath_cd, 0 );
+    return 1;
+}
+#else
+DECL_SPELL( bloodbath ) {
+    return 0;
 }
 #endif
 
@@ -778,9 +829,12 @@ DECL_EVENT( dragon_roar_cd ) {
     }
 }
 DECL_EVENT( dragon_roar_cast ) {
-    float d = ap_dmg( rti, 1.98f );
-    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 1 );
-    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 1 );
+    for ( int i = 0; i < num_enemies; i++ ) {
+        float d = ap_dmg( rti, 1.98f );
+        k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 1 );
+        float final_dmg = deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 1 );
+        trigger_dots( rti, final_dmg, i );
+    }
     dragon_roar_expire = TIME_OFFSET( FROM_SECONDS( 6 ) );
     eq_enqueue( rti, dragon_roar_expire, routnum_dragon_roar_expire, 0 );
     lprintf( ( "dragon_roar hit/trigger" ) );
@@ -835,6 +889,13 @@ DECL_EVENT( worldbreakers_resolve_trigger ) {
 }
 #endif
 
+void trigger_dots( rtinfo_t* rti, float dmg, k32u target_id ) {
+    if ( dmg <= 0.0f ) return;
+#if (TALENT_BLOODBATH)
+    if ( UP( bloodbath_expire ) ) trigger_bloodbath( rti, dmg, target_id );
+#endif
+}
+
 void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
     switch( e.routine ) {
         HOOK_EVENT( auto_attack_mh );
@@ -867,9 +928,11 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
         HOOK_EVENT( frothing_berserker_trigger );
         HOOK_EVENT( frothing_berserker_expire );
 #endif
-#if (TALENT_MEAT_GRINDER)
-        HOOK_EVENT( meat_grinder_trigger );
-        HOOK_EVENT( meat_grinder_expire );
+#if (TALENT_BLOODBATH)
+        HOOK_EVENT( bloodbath_start );
+        HOOK_EVENT( bloodbath_expire );
+        HOOK_EVENT( bloodbath_cd );
+        HOOK_EVENT( bloodbath_tick );
 #endif
 #if (TALENT_FRENZY)
         HOOK_EVENT( frenzy_trigger );

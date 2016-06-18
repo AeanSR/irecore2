@@ -227,7 +227,7 @@ DECL_EVENT( shockwave_cd ) {
     lprintf( ( "shockwave cd" ) );
 }
 DECL_EVENT( shockwave_cast ) {
-    float d = ap_dmg( rti, 0.95f );
+    float d = ap_dmg( rti, 0.475f );
     for ( int i = 0; i < num_enemies; i++ ) {
         k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
         deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
@@ -255,7 +255,7 @@ DECL_EVENT( storm_bolt_cd ) {
     lprintf( ( "storm_bolt cd" ) );
 }
 DECL_EVENT( storm_bolt_cast ) {
-    float d = ap_dmg( rti, 2.0f );
+    float d = ap_dmg( rti, 1.0f );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     lprintf( ( "storm_bolt hit" ) );

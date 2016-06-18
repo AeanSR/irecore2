@@ -182,7 +182,9 @@ float spec_power_gain( rtinfo_t* rti, float power ) {
 
 /* Power check with dauntless. */
 float spec_power_check( rtinfo_t* rti, float cost ) {
-    return (float)(int)( cost * ( TALENT_DAUNTLESS ? 0.8f : 1.0f ) );
+    if ( TALENT_DAUNTLESS ) cost *= 0.8f;
+    if ( TALENT_DEADLY_CALM && UP( battle_cry_expire ) ) cost *= 0.0f;
+    return (float)(int)( cost );
 }
 
 /* Power consume with dauntless. */
@@ -190,7 +192,9 @@ float spec_power_check( rtinfo_t* rti, float cost ) {
 void anger_management_count( rtinfo_t* rti, float rage );
 #endif
 float spec_power_consume( rtinfo_t* rti, float cost ) {
-    cost = (float)(int)( cost * ( TALENT_DAUNTLESS ? 0.8f : 1.0f ) );
+    if ( TALENT_DAUNTLESS ) cost *= 0.8f;
+    if ( TALENT_DEADLY_CALM && UP( battle_cry_expire ) ) cost *= 0.0f;
+    cost = (float)(int)( cost );
 #if (TALENT_ANGER_MANAGEMENT)
     anger_management_count( rti, cost );
 #endif
@@ -301,7 +305,6 @@ DECL_EVENT( cleave_cast ) {
         cleave_stack ++;
         lprintf( ( "cleave hit @tar%d", i ) );
     }
-    if ( TALENT_FERVOR_OF_BATTLE ) power_gain( rti, 2.0f * cleave_stack );
     lprintf( ( "cleave stack %d", cleave_stack ) );
 }
 DECL_SPELL( cleave ) {
@@ -330,7 +333,7 @@ DECL_EVENT( colossus_smash_expire ) {
     }
 }
 DECL_EVENT( colossus_smash_trigger ) {
-    colossus_smash_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 8.0f * ( TALENT_TITANIC_MIGHT ? 3.0f : 1.0f ) ) );
+    colossus_smash_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 8.0f + ( TALENT_TITANIC_MIGHT ? 16.0f : 0.0f ) ) );
     rti->enemy[target_id].spec->colossus_smash.increament = 1.0f + ( 0.15f + rti->player.stat.mastery ) * ( TALENT_TITANIC_MIGHT ? 0.5f : 1.0f );
     lprintf( ( "colossus_smash start @tar%d", target_id ) );
 }
@@ -434,18 +437,18 @@ DECL_EVENT( mortal_strike_charge ) {
     }
 }
 DECL_EVENT( mortal_strike_cast ) {
-    float addition = focused_rage_stack * 1.65f;
+    float multiplier = 1.0f + 0.5f * focused_rage_stack;
 #if (TALENT_FOCUSED_RAGE)
     focused_rage_stack = 0;
 #endif
-    float d = weapon_dmg( rti, 2.8f + addition, 1, 0 );
+    float d = weapon_dmg( rti, 2.8f, 1, 0 ) * multiplier;
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     lprintf( ( "mortal_strike hit" ) );
     if ( TALENT_SWEEPING_STRIKES ) {
         for ( int i = 0; i < num_enemies; i++ ) {
             if ( i == target_id ) continue;
-            d = weapon_dmg( rti, 2.8f + addition, 1, 0 );
+            d = weapon_dmg( rti, 2.8f, 1, 0 ) * multiplier;
             dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
             deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
             lprintf( ( "mortal_strike sweepstrike" ) );
@@ -518,21 +521,24 @@ DECL_EVENT( whirlwind_cast ) {
         multiplier += 0.2f * cleave_stack;
     }
     for( int i = 0; i < num_enemies; i++ ){
-        float d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier;
+        float final_dmg = 0.0f;
+        float d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier * ( TALENT_FERVOR_OF_BATTLE && i == target_id ? 1.4f : 1.0f );
         k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
-        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
-        d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier;
+        final_dmg += deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier * ( TALENT_FERVOR_OF_BATTLE && i == target_id ? 1.4f : 1.0f );
         dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
-        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
-        d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier;
+        final_dmg += deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier * ( TALENT_FERVOR_OF_BATTLE && i == target_id ? 1.4f : 1.0f );
         dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
-        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        final_dmg += deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         lprintf( ( "whirlwind hit @tar%d", i ) );
         if ( uni_rng( rti ) < 0.15f ) {
             eq_enqueue( rti, rti->timestamp, routnum_tactician_trigger, 0 );
         }
+#if (TALENT_TRAUMA)
+        trigger_trauma( rti, final_dmg, i );
+#endif
     }
-    if ( TALENT_FERVOR_OF_BATTLE ) power_gain( rti, 2.0f * num_enemies );
 }
 DECL_SPELL( whirlwind ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
@@ -622,7 +628,7 @@ DECL_SPELL( rend ) {
 #if (TALENT_BLADESTORM)
 void spec_bladestorm_tick( rtinfo_t* rti ) {
     for( int i = 0; i < num_enemies; i++ ) {
-        float d = weapon_dmg( rti, 2.88f, 1, 0 );
+        float d = weapon_dmg( rti, 1.45f, 1, 0 );
         k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
         deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         lprintf( ( "bladestorm tick @tar%d", i ) );
@@ -662,7 +668,7 @@ DECL_EVENT( trauma_tick ) {
     lprintf( ( "trauma ticks" ) );
     rti->enemy[target_id].spec->trauma.ticks -= 1.0f;
     if ( rti->enemy[target_id].spec->trauma.ticks >= 1.0f )
-        eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1 ) ), routnum_trauma_tick, target_id );
+        eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 2 ) ), routnum_trauma_tick, target_id );
 }
 void trigger_trauma( rtinfo_t* rti, float dmg, k32u target_id ) {
     rti->enemy[target_id].spec->trauma.pool += dmg * 0.2f;
@@ -708,8 +714,8 @@ DECL_EVENT( ravager_cd ) {
 }
 DECL_EVENT( ravager_tick ) {
     for( int i = 0; i < num_enemies; i++ ) {
-        float d = ap_dmg( rti, 0.888f );
-        k32u dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
+        float d = ap_dmg( rti, 2.5f );
+        k32u dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs. TODO: does ravager procs?
         deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         lprintf( ( "ravager tick" ) );
     }
@@ -729,7 +735,7 @@ DECL_SPELL( ravager ) {
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_ravager_cast, 0 );
     ravager_cd = TIME_OFFSET( FROM_SECONDS( 60 ) );
-    ravager_expire = TIME_OFFSET( FROM_SECONDS( 10 ) );
+    ravager_expire = TIME_OFFSET( FROM_SECONDS( 7 ) );
     eq_enqueue( rti, ravager_cd, routnum_ravager_cd, 0 );
     lprintf( ( "cast ravager" ) );
     return 1;

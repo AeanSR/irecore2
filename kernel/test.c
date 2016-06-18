@@ -2,8 +2,8 @@
     kernel compile test
 */
 
-#define CLASS CLASS_DEATHKNIGHT
-#define SPEC SPEC_FROST_DK
+#define CLASS CLASS_WARRIOR
+#define SPEC SPEC_FURY
 #define STRICT_GCD 1
 #define WBR_NEVER_EXPIRE 1
 #define AVATAR_LIKE_BLOODBATH 0
@@ -64,27 +64,36 @@
 //#define trinket_libram_of_vindication 314
 #define ENEMY_IS_DEMONIC 1
 
-#define TALENT_TIER1 2
-#define TALENT_TIER2 2
-#define TALENT_TIER3 2
-#define TALENT_TIER4 2
-#define TALENT_TIER5 2
-#define TALENT_TIER6 2
-#define TALENT_TIER7 2
+#define TALENT_TIER1 1
+#define TALENT_TIER2 1
+#define TALENT_TIER3 1
+#define TALENT_TIER4 1
+#define TALENT_TIER5 1
+#define TALENT_TIER6 1
+#define TALENT_TIER7 1
 
 #include "kernel.c"
 #include "common.c"
-//#include "warrior\warrior.c"
-//#include "warrior\fury.c"
-//#include "warrior\arms.c"
-//#include "paladin\paladin.c"
-//#include "paladin\retribution.c"
-#include "deathknight\deathknight.c"
-#include "deathknight\frost_dk.c"
+#if (CLASS == CLASS_WARRIOR)
+#include "warrior/warrior.c"
+#elif (CLASS == CLASS_PALADIN)
+#include "paladin/paladin.c"
+#elif (CLASS == CLASS_DEATHKNIGHT)
+#include "deathknight/deathknight.c"
+#endif
+#if (SPEC == SPEC_ARMS)
+#include "warrior/arms.c"
+#elif (SPEC == SPEC_FURY)
+#include "warrior/fury.c"
+#elif (SPEC == SPEC_RETRIBUTION)
+#include "paladin/retribution.c"
+#elif (SPEC == SPEC_FROST_DK)
+#include "deathknight/frost_dk.c"
+#endif
 #include "entry.c"
 
 void scan_apl( rtinfo_t* rti ) {
-
+    //SPELL( bloodbath );
 }
 
 int main(){
