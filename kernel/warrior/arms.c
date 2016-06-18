@@ -191,6 +191,7 @@ float spec_power_check( rtinfo_t* rti, float cost ) {
 #if (TALENT_ANGER_MANAGEMENT)
 void anger_management_count( rtinfo_t* rti, float rage );
 #endif
+void trigger_tactician( rtinfo_t* rti );
 float spec_power_consume( rtinfo_t* rti, float cost ) {
     if ( TALENT_DAUNTLESS ) cost *= 0.8f;
     if ( TALENT_DEADLY_CALM && UP( battle_cry_expire ) ) cost *= 0.0f;
@@ -199,7 +200,7 @@ float spec_power_consume( rtinfo_t* rti, float cost ) {
     anger_management_count( rti, cost );
 #endif
     if ( uni_rng( rti ) < 0.0065f * cost ) {
-        eq_enqueue( rti, rti->timestamp, routnum_tactician_trigger, 0 );
+        trigger_tactician( rti );
     }
     return cost;
 }
@@ -507,6 +508,9 @@ DECL_EVENT( tactician_trigger ) {
         colossus_smash_cd = rti->timestamp;
         eq_enqueue( rti, rti->timestamp, routnum_colossus_smash_cd, 0 );
     }
+}
+void trigger_tactician( rtinfo_t* rti ) {
+    eq_enqueue( rti, rti->timestamp, routnum_tactician_trigger, 0 );
 }
 
 // === whirlwind ==============================================================
