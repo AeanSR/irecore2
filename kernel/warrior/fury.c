@@ -24,6 +24,10 @@ struct spec_state_t{
     } enrage;
     #define enrage_expire (rti->player.spec->enrage.expire)
     struct {
+        time_t cd;
+    } rampage;
+    #define rampage_cd (rti->player.spec->rampage.cd)
+    struct {
         time_t expire;
         k32u stack;
     } taste_for_blood;
@@ -268,6 +272,7 @@ enum{
     routnum_meat_cleaver_expire,
     routnum_meat_cleaver_trigger,
     routnum_raging_blow_cast,
+    routnum_rampage_cd,
     routnum_rampage_cast_1,
     routnum_rampage_cast_2,
     routnum_rampage_cast_3,
@@ -485,7 +490,7 @@ DECL_SPELL( execute ) {
 
 // === furious slash ==========================================================
 DECL_EVENT( furious_slash_cast ) {
-    float d = weapon_dmg( rti, 1.85f, 1, 1 );
+    float d = weapon_dmg( rti, 3.7f, 1, 1 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, ( t18_2pc ? 0.05f : 0.0f ) );
     float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, ( t18_2pc ? 0.12f : 0.0f ) , 0 );
     trigger_dots( rti, final_dmg, target_id );
@@ -568,6 +573,9 @@ DECL_SPELL( raging_blow ) {
 }
 
 // === rampage ================================================================
+DECL_EVENT( rampage_cd ) {
+    lprintf( ( "rampage cd" ) );
+}
 DECL_EVENT( rampage_cast_1 ) {
     k32u multihit_signal = 0;
     if ( target_id >= num_enemies ) {
@@ -625,12 +633,15 @@ DECL_EVENT( rampage_cast_4 ) {
 }
 DECL_SPELL( rampage ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
+    if ( UP( rampage_cd ) ) return 0;
     if ( !UP( massacre_expire ) ){
         if ( !power_check( rti, (TALENT_CARNAGE) ? 65.0f : 85.0f ) ) return 0;
         power_consume( rti, (TALENT_CARNAGE) ? 65.0f : 85.0f );
     }
     gcd_start( rti, FROM_SECONDS( 2.0f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_rampage_cast_1, rti->player.target );
+    rampage_cd = TIME_OFFSET( FROM_SECONDS( 1.5f ) );
+    eq_enqueue( rti, rampage_cd, routnum_rampage_cd, 0 );
     if ( UP( meat_cleaver_expire ) ){
         k32u c = 0;
         for( int i = 0; c < 4 && i < num_enemies; i++ ) {
@@ -683,10 +694,6 @@ DECL_EVENT( whirlwind_cast ) {
 }
 DECL_SPELL( whirlwind ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
-    if ( !UP( wrecking_ball_expire ) ){
-        if ( !power_check( rti, 10.0f ) ) return 0;
-        power_consume( rti, 10.0f );
-    }
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_whirlwind_cast, rti->player.target );
     lprintf( ( "cast whirlwind" ) );
@@ -911,6 +918,7 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
         HOOK_EVENT( meat_cleaver_expire );
         HOOK_EVENT( meat_cleaver_trigger );
         HOOK_EVENT( raging_blow_cast );
+        HOOK_EVENT( rampage_cd );
         HOOK_EVENT( rampage_cast_1 );
         HOOK_EVENT( rampage_cast_2 );
         HOOK_EVENT( rampage_cast_3 );

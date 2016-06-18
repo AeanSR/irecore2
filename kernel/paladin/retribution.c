@@ -150,7 +150,7 @@ float spec_str_coefficient( rtinfo_t* rti ){
 }
 
 float spec_mastery_coefficient( rtinfo_t* rti ) {
-    return 3.5f;
+    return 3.0f;
 }
 
 float spec_mastery_increament( rtinfo_t* rti ) {
@@ -437,7 +437,7 @@ DECL_EVENT( judgment_cd ) {
 DECL_SPELL( judgment ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( judgment_cd > rti->timestamp ) return 0;
-    judgment_cd = TIME_OFFSET( FROM_SECONDS( ( TALENT_GREATER_JUDGMENT ? 10.0f : 12.0f ) / ( 1.0f + rti->player.stat.haste ) ) );
+    judgment_cd = TIME_OFFSET( FROM_SECONDS( 12.0f / ( 1.0f + rti->player.stat.haste ) ) );
     eq_enqueue( rti, judgment_cd, routnum_judgment_cd, 0 );
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_judgment_cast, rti->player.target );
@@ -507,7 +507,7 @@ DECL_EVENT( divine_storm_cast ) {
     for ( int i = 0; i < num_enemies; i++ ) {
         float multiplier = TALENT_FINAL_VERDICT ? 1.1f : 1.0f;
         if ( UP( judgment_expire( i ) ) ) multiplier *= 1.0f + 0.5f * rti->player.stat.mastery;
-        float d = weapon_dmg( rti, 2.25f, 1, 0 ) * multiplier;
+        float d = weapon_dmg( rti, 1.8f, 1, 0 ) * multiplier;
         k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );  // TODO: does divine storm triggers as yellow melee or spell? or both?
         deal_damage( rti, i, d, DTYPE_HOLY, dice, 0, 0 );
         lprintf( ( "divine_storm hit @tar%d", i ) );
@@ -548,7 +548,7 @@ DECL_SPELL( divine_storm ) {
 DECL_EVENT( templars_verdict_cast ) {
     float multiplier = TALENT_FINAL_VERDICT ? 1.2f : 1.0f;
     if ( UP( judgment_expire( target_id ) ) ) multiplier *= 1.0f + 0.5f * rti->player.stat.mastery;
-    float d = weapon_dmg( rti, 4.85f, 1, 0 ) * multiplier;
+    float d = weapon_dmg( rti, 3.9f, 1, 0 ) * multiplier;
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );  // TODO: does templars_verdict triggers as yellow melee or spell? or both?
     deal_damage( rti, target_id, d, DTYPE_HOLY, dice, 0, 0 );
     lprintf( ( "templars_verdict hit" ) );

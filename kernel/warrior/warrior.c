@@ -321,7 +321,7 @@ DECL_EVENT( bladestorm_tick ) {
 DECL_SPELL( bladestorm ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( bladestorm_cd > rti->timestamp ) return 0;
-    bladestorm_cd = TIME_OFFSET( FROM_SECONDS( 60 ) );
+    bladestorm_cd = TIME_OFFSET( FROM_SECONDS( 90 ) );
     rti->player.class->bladestorm.tick_interval = FROM_SECONDS( 1.0f / ( 1.0f + rti->player.stat.haste ) );
     bladestorm_expire = TIME_OFFSET( 6 * rti->player.class->bladestorm.tick_interval );
     rti->player.busy = 1; /* keep player busy during bladestorm to avoid actions. */
