@@ -53,8 +53,8 @@
 //#define trinket_draenic_stone 1414
 //#define trinket_skull_of_war 2120
 //#define trinket_mote_of_the_mountain 1517
-#define trinket_worldbreakers_resolve 220
-//#define trinket_discordant_chorus 20564
+//#define trinket_worldbreakers_resolve 220
+#define trinket_discordant_chorus 20564
 #define trinket_empty_drinking_horn 259
 //#define trinket_unending_hunger 54
 //#define trinket_spores_of_alacrity 2304
@@ -74,6 +74,7 @@
 
 #include "kernel.c"
 #include "common.c"
+<<<<<<< Updated upstream
 #if (CLASS == CLASS_WARRIOR)
 #include "warrior/warrior.c"
 #elif (CLASS == CLASS_PALADIN)
@@ -94,6 +95,21 @@
 
 void scan_apl( rtinfo_t* rti ) {
     //SPELL( bloodbath );
+=======
+//#include "warrior\warrior.c"
+//#include "warrior\fury.c"
+//#include "warrior\arms.c"
+//#include "paladin\paladin.c"
+//#include "paladin\retribution.c"
+#include "deathknight/deathknight.c"
+#include "deathknight/frost_dk.c"
+#include "entry.c"
+
+void scan_apl( rtinfo_t* rti ) {
+SPELL(howling_blast);
+SPELL(obliterate);
+SPELL(frost_strike);
+>>>>>>> Stashed changes
 }
 
 int main(){
