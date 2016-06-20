@@ -242,7 +242,8 @@ float spec_power_check( rtinfo_t* rti, float cost ) {
     return cost;
 }
 float spec_power_consume( rtinfo_t* rti, float cost ) {
-    if(uni_rng(rti)<cost) // Comment by Aean: uni_rng(rti) gives random numbers between [0,1), so it is guaranteed to be lesser than cost, since cost is at least 1.0
+    //runic empowerment implementation
+    if(uni_rng(rti)<(cost/100)) // Comment by Aean: uni_rng(rti) gives random numbers between [0,1), so it is guaranteed to be lesser than cost, since cost is at least 1.0
     {
         rune_reactive(rti);
     }
@@ -277,8 +278,6 @@ k32u round_table_dice2( rtinfo_t* rti, k32u target_id, k32u attacktype, float ex
         cr += 0.19f;
         if ( c < 0.19f ) return DICE_MISS;
     }
-
-    //TODO: lots of stuff
     if ( c < cr ){
         return DICE_CRIT;
     }
@@ -323,7 +322,7 @@ void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_
 {
     if( DICE_MISS != dice && ( ATYPE_WHITE_MELEE == attacktype) )
        {
-           proc_RPPM( rti, &rti->player.spec->killing_machine.proc, 4.5f/* * ( 1.0f + rti->player.stat.haste )*/, routnum_killing_machine_trigger, 0 );
+           proc_RPPM( rti, &rti->player.spec->killing_machine.proc, 6.0f/* * ( 1.0f + rti->player.stat.haste )*/, routnum_killing_machine_trigger, 0 );
        }
 }
 
@@ -423,21 +422,26 @@ DECL_EVENT( auto_attack_oh ) {
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( weapon[1].speed / aspeed ) ), routnum_auto_attack_oh, rti->player.target );
 }
 // === Frost Strike ===========================================================
+//TODO: change damage calculation
 DECL_EVENT( frost_strike_cast ) {
     //shattering strikes implementation
     #if(TALENT_SHATTING_STRIKES)
         if(rti->enemy[target].class->razorice.stack == 5)
         {
             rti->enemy[target].class->razorice.stack = 0;//TODO: find out whether consume buff first or hit frist
-            float d = (weapon_dmg(rti, 2.25f, 1, 0)+weapon_dmg(rti, 2.25f, 1, 1)) * 1.5;
+            float d = weapon_dmg(rti, 2.25f, 1, 0) * 1.5;
+            float dOH = weapon_dmg(rti, 2.25f, 1, 1) * 1.5;
             k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);//TODO: is this a spell
             deal_damage(rti, target_id, d, DTYPE_FROST, dice, 0, 0);
+            deal_damage(rti, target_id, dOH, DTYPE_FROST, dice, 0, 0);
             lprintf( ( "frost strike hit, consumed 5 stacks of razorice to increase damage by 50 percent" ) );
         }
     #endif
-    float d = weapon_dmg(rti, 2.25f, 1, 0)+weapon_dmg(rti, 2.25f, 1, 1);
-    k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
+    float d = weapon_dmg(rti, 2.25f, 1, 0);
+    float dOH = weapon_dmg(rti, 2.25f, 1, 1);
+    k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);//TODO: is this a spell
     deal_damage(rti, target_id, d, DTYPE_FROST, dice, 0, 0);
+    deal_damage(rti, target_id, dOH, DTYPE_FROST, dice, 0, 0);
     //icecap implementation
     #if(TALENT_ICECAP)
         if(dice == DICE_CRIT)
@@ -470,15 +474,18 @@ DECL_SPELL( frost_strike ) {
     power_consume(rti, 25.0f);
     eq_enqueue( rti, rti->timestamp, routnum_frost_strike_cast, 0);
     lprintf( ( "frost strike casted" ) );
+    return 1;
 }
 // === Obliterate =============================================================
 DECL_EVENT( obliterate_cast ) {
-    float d = weapon_dmg(rti, 3.0f, 1, 0)+weapon_dmg(rti, 3.0f, 1, 1);
+    float d = weapon_dmg(rti, 3.0f, 1, 0);
+    float dOH = weapon_dmg(rti, 3.0f, 1, 1);
     k32u dice;
     //kiling machine implementation
     if( UP (killing_machine_expire) ) {
         dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 1.0f);
         deal_damage(rti, target_id, d, DTYPE_PHYSICAL, dice, 0,0);
+        deal_damage(rti, target_id, dOH, DTYPE_PHYSICAL, dice, 0,0);
         killing_machine_expire = rti->timestamp;
         eq_enqueue(rti, killing_machine_expire, routnum_killing_machine_expire,0);
         lprintf( ( "killing machine buff consumed by obliterate, 100 percent crit chance" ) );
@@ -495,6 +502,7 @@ DECL_EVENT( obliterate_cast ) {
     else {
         dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
         deal_damage(rti, target_id, d, DTYPE_PHYSICAL, dice, 0,0);
+        deal_damage(rti, target_id, dOH, DTYPE_PHYSICAL, dice, 0,0);
     }
     //icecap implementation
     #if(TALENT_ICECAP)
@@ -536,6 +544,7 @@ DECL_SPELL( obliterate ) {
 
     eq_enqueue( rti, rti->timestamp, routnum_obliterate_cast, 0);
     lprintf( ( "obliterate casted" ) );
+    return 1;
 }
 // === howling blast ==========================================================
 DECL_EVENT( howling_blast_cast ) {
@@ -574,6 +583,7 @@ DECL_SPELL( howling_blast ) {
     }
     eq_enqueue( rti, rti->timestamp, routnum_howling_blast_cast, 0);
     lprintf( ( "howling blast casted" ) );
+    return 1;
 }
 // === frost fever ============================================================
 //TODO: is there a need to write a frost fever expire?
@@ -585,7 +595,7 @@ DECL_EVENT( frost_fever_tick ) {
     float d = ap_dmg(rti, .55f);
     //freezing fog implementation
     #if(TALENT_FREEZING_FOG)
-        d * 1.5f; // Comment by Aean: '*' or '*=' ?
+        d *= 1.5f; // Comment by Aean: '*' or '*=' ?
     #endif
     k32u dice = round_table_dice( rti, target_id, ATYPE_SPELL, 0);//TODO: does this proc trinks?Is disease a special atype?
     deal_damage( rti, target_id, d, DTYPE_FROST, dice, 0, 0);
@@ -645,12 +655,11 @@ DECL_SPELL( remorseless_winter) {
     remorseless_winter_expire = TIME_OFFSET( FROM_SECONDS ( 8.0f));
     eq_enqueue(rti, remorseless_winter_expire, routnum_remorseless_winter_expire, 0);
     lprintf( ( "remorseless winter casted" ) );
+    return 1;
 }
 DECL_EVENT( remorseless_winter_cast) {
     remorseless_winter_stack = 0;
-    for ( int i = 0; i < num_enemies; i++ ) {
-        eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 0.0f ) ), routnum_remorseless_winter_tick, i);
-    }
+    eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 0.0f ) ), routnum_remorseless_winter_tick, 0);
     /**
         Comment by Aean:
         what you did is right, but not optimal. the event triggering map for your implement, when there is multiple targets:
@@ -695,7 +704,6 @@ DECL_EVENT( remorseless_winter_cast) {
         even you can combine expire routine into tick routine, since the buff always expires at the same time of the last tick, so the expire routine hook may be cut off.
 
         cast---tick---tick---tick---tick---tick(expire is processed in the last tick event)
-
     **/
     lprintf( ( "remorseless winter starts" ) );
 }
@@ -706,11 +714,13 @@ DECL_EVENT ( remorseless_winter_cd) {
 }
 DECL_EVENT( remorseless_winter_tick){
     if(remorseless_winter_expire < rti->timestamp) return;
-    eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1.0f ) ), routnum_remorseless_winter_tick, target_id );
-    float d = ap_dmg(rti, .24f) * (1+(remorseless_winter_stack*0.1f));
-    k32u dice = round_table_dice( rti, target_id, ATYPE_SPELL, 0);//TODO: does this proc trinks?
-    deal_damage( rti, target_id, d, DTYPE_FROST, dice, 0, 0);
-    lprintf( ( "remorseless winter does damage to tar %d", target_id ) );
+    eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1.0f ) ), routnum_remorseless_winter_tick, 0);
+    for ( int i = 0; i < num_enemies; i++ ) {
+        float d = ap_dmg(rti, .24f) * (1+(remorseless_winter_stack*0.1f));
+        k32u dice = round_table_dice( rti, i, ATYPE_SPELL, 0);//TODO: does this proc trinks?
+        deal_damage( rti, i, d, DTYPE_FROST, dice, 0, 0);
+        lprintf( ( "remorseless winter does damage to tar %d", i ) );
+    }
 }
 DECL_EVENT( remorseless_winter_expire){
     if(remorseless_winter_expire == rti->timestamp)
@@ -723,11 +733,11 @@ DECL_SPELL( pillar_of_frost){
     if ( pillar_of_frost_cd > rti->timestamp ) return 0;
     pillar_of_frost_cd = TIME_OFFSET( FROM_SECONDS( 60.0f) );//TODO: check cd
     eq_enqueue( rti, pillar_of_frost_cd, routnum_pillar_of_frost_cd, 0 );
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 0); // Comment by Aean: does pof trigger gcd? double check it.
     eq_enqueue( rti, rti->timestamp, routnum_pillar_of_frost_cast, 0);
     pillar_of_frost_expire = TIME_OFFSET( FROM_SECONDS ( 20.0f));
     eq_enqueue(rti, pillar_of_frost_expire, routnum_pillar_of_frost_expire, 0);
     lprintf( ( "pillar of frost casted" ) );
+    return 1;
 }
 DECL_EVENT( pillar_of_frost_cast ) {
     refresh_str(rti);
@@ -752,9 +762,9 @@ DECL_SPELL( empower_rune_weapon ) {
     if ( empower_rune_weapon_cd > rti->timestamp ) return 0;
     empower_rune_weapon_cd = TIME_OFFSET( FROM_SECONDS( 180.0f) );//TODO: check cd
     eq_enqueue( rti, empower_rune_weapon_cd, routnum_empower_rune_weapon_cd, 0 );
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 0); // Comment by Aean: does empower trigger gcd? double check it.
     eq_enqueue( rti, rti->timestamp, routnum_empower_rune_weapon_cast, 0);
     lprintf( ( "empower rune weapon casted" ) );
+    return 1;
 }
 DECL_EVENT ( empower_rune_weapon_cd) {
     if ( empower_rune_weapon_cd == rti->timestamp ) {
@@ -762,8 +772,7 @@ DECL_EVENT ( empower_rune_weapon_cd) {
     }
 }
 DECL_EVENT ( empower_rune_weapon_cast) {
-    rune_ready = rune_max;//TODO: check if this is correct
-    // Comment by Aean: use this instead: rune_reactive_all(rti);
+    rune_reactive_all(rti);
     power_gain(rti,25);
 }
 // === icy talons =============================================================
@@ -781,7 +790,7 @@ DECL_EVENT (icy_talons_trigger) {
     }
     icy_talons_expire = TIME_OFFSET( FROM_SECONDS(6.0f));
     eq_enqueue(rti,rime_expire,routnum_icy_talons_expire,0);
-    lprintf( ( "icy talon buff gained, stack" + icy_talons_stack ) );
+    lprintf( ( "icy talon buff gained, stack %d", icy_talons_stack ) );
 }
 #endif
 // === horn of winter =========================================================
@@ -794,6 +803,7 @@ DECL_SPELL( horn_of_winter ) {
     gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
     eq_enqueue( rti, rti->timestamp, routnum_horn_of_winter_cast, 0);
     lprintf( ( "horn of winter casted" ) );
+    return 1;
 }
 DECL_EVENT ( horn_of_winter_cd) {
     if ( horn_of_winter_cd == rti->timestamp ) {
@@ -818,6 +828,7 @@ DECL_SPELL( hungering_rune_weapon ) {
     gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
     eq_enqueue( rti, rti->timestamp, routnum_hungering_rune_weapon_cast, 0);
     lprintf( ( "hungering rune weapon casted" ) );
+    return 1;
 }
 DECL_EVENT ( hungering_rune_weapon_cd ) {
     if ( hungering_rune_weapon_cd == rti->timestamp ) {
@@ -835,7 +846,7 @@ DECL_EVENT ( hungering_rune_weapon_tick )
     power_gain(rti,5);
 }
 DECL_EVENT ( hungering_rune_weapon_expire ) {
-    // Comment by Aean: not implemented?
+    lprintf( ( "hungering rune weapon expired" ) );
 }
 #endif
 // === frostscythe ============================================================
@@ -850,6 +861,7 @@ DECL_SPELL( frostscythe ) {
     gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
     eq_enqueue( rti, rti->timestamp, routnum_frostscythe_cast, 0);
     lprintf( ( "empower rune weapon casted" ) );
+    return 1;
 }
 DECL_EVENT ( frostscythe_cd) {
     if ( frostscythe_cd == rti->timestamp ) {
@@ -909,6 +921,7 @@ DECL_SPELL( obliteration){
     obliteration_expire = TIME_OFFSET( FROM_SECONDS ( 8.0f));
     eq_enqueue(rti, obliteration_expire, routnum_obliteration_expire, 0);
     lprintf( ( "obliteration casted" ) );
+    return 1;
 }
 DECL_EVENT( obliteration_expire) {
     if(obliteration_expire == rti->timestamp)
@@ -932,6 +945,7 @@ DECL_SPELL( breath_of_sindragosa) {
     gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
     eq_enqueue( rti, rti->timestamp, routnum_breath_of_sindragosa_cast, 0);
     lprintf( ( "breath of sindragosa casted" ) );
+    return 1;
 }
 DECL_EVENT( breath_of_sindragosa_cast) {
     breath_of_sindragosa_duration = 0;
@@ -976,6 +990,7 @@ DECL_SPELL( glacial_advance ) {
     gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
     eq_enqueue( rti, rti->timestamp, routnum_glacial_advance_cast, 0);
     lprintf( ( "glacial advance casted" ) );
+    return 1;`
 }
 DECL_EVENT ( glacial_advance_cd) {
     if ( glacial_advance_cd == rti->timestamp ) {

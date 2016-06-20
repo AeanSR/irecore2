@@ -1,0 +1,293 @@
+gcc /Users/TJGuo/Dropbox/C/irecore2/kernel/test.c -o test.exe -std=c99
+In file included from /Users/TJGuo/Dropbox/C/irecore2/kernel/test.c:75:
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:46:7: warning: incompatible
+      redeclaration of library function 'malloc'
+      [-Wincompatible-library-redeclaration]
+void* malloc( unsigned long long );
+      ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:46:7: note: 'malloc' is a
+      builtin with type 'void *(unsigned long)'
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:246:32: warning: format
+      specifies type 'int' but the argument has type 'unsigned long' [-Wformat]
+    printf( "%02d:%02d.%03d ", rti->timestamp / 60000, ( rti->timestamp ...
+             ~~~~              ^~~~~~~~~~~~~~~~~~~~~~
+             %02lu
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:30:24: note: expanded from macro
+      'hostonly'
+#define hostonly(code) code
+                       ^~~~
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:246:56: warning: format
+      specifies type 'int' but the argument has type 'unsigned long' [-Wformat]
+  ...%02d.%03d ", rti->timestamp / 60000, ( rti->timestamp % 60000 ) / 1000, ...
+     ~~~~                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     %02lu
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:30:24: note: expanded from macro
+      'hostonly'
+#define hostonly(code) code
+                       ^~~~
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:246:91: warning: format
+      specifies type 'int' but the argument has type 'unsigned long' [-Wformat]
+  ...%03d ", rti->timestamp / 60000, ( rti->timestamp % 60000 ) / 1000, ( ( rti->timestamp % 60000 ) % 1000 ) );
+     ~~~~                                                               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     %03lu
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:30:24: note: expanded from macro
+      'hostonly'
+#define hostonly(code) code
+                       ^~~~
+In file included from /Users/TJGuo/Dropbox/C/irecore2/kernel/test.c:76:
+/Users/TJGuo/Dropbox/C/irecore2/kernel/common.c:1317:55: warning: format
+      specifies type 'int' but the argument has type 'unsigned long' [-Wformat]
+  ...%d @tar%d", rti->enemy[target_id].common->empty_drinking_horn.stack, tar...
+     ~~          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     %lu
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:250:59: note: expanded from
+      macro 'lprintf'
+#define lprintf(v) hostonly(safemacro({tprint(rti);printf v;printf("\n");}))
+                                                          ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:40:25: note: expanded from macro
+      'safemacro'
+#define safemacro(v) do{v;}while(0)
+                        ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:30:24: note: expanded from macro
+      'hostonly'
+#define hostonly(code) code
+                       ^~~~
+In file included from /Users/TJGuo/Dropbox/C/irecore2/kernel/test.c:76:
+/Users/TJGuo/Dropbox/C/irecore2/kernel/common.c:1317:112: warning: format
+      specifies type 'int' but the argument has type 'unsigned long' [-Wformat]
+  ...%d", rti->enemy[target_id].common->empty_drinking_horn.stack, target_id ...
+     ~~                                                            ^~~~~~~~~
+     %lu
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:250:59: note: expanded from
+      macro 'lprintf'
+#define lprintf(v) hostonly(safemacro({tprint(rti);printf v;printf("\n");}))
+                                                          ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:40:25: note: expanded from macro
+      'safemacro'
+#define safemacro(v) do{v;}while(0)
+                        ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:30:24: note: expanded from macro
+      'hostonly'
+#define hostonly(code) code
+                       ^~~~
+In file included from /Users/TJGuo/Dropbox/C/irecore2/kernel/test.c:76:
+/Users/TJGuo/Dropbox/C/irecore2/kernel/common.c:1321:55: warning: format
+      specifies type 'int' but the argument has type 'unsigned long' [-Wformat]
+  ...%d @tar%d", rti->enemy[target_id].common->empty_drinking_horn.stack, tar...
+     ~~          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     %lu
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:250:59: note: expanded from
+      macro 'lprintf'
+#define lprintf(v) hostonly(safemacro({tprint(rti);printf v;printf("\n");}))
+                                                          ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:40:25: note: expanded from macro
+      'safemacro'
+#define safemacro(v) do{v;}while(0)
+                        ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:30:24: note: expanded from macro
+      'hostonly'
+#define hostonly(code) code
+                       ^~~~
+In file included from /Users/TJGuo/Dropbox/C/irecore2/kernel/test.c:76:
+/Users/TJGuo/Dropbox/C/irecore2/kernel/common.c:1321:112: warning: format
+      specifies type 'int' but the argument has type 'unsigned long' [-Wformat]
+  ...%d", rti->enemy[target_id].common->empty_drinking_horn.stack, target_id ...
+     ~~                                                            ^~~~~~~~~
+     %lu
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:250:59: note: expanded from
+      macro 'lprintf'
+#define lprintf(v) hostonly(safemacro({tprint(rti);printf v;printf("\n");}))
+                                                          ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:40:25: note: expanded from macro
+      'safemacro'
+#define safemacro(v) do{v;}while(0)
+                        ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:30:24: note: expanded from macro
+      'hostonly'
+#define hostonly(code) code
+                       ^~~~
+In file included from /Users/TJGuo/Dropbox/C/irecore2/kernel/test.c:76:
+/Users/TJGuo/Dropbox/C/irecore2/kernel/common.c:1512:52: warning: format
+      specifies type 'int' but the argument has type 'unsigned long' [-Wformat]
+        lprintf( ( "wild common routine entry %d", e.routine ) );
+                                              ~~   ^~~~~~~~~
+                                              %lu
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:250:59: note: expanded from
+      macro 'lprintf'
+#define lprintf(v) hostonly(safemacro({tprint(rti);printf v;printf("\n");}))
+                                                          ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:40:25: note: expanded from macro
+      'safemacro'
+#define safemacro(v) do{v;}while(0)
+                        ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:30:24: note: expanded from macro
+      'hostonly'
+#define hostonly(code) code
+                       ^~~~
+In file included from /Users/TJGuo/Dropbox/C/irecore2/kernel/test.c:76:
+/Users/TJGuo/Dropbox/C/irecore2/kernel/common.c:1531:38: warning: format
+      specifies type 'int' but the argument has type 'unsigned long' [-Wformat]
+    lprintf( ( "Raid buffed str %d", rti->player.stat.str ) );
+                                ~~   ^~~~~~~~~~~~~~~~~~~~
+                                %lu
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:250:59: note: expanded from
+      macro 'lprintf'
+#define lprintf(v) hostonly(safemacro({tprint(rti);printf v;printf("\n");}))
+                                                          ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:40:25: note: expanded from macro
+      'safemacro'
+#define safemacro(v) do{v;}while(0)
+                        ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:30:24: note: expanded from macro
+      'hostonly'
+#define hostonly(code) code
+                       ^~~~
+In file included from /Users/TJGuo/Dropbox/C/irecore2/kernel/test.c:76:
+/Users/TJGuo/Dropbox/C/irecore2/kernel/common.c:1532:37: warning: format
+      specifies type 'int' but the argument has type 'unsigned long' [-Wformat]
+    lprintf( ( "Raid buffed ap %d", rti->player.stat.ap ) );
+                               ~~   ^~~~~~~~~~~~~~~~~~~
+                               %lu
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:250:59: note: expanded from
+      macro 'lprintf'
+#define lprintf(v) hostonly(safemacro({tprint(rti);printf v;printf("\n");}))
+                                                          ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:40:25: note: expanded from macro
+      'safemacro'
+#define safemacro(v) do{v;}while(0)
+                        ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:30:24: note: expanded from macro
+      'hostonly'
+#define hostonly(code) code
+                       ^~~~
+In file included from /Users/TJGuo/Dropbox/C/irecore2/kernel/test.c:82:
+/Users/TJGuo/Dropbox/C/irecore2/kernel/deathknight/deathknight.c:129:51: warning: 
+      format specifies type 'int' but the argument has type 'unsigned long'
+      [-Wformat]
+        lprintf( ( "wild class routine entry %d", e.routine ) );
+                                             ~~   ^~~~~~~~~
+                                             %lu
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:250:59: note: expanded from
+      macro 'lprintf'
+#define lprintf(v) hostonly(safemacro({tprint(rti);printf v;printf("\n");}))
+                                                          ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:40:25: note: expanded from macro
+      'safemacro'
+#define safemacro(v) do{v;}while(0)
+                        ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:30:24: note: expanded from macro
+      'hostonly'
+#define hostonly(code) code
+                       ^~~~
+In file included from /Users/TJGuo/Dropbox/C/irecore2/kernel/test.c:83:
+/Users/TJGuo/Dropbox/C/irecore2/kernel/deathknight/frost_dk.c:592:53: warning: 
+      format specifies type 'int' but the argument has type 'unsigned long'
+      [-Wformat]
+        lprintf( ( "frost fever expireed on tar %d",target_id ) );
+                                                ~~  ^~~~~~~~~
+                                                %lu
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:250:59: note: expanded from
+      macro 'lprintf'
+#define lprintf(v) hostonly(safemacro({tprint(rti);printf v;printf("\n");}))
+                                                          ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:40:25: note: expanded from macro
+      'safemacro'
+#define safemacro(v) do{v;}while(0)
+                        ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:30:24: note: expanded from macro
+      'hostonly'
+#define hostonly(code) code
+                       ^~~~
+In file included from /Users/TJGuo/Dropbox/C/irecore2/kernel/test.c:83:
+/Users/TJGuo/Dropbox/C/irecore2/kernel/deathknight/frost_dk.c:602:44: warning: 
+      format specifies type 'int' but the argument has type 'unsigned long'
+      [-Wformat]
+    lprintf(( "frost fever tick on tar %d",target_id ));
+                                       ~~  ^~~~~~~~~
+                                       %lu
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:250:59: note: expanded from
+      macro 'lprintf'
+#define lprintf(v) hostonly(safemacro({tprint(rti);printf v;printf("\n");}))
+                                                          ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:40:25: note: expanded from macro
+      'safemacro'
+#define safemacro(v) do{v;}while(0)
+                        ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:30:24: note: expanded from macro
+      'hostonly'
+#define hostonly(code) code
+                       ^~~~
+In file included from /Users/TJGuo/Dropbox/C/irecore2/kernel/test.c:83:
+/Users/TJGuo/Dropbox/C/irecore2/kernel/deathknight/frost_dk.c:793:51: warning: 
+      format specifies type 'int' but the argument has type 'unsigned long'
+      [-Wformat]
+    lprintf( ( "icy talon buff gained, stack %d", icy_talons_stack ) );
+                                             ~~   ^~~~~~~~~~~~~~~~
+                                             %lu
+/Users/TJGuo/Dropbox/C/irecore2/kernel/deathknight/frost_dk.c:75:30: note: 
+      expanded from macro 'icy_talons_stack'
+    #define icy_talons_stack (rti->player.spec->icy_talons.stack)
+                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:250:59: note: expanded from
+      macro 'lprintf'
+#define lprintf(v) hostonly(safemacro({tprint(rti);printf v;printf("\n");}))
+                                                          ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:40:25: note: expanded from macro
+      'safemacro'
+#define safemacro(v) do{v;}while(0)
+                        ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:30:24: note: expanded from macro
+      'hostonly'
+#define hostonly(code) code
+                       ^~~~
+In file included from /Users/TJGuo/Dropbox/C/irecore2/kernel/test.c:83:
+/Users/TJGuo/Dropbox/C/irecore2/kernel/deathknight/frost_dk.c:979:72: warning: 
+      format specifies type 'int' but the argument has type 'unsigned long'
+      [-Wformat]
+  ...expired, dealth damage %d times", breath_of_sindragosa_duration ) );
+                            ~~         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                            %lu
+/Users/TJGuo/Dropbox/C/irecore2/kernel/deathknight/frost_dk.c:120:43: note: 
+      expanded from macro 'breath_of_sindragosa_duration'
+  ...(rti->player.spec->breath_of_sindragosa.duration)
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:250:59: note: expanded from
+      macro 'lprintf'
+#define lprintf(v) hostonly(safemacro({tprint(rti);printf v;printf("\n");}))
+                                                          ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:40:25: note: expanded from macro
+      'safemacro'
+#define safemacro(v) do{v;}while(0)
+                        ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:30:24: note: expanded from macro
+      'hostonly'
+#define hostonly(code) code
+                       ^~~~
+In file included from /Users/TJGuo/Dropbox/C/irecore2/kernel/test.c:83:
+/Users/TJGuo/Dropbox/C/irecore2/kernel/deathknight/frost_dk.c:1067:75: warning: 
+      format specifies type 'int' but the argument has type 'unsigned long'
+      [-Wformat]
+  ...( "wild spec routine entry %d, last defined routnum %d", e.routine, STAR...
+                                ~~                            ^~~~~~~~~
+                                %lu
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:250:59: note: expanded from
+      macro 'lprintf'
+#define lprintf(v) hostonly(safemacro({tprint(rti);printf v;printf("\n");}))
+                                                          ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:40:25: note: expanded from macro
+      'safemacro'
+#define safemacro(v) do{v;}while(0)
+                        ^
+/Users/TJGuo/Dropbox/C/irecore2/kernel/kernel.c:30:24: note: expanded from macro
+      'hostonly'
+#define hostonly(code) code
+                       ^~~~
+/Users/TJGuo/Dropbox/C/irecore2/kernel/test.c:96:85: warning: format specifies
+      type 'int' but the argument has type 'unsigned long' [-Wformat]
+  ...queue length: %d\nruntime state size: %d\n", result, maxqueuelength, sta...
+                   ~~                                     ^~~~~~~~~~~~~~
+                   %lu
+18 warnings generated.
+ld: can't write output file: test.exe for architecture x86_64
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+Tianjians-MacBook-Pro:~ TJGuo$ 
