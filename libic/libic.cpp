@@ -1040,6 +1040,12 @@ IC_LOCAL int ttprobe( std::string hashkey, cl_program* p ) {
     }
 }
 IC_LOCAL void ttsave( std::string hashkey, cl_program p ) {
+    if (clptt().size() > 512) {
+        for( auto i = clptt().begin(); i != clptt().end(); i++ ) {
+            clReleaseProgram( i->second );
+        }
+        clptt().clear();
+    }
     clptt()[hashkey] = p;
 }
 
