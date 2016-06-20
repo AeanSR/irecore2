@@ -428,12 +428,12 @@ DECL_EVENT( frost_strike_cast ) {
     #if(TALENT_SHATTING_STRIKES)
         if(rti->enemy[target].class->razorice.stack == 5)
         {
-            rti->enemy[target].class->razorice.stack = 0;//TODO: find out whether consume buff first or hit frist
             float d = weapon_dmg(rti, 2.25f, 1, 0) * 1.5;
             float dOH = weapon_dmg(rti, 2.25f, 1, 1) * 1.5;
             k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);//TODO: is this a spell
             deal_damage(rti, target_id, d, DTYPE_FROST, dice, 0, 0);
             deal_damage(rti, target_id, dOH, DTYPE_FROST, dice, 0, 0);
+            rti->enemy[target].class->razorice.stack = 0;//as of Jun 16 2016, on ptr Pre0Patch 7.03, frost strike does damage before consuming the stacks
             lprintf( ( "frost strike hit, consumed 5 stacks of razorice to increase damage by 50 percent" ) );
         }
     #endif
@@ -599,7 +599,8 @@ DECL_EVENT( frost_fever_tick ) {
     #endif
     k32u dice = round_table_dice( rti, target_id, ATYPE_SPELL, 0);//TODO: does this proc trinks?Is disease a special atype?
     deal_damage( rti, target_id, d, DTYPE_FROST, dice, 0, 0);
-    lprintf(( "frost fever tick on tar %d",target_id ));
+    power_gain(rti,5);  
+    lprintf(( "frost fever tick on tar %d, grants the dk 5 runic power",target_id ));
     if(TIME_DISTANT(frost_fever_expire( target_id)) >= FROM_SECONDS( 3)) {
         eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS ( 3.0f ) ), routnum_frost_fever_tick, target_id);
     }
