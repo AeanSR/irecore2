@@ -90,15 +90,6 @@ struct spec_state_t{
     #define hungering_rune_weapon_expire (0)
 #endif
 //==================================================================================
-#if (TALENT_FROSTSCYTHE)
-    struct{
-        time_t cd;
-    }frostscythe;
-    #define frostscythe_cd (rti->player.spec->frostscythe.cd)
-#else
-    #define frostscythe_cd (0)
-#endif
-//==================================================================================
 #if (TALENT_OBLITERATION)
     struct{
         time_t cd;
@@ -196,7 +187,6 @@ enum {
     routnum_hungering_rune_weapon_expire,
 #endif
 #if(TALENT_FROSTSCYTHE)
-    routnum_frostscythe_cd,
     routnum_frostscythe_cast,
 #endif
 #if(TALENT_OBLITERATION)
@@ -855,19 +845,11 @@ DECL_EVENT ( hungering_rune_weapon_expire ) {
 #if (TALENT_FROSTSCYTHE)
 DECL_SPELL( frostscythe ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
-    if ( frostscythe_cd > rti->timestamp ) return 0;
     if ( !rune_check( rti, 1 ) ) return 0;
-    frostscythe_cd = TIME_OFFSET( FROM_SECONDS( 6.0f) );//TODO: check cd
-    eq_enqueue( rti, frostscythe_cd, routnum_frostscythe_cd, 0 );
     gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
     eq_enqueue( rti, rti->timestamp, routnum_frostscythe_cast, 0);
     lprintf( ( "empower rune weapon casted" ) );
     return 1;
-}
-DECL_EVENT ( frostscythe_cd) {
-    if ( frostscythe_cd == rti->timestamp ) {
-        lprintf( ( "frostscythe cd" ) );
-    }
 }
 DECL_EVENT ( frostscythe_cast) {
     float d = weapon_dmg(rti, 1.2f, 1, 0)+weapon_dmg(rti, 1.2f, 1, 1);
