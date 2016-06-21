@@ -148,6 +148,7 @@ double log( double x );
 double clamp( double val, double min, double max ) {
     return val < min ? min : val > max ? max : val;
 }
+double floor( double x );
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define mix(x, y, a) ((x) + (( (y) - (x) ) * (a)))

@@ -464,6 +464,7 @@ void refresh_mastery( rtinfo_t* rti ) {
     #if (bleedinghollow_oh)
     if (UP( rti->player.common->enchant_oh.expire )) mastery += 500.0f;
     #endif
+    if (RACE == RACE_HUMAN) mastery = floor( mastery * 1.02f );
     mastery = spec_mastery_coefficient( rti ) * ( 0.08f + mastery / 11000 ) + spec_mastery_increament( rti );
     rti->player.stat.mastery = mastery;
 }
@@ -478,6 +479,7 @@ void refresh_crit( rtinfo_t* rti ) {
     #if (thunderlord_oh)
     if (UP( rti->player.common->enchant_oh.expire )) crit += 500.0f;
     #endif
+    if (RACE == RACE_HUMAN) crit = floor( crit * 1.02f );
     crit = 0.05f + crit / 11000 + spec_crit_increament( rti );
     if (( RACE == RACE_NIGHTELF_DAY ) || ( RACE == RACE_BLOODELF ) || ( RACE == RACE_WORGEN ))
         crit += 0.01f;
@@ -488,6 +490,7 @@ float spec_haste_coefficient( rtinfo_t* rti );
 
 void refresh_haste( rtinfo_t* rti ) {
     float haste = ( float ) rti->player.stat.gear_haste;
+    if (RACE == RACE_HUMAN) haste = floor( haste * 1.02f );
     haste = 1.0f + haste / 10000;
     if (( RACE == RACE_NIGHTELF_NIGHT ) || ( RACE == RACE_GOBLIN ) || ( RACE == RACE_GNOME ))
         haste *= 1.01f;
@@ -499,7 +502,7 @@ void refresh_haste( rtinfo_t* rti ) {
 
 void refresh_vers( rtinfo_t* rti ) {
     float vers = ( float ) rti->player.stat.gear_vers;
-    if (RACE == RACE_HUMAN) vers += 100;
+    if (RACE == RACE_HUMAN) vers = floor( vers * 1.02f );
     vers = vers / 13000;
     rti->player.stat.vers = vers;
 }
@@ -672,7 +675,7 @@ enum {
 // === General Cooldown =======================================================
 void gcd_start( rtinfo_t* rti, time_t length, kbool scale_haste ) {
     if (scale_haste) length = length / ( 1.0f + rti->player.stat.haste );
-    rti->player.gcd = TIME_OFFSET( max( length, FROM_SECONDS( 1 ) ) );
+    rti->player.gcd = TIME_OFFSET( max( length, FROM_SECONDS( 0.75 ) ) );
     eq_enqueue( rti, rti->player.gcd, routnum_gcd_expire, 0 );
 }
 
