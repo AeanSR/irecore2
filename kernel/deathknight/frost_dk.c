@@ -46,7 +46,7 @@ struct spec_state_t{
         time_t expire;
     }pillar_of_frost;
     #define pillar_of_frost_cd  (rti->player.spec->pillar_of_frost.cd)
-    #define pillar_of_frost_expire (rti->player.spec->remorseless_winter.expire)
+    #define pillar_of_frost_expire (rti->player.spec->pillar_of_frost.expire)
 //==================================================================================
     struct{
         time_t cd;
@@ -460,7 +460,7 @@ DECL_EVENT( frost_strike_cast ) {
 DECL_SPELL( frost_strike ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( !power_check( rti, 25.0f ) ) return 0;
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1);
     power_consume(rti, 25.0f);
     eq_enqueue( rti, rti->timestamp, routnum_frost_strike_cast, 0);
     lprintf( ( "frost strike casted" ) );
@@ -499,9 +499,11 @@ DECL_EVENT( obliterate_cast ) {
         if(dice == DICE_CRIT)
         {
             time_t reduction = min( pillar_of_frost_cd, FROM_SECONDS( 1 ) );
-            pillar_of_frost_cd -= reduction;
-            eq_enqueue( rti, pillar_of_frost_cd, routnum_pillar_of_frost_cd, 0 );
-            lprintf( ( "Icecap triggered by a obliterate crit" ) );
+            if(pillar_of_frost_cd - reduction > rti->timestamp) {
+                pillar_of_frost_cd -= reduction;
+                eq_enqueue( rti, pillar_of_frost_cd, routnum_pillar_of_frost_cd, 0 );
+                lprintf( ( "Icecap triggered by a obliterate crit, cd = %d",pillar_of_frost_cd ) );
+            }
         }
     #endif
     //rime implementation
@@ -530,7 +532,7 @@ DECL_SPELL( obliterate ) {
         if ( !rune_check( rti, 2 ) ) return 0;
         rune_consume(rti, 2);
     #endif
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1);
 
     eq_enqueue( rti, rti->timestamp, routnum_obliterate_cast, 0);
     lprintf( ( "obliterate casted" ) );
@@ -565,7 +567,7 @@ DECL_EVENT( howling_blast_cast ) {
 DECL_SPELL( howling_blast ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( !rune_check( rti, 1 ) ) return 0;
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1);
     if(!UP(rime_expire))
     {
         rune_consume(rti, 1);
@@ -614,7 +616,7 @@ DECL_EVENT( frost_fever_cast ) {
 // === killing machine ========================================================
 DECL_EVENT( killing_machine_expire ) {
     if ( killing_machine_expire == rti->timestamp ) {
-        lprintf( ( "killing machine wasted" ) );
+        lprintf( ( "killing machine gone" ) );
     }
 }
 DECL_EVENT( killing_machine_trigger ) {
@@ -641,7 +643,7 @@ DECL_SPELL( remorseless_winter) {
     rune_consume(rti, 1);
     remorseless_winter_cd = TIME_OFFSET( FROM_SECONDS( 20.0f) );
     eq_enqueue( rti, remorseless_winter_cd, routnum_remorseless_winter_cd, 0 );
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1);
     eq_enqueue( rti, rti->timestamp, routnum_remorseless_winter_cast, 0);
     remorseless_winter_expire = TIME_OFFSET( FROM_SECONDS ( 8.0f));
     eq_enqueue(rti, remorseless_winter_expire, routnum_remorseless_winter_expire, 0);
@@ -791,7 +793,7 @@ DECL_SPELL( horn_of_winter ) {
     if ( horn_of_winter_cd > rti->timestamp ) return 0;
     horn_of_winter_cd = TIME_OFFSET( FROM_SECONDS( 30.0f) );
     eq_enqueue( rti, horn_of_winter_cd, routnum_horn_of_winter_cd, 0 );
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1);
     eq_enqueue( rti, rti->timestamp, routnum_horn_of_winter_cast, 0);
     lprintf( ( "horn of winter casted" ) );
     return 1;
@@ -816,7 +818,7 @@ DECL_SPELL( hungering_rune_weapon ) {
     eq_enqueue( rti, hungering_rune_weapon_cd, routnum_hungering_rune_weapon_cd, 0 );
     hungering_rune_weapon_expire = TIME_OFFSET( FROM_SECONDS ( 9.0f));
     eq_enqueue(rti, hungering_rune_weapon_expire, routnum_hungering_rune_weapon_expire, 0);
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1);
     eq_enqueue( rti, rti->timestamp, routnum_hungering_rune_weapon_cast, 0);
     lprintf( ( "hungering rune weapon casted" ) );
     return 1;
@@ -846,7 +848,7 @@ DECL_EVENT ( hungering_rune_weapon_expire ) {
 DECL_SPELL( frostscythe ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( !rune_check( rti, 1 ) ) return 0;
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1);
     eq_enqueue( rti, rti->timestamp, routnum_frostscythe_cast, 0);
     lprintf( ( "empower rune weapon casted" ) );
     return 1;
@@ -900,7 +902,7 @@ DECL_SPELL( obliteration){
     if ( obliteration_cd > rti->timestamp ) return 0;
     obliteration_cd = TIME_OFFSET( FROM_SECONDS( 90.0f) );//TODO: check cd
     eq_enqueue( rti, obliteration_cd, routnum_obliteration_cd, 0 );
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1);
     obliteration_expire = TIME_OFFSET( FROM_SECONDS ( 8.0f));
     eq_enqueue(rti, obliteration_expire, routnum_obliteration_expire, 0);
     lprintf( ( "obliteration casted" ) );
@@ -925,7 +927,7 @@ DECL_SPELL( breath_of_sindragosa) {
     if ( breath_of_sindragosa_cd > rti->timestamp ) return 0;
     breath_of_sindragosa_cd = TIME_OFFSET( FROM_SECONDS( 120.0f) );
     eq_enqueue( rti, breath_of_sindragosa_cd, routnum_breath_of_sindragosa_cd, 0 );
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1);
     eq_enqueue( rti, rti->timestamp, routnum_breath_of_sindragosa_cast, 0);
     lprintf( ( "breath of sindragosa casted" ) );
     return 1;
@@ -970,7 +972,7 @@ DECL_SPELL( glacial_advance ) {
     if ( !rune_check( rti, 1 ) ) return 0;
     glacial_advance_cd = TIME_OFFSET( FROM_SECONDS( 15.0f) );//TODO: check cd
     eq_enqueue( rti, glacial_advance_cd, routnum_glacial_advance_cd, 0 );
-    gcd_start( rti, FROM_SECONDS( 1.5f ), 0);
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1);
     eq_enqueue( rti, rti->timestamp, routnum_glacial_advance_cast, 0);
     lprintf( ( "glacial advance casted" ) );
     return 1;`

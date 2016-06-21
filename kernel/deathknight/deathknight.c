@@ -19,29 +19,29 @@
 #define TALENT_ICY_TALONS                    ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2))
 #define TALENT_MURDEROUS_EFFICIENCY          ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3))
 /* Tier 2 */
-#define TALENT_FREEZING_FOG                  ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1))
-#define TALENT_FROZEN_PULSE                  ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2))
-#define TALENT_HORN_OF_WINTER                ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3))
+#define TALENT_FREEZING_FOG                  ((SPEC == SPEC_FROST_DK) && (TALENT_TIER2 ==1))
+#define TALENT_FROZEN_PULSE                  ((SPEC == SPEC_FROST_DK) && (TALENT_TIER2 ==2))
+#define TALENT_HORN_OF_WINTER                ((SPEC == SPEC_FROST_DK) && (TALENT_TIER2 ==3))
 /* Tier 3 */
-#define TALENT_ICECAP                        ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1))
-#define TALENT_HUNGERING_RUNE_WEAPON         ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2))
-#define TALENT_AVALANCHE                     ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3))
+#define TALENT_ICECAP                        ((SPEC == SPEC_FROST_DK) && (TALENT_TIER3 ==1))
+#define TALENT_HUNGERING_RUNE_WEAPON         ((SPEC == SPEC_FROST_DK) && (TALENT_TIER3 ==2))
+#define TALENT_AVALANCHE                     ((SPEC == SPEC_FROST_DK) && (TALENT_TIER3 ==3))
 /* Tier 4 */
-#define TALENT_ABOMINATIONS_MIGHT            ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1))
-#define TALENT_BLINIDING_SHEET               ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2))
-#define TALENT_WINTER_IS_COMING              ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3))
+#define TALENT_ABOMINATIONS_MIGHT            ((SPEC == SPEC_FROST_DK) && (TALENT_TIER4 ==1))
+#define TALENT_BLINIDING_SHEET               ((SPEC == SPEC_FROST_DK) && (TALENT_TIER4 ==2))
+#define TALENT_WINTER_IS_COMING              ((SPEC == SPEC_FROST_DK) && (TALENT_TIER4 ==3))
 /* Tier 5 */
-#define TALENT_VOLATILE_SHIELDING            ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1))
-#define TALENT_PERMAFROST                    ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2))
-#define TALENT_WHITE_STALKER                 ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3))
+#define TALENT_VOLATILE_SHIELDING            ((SPEC == SPEC_FROST_DK) && (TALENT_TIER5 ==1))
+#define TALENT_PERMAFROST                    ((SPEC == SPEC_FROST_DK) && (TALENT_TIER5 ==2))
+#define TALENT_WHITE_STALKER                 ((SPEC == SPEC_FROST_DK) && (TALENT_TIER5 ==3))
 /* Tier 6 */
-#define TALENT_FROSTSCYTHE                   ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1))
-#define TALENT_RUNIC_ATTENUATION             ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2))
-#define TALENT_GATHERING_STORM               ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3))
+#define TALENT_FROSTSCYTHE                   ((SPEC == SPEC_FROST_DK) && (TALENT_TIER6 ==1))
+#define TALENT_RUNIC_ATTENUATION             ((SPEC == SPEC_FROST_DK) && (TALENT_TIER6 ==2))
+#define TALENT_GATHERING_STORM               ((SPEC == SPEC_FROST_DK) && (TALENT_TIER6 ==3))
 /* Tier 7 */
-#define TALENT_OBLITERATION                  ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1))
-#define TALENT_BREATH_OF_SINDRAGOSA          ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2))
-#define TALENT_GLACIAL_ADVANCE               ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3))
+#define TALENT_OBLITERATION                  ((SPEC == SPEC_FROST_DK) && (TALENT_TIER7 ==1))
+#define TALENT_BREATH_OF_SINDRAGOSA          ((SPEC == SPEC_FROST_DK) && (TALENT_TIER7 ==2))
+#define TALENT_GLACIAL_ADVANCE               ((SPEC == SPEC_FROST_DK) && (TALENT_TIER7 ==3))
 struct class_state_t {
     struct {
         k32u ready;
