@@ -55,8 +55,8 @@
 //#define trinket_mote_of_the_mountain 1517
 //#define trinket_worldbreakers_resolve 220
 //#define trinket_discordant_chorus 20564
-#define trinket_empty_drinking_horn 259
-//#define trinket_unending_hunger 54
+//#define trinket_empty_drinking_horn 259
+#define trinket_unending_hunger 54
 //#define trinket_spores_of_alacrity 2304
 //#define trinket_bonemaws_big_toe 1767
 //#define trinket_emberscale_talisman 1767
@@ -93,6 +93,7 @@
 #include "entry.c"
 
 void scan_apl( rtinfo_t* rti ) {
+//SPELL(pillar_of_frost);
 SPELL(obliterate);
 }
 
