@@ -1029,7 +1029,6 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
     HOOK_EVENT( hungering_rune_weapon_expire );
 #endif
 #if(TALENT_FROSTSCYTHE)
-    HOOK_EVENT( frostscythe_cd );
     HOOK_EVENT( frostscythe_cast );
 #endif
 #if(TALENT_OBLITERATION)
