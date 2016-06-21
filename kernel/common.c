@@ -539,6 +539,7 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
 #define SPELL( name ) safemacro(if(spell_##name ( rti )) return;)
 #define SPELL_ALIAS( alias, origin ) int spell_##alias ( rtinfo_t* rti ) { return spell_##origin ( rti ); }
 enum {
+    START_OF_COMMON_ROUTNUM = 0,
     routnum_gcd_expire,
     #if (BUFF_POTION == 1)
     routnum_potion_start,

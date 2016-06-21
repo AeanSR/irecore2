@@ -135,6 +135,8 @@ void spec_module_init( rtinfo_t* rti );
 
 void class_module_init( rtinfo_t* rti ) {
     spec_module_init( rti );
+
+    rune_ready = rune_max;
 }
 
 void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id );

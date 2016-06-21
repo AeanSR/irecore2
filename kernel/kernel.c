@@ -372,7 +372,7 @@ float stdnor_rng( rtinfo_t* rti ) {
 
 /* Enqueue an event into EQ. */
 _event_t* eq_enqueue( rtinfo_t* rti, time_t trigger, k32u routine, k32u target_id ) {
-    k32u i = ++( rti->eq.count );
+    k32u i = rti->eq.count + 1;
     _event_t* p = rti->eq.event - 1;
 
     assert( rti->eq.count <= EQ_SIZE ); /* Full check. */
@@ -395,6 +395,7 @@ _event_t* eq_enqueue( rtinfo_t* rti, time_t trigger, k32u routine, k32u target_i
         p[i] = ( _event_t ) {
             .time = trigger, .routine = routine, .target_id = target_id
         };
+        rti->eq.count ++;
         return &p[i];
     }
 
