@@ -412,7 +412,7 @@ DECL_EVENT( judgment_cast ) {
         for ( int i = 0; c < 2 && i < num_enemies; i++ ) {
             if ( i == target_id ) continue;
             c++;
-            dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, excr ); // TODO: does judgment triggers as yellow melee or spell? or both?
+            dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 ); // TODO: does judgment triggers as yellow melee or spell? or both?
             deal_damage( rti, i, d, DTYPE_HOLY, dice, 0, 0 );
             judgment_expire( i ) = TIME_OFFSET( FROM_SECONDS( 6 ) );  // TODO: does this duration scales with haste?
             eq_enqueue( rti, judgment_expire( i ), routnum_judgment_expire, i );

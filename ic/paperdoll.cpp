@@ -223,22 +223,24 @@ void paperdoll_t::gear_summary_calculate() {
     spec_mastery_coeff[SPEC_ARMS_WARRIOR] = 2.0f;
     spec_mastery_coeff[SPEC_FURY_WARRIOR] = 1.4f;
     spec_mastery_coeff[SPEC_RET_PALADIN] = 3.5f;
+    if (race == RACE_HUMAN) fmastery = floor( fmastery * 1.02 );
     fmastery = spec_mastery_coeff[spec] * ( 0.08f + fmastery / 11000 );
 
     float fcrit = ( float ) crit;
-    fcrit *= 1.05f;
+    if (race == RACE_HUMAN) fcrit = floor( fcrit * 1.02 );
     fcrit = 0.05f + fcrit / 11000;
     if (( race == RACE_NIGHTELF_DAY ) || ( race == RACE_BLOODELF ) || ( race == RACE_WORGEN ))
         fcrit += 0.01f;
 
     float fhaste = ( float ) haste;
+    if (race == RACE_HUMAN) fhaste = floor( fhaste * 1.02 );
     fhaste = 1.0f + fhaste / 10000;
     if (( race == RACE_NIGHTELF_NIGHT ) || ( race == RACE_GOBLIN ) || ( race == RACE_GNOME ))
         fhaste *= 1.01f;
     fhaste = fhaste - 1.0f;
 
     float fvers = ( float ) vers;
-    if (race == RACE_HUMAN) fvers += 100;
+    if (race == RACE_HUMAN) fvers = floor( fvers * 1.02 );
     fvers = fvers / 13000;
 
     ui->tableGearSummary->setItem( 1, 2, new QTableWidgetItem( qsprint( str ) ) );

@@ -119,6 +119,7 @@ public:
     void new_plot_chart( int sets );
     void add_plot( double x, double y1, double y2, double y3 );
     void finish_plot();
+    void closeEvent( QCloseEvent * e );
 
 private:
     Ui::gicClass ui;
@@ -180,5 +181,11 @@ QString script_contour_plot(
     int stat2,
     int stat3
 );
-
+QString script_aplga(
+    int spec,
+    int complexity,
+    int use_cooldowns,
+    int use_talents,
+    int use_items
+);
 #endif // GIC_H

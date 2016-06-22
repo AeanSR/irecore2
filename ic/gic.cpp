@@ -903,6 +903,16 @@ void gic::on_btnApplyPresetTask_clicked() {
             stat[0], stat[1], stat[2]
         );
     }
+    if (ui.tabPresetTask->currentIndex() == 5) {
+        set_parameters();
+        script = script_aplga(
+            ui.comboSpec->currentIndex(),
+            ui.sliderAPLGAComplexity->value(),
+            ui.checkAPLGAUseCooldowns->isChecked(),
+            ui.checkAPLGAUseTalents->isChecked(),
+            ui.checkAPLGAUseItems->isChecked()
+        );
+    }
     ui.txtScript->setPlainText( script );
 }
 void gic::on_btnSelectTrinkets_clicked() {
@@ -992,4 +1002,9 @@ void gic::on_btnRun_clicked() {
     qulonglong tasks = history.value( "statistics/tasks", 0 ).toULongLong();
     tasks++;
     history.setValue( "statistics/tasks", tasks );
+}
+
+void gic::closeEvent( QCloseEvent * e ) {
+    // TODO: find a way to break lua.
+    e->accept();
 }

@@ -455,7 +455,7 @@ namespace apltr {
         { "colossus_smash", "(colossus_smash_cd==TIME_OFFSET(FROM_SECONDS(45)))", 0 },
         { "avatar", "(avatar_expire==TIME_OFFSET(FROM_SECONDS(20)))", 0 },
         { "battle_cry", "(battle_cry_expire==TIME_OFFSET(FROM_SECONDS(5)))", 0 },
-        { "bladestorm", "(bladestorm_cd==TIME_OFFSET(FROM_SECONDS(60)))", 0 },
+        { "bladestorm", "(bladestorm_cd==TIME_OFFSET(FROM_SECONDS(90)))", 0 },
         { 0 }
     };
 }

@@ -481,3 +481,712 @@ QString script_contour_plot(
 
     return script;
 }
+
+#define TEST_PARAM(key,value) (0 == strcmp(ic_getparam(key), value))
+const int base10[] = { 1000000, 100000, 10000, 1000, 100, 10, 1 };
+#define TALENT_TIER(tier) ((talent / base10[tier - 1]) % 10)
+QString script_aplga_actions_warrior(
+    int use_cooldowns,
+    int use_talents,
+    int use_items
+) {
+    QString script;
+    int talent = atoi( ic_getparam( "talent" ) );
+    if (use_cooldowns) script += "\"SPELL(battle_cry);\",\n";
+    if (TEST_PARAM( "spec", "fury" )) if (use_talents) if (TALENT_TIER( 3 ) == 2) script += "\"SPELL(berserker_rage);\",\n";
+    script += "\"SPELL(heroic_leap);\",\n";
+    if (use_cooldowns) if (use_talents) if (TALENT_TIER( 3 ) == 3) script += "\"SPELL(avatar);\",\n";
+    if (use_cooldowns) if (use_items) if (!TEST_PARAM( "raidbuff_potion", "0" )) script += "\"SPELL(potion);\",\n";
+    if (use_talents) if (TALENT_TIER( 2 ) == 2) script += "\"SPELL(storm_bolt);\",\n";
+    if (use_talents) if (TALENT_TIER( 2 ) == 1) script += "\"SPELL(shockwave);\",\n";
+    if (use_cooldowns) if (TEST_PARAM( "spec", "fury" ) && use_talents && TALENT_TIER( 7 ) == 1 || TEST_PARAM( "spec", "arms" )) script += "\"SPELL(bladestorm);\",\n";
+    if (use_cooldowns) if (TEST_PARAM( "spec", "fury" )) if (use_talents) if (TALENT_TIER( 6 ) == 1) script += "\"SPELL(bloodbath);\",\n";
+    if (use_cooldowns) if (use_items) if (atoi( ic_getparam( "legendary_ring" ) )) script += "\"SPELL(thorasus_the_stone_heart_of_draenor);\",\n";
+    if (use_cooldowns) if (TEST_PARAM( "race", "bloodelf" )) script += "\"SPELL(arcane_torrent);\",\n";
+    if (use_cooldowns) if (TEST_PARAM( "race", "orc" )) script += "\"SPELL(blood_fury);\",\n";
+    if (use_cooldowns) if (TEST_PARAM( "race", "troll" )) script += "\"SPELL(berserking);\",\n";
+    if (use_cooldowns) if (use_items) if (TEST_PARAM( "trinket1", "vial_of_convulsive_shadows" ) || TEST_PARAM( "trinket2", "vial_of_convulsive_shadows" )) script += "\"SPELL(vial_of_convulsive_shadows);\",\n";
+    if (use_cooldowns) if (use_items) if (TEST_PARAM( "trinket1", "scabbard_of_kyanos" ) || TEST_PARAM( "trinket1", "scabbard_of_kyanos" )) script += "\"SPELL(scabbard_of_kyanos);\",\n";
+    if (use_cooldowns) if (use_items) if (TEST_PARAM( "trinket1", "bonemaws_big_toe" ) || TEST_PARAM( "trinket2", "bonemaws_big_toe" )) script += "\"SPELL(bonemaws_big_toe);\",\n";
+    if (use_cooldowns) if (use_items) if (TEST_PARAM( "trinket1", "emberscale_talisman" ) || TEST_PARAM( "trinket2", "emberscale_talisman" )) script += "\"SPELL(emberscale_talisman);\",\n";
+    if (use_cooldowns) if (use_items) if (TEST_PARAM( "trinket1", "badge_of_victory" ) || TEST_PARAM( "trinket2", "badge_of_victory" )) script += "\"SPELL(badge_of_victory);\",\n";
+    script += "\"SPELL(execute);\",\n";
+    script += "\"SPELL(whirlwind);\",\n";
+    if (TEST_PARAM( "spec", "arms" )) script += "\"SPELL(cleave);\",\n";
+    if (TEST_PARAM( "spec", "arms" )) script += "\"SPELL(colossus_smash);\",\n";
+    if (TEST_PARAM( "spec", "arms" )) script += "\"SPELL(hamstring);\",\n";
+    if (TEST_PARAM( "spec", "arms" )) script += "\"SPELL(mortal_strike);\",\n";
+    if (TEST_PARAM( "spec", "arms" )) script += "\"SPELL(slam);\",\n";
+    if (TEST_PARAM( "spec", "arms" )) if (use_talents) if (TALENT_TIER( 1 ) == 2) script += "\"SPELL(overpower);\",\n";
+    if (TEST_PARAM( "spec", "arms" )) if (use_talents) if (TALENT_TIER( 3 ) == 2) script += "\"SPELL(rend);\",\n";
+    if (TEST_PARAM( "spec", "arms" )) if (use_talents) if (TALENT_TIER( 5 ) == 3) script += "\"SPELL(focused_rage);\",\n";
+    if (TEST_PARAM( "spec", "arms" )) if (use_cooldowns) if (use_talents) if (TALENT_TIER( 7 ) == 3) script += "\"SPELL(ravager);\",\n";
+    if (TEST_PARAM( "spec", "fury" )) script += "\"SPELL(bloodthirst);\",\n";
+    if (TEST_PARAM( "spec", "fury" )) script += "\"SPELL(furious_slash);\",\n";
+    if (TEST_PARAM( "spec", "fury" )) script += "\"SPELL(raging_blow);\",\n";
+    if (TEST_PARAM( "spec", "fury" )) script += "\"SPELL(rampage);\",\n";
+    if (TEST_PARAM( "spec", "fury" )) if (use_talents) if (TALENT_TIER( 7 ) == 3) script += "\"SPELL(dragon_roar);\",\n";
+    return script;
+}
+QString script_aplga_conditions_warrior(
+    int use_cooldowns,
+    int use_talents,
+    int use_items
+) {
+    QString script;
+    int talent = atoi( ic_getparam( "talent" ) );
+    script += "\"enemy_health_percent(rti)<=20\",\n";
+    if (TEST_PARAM( "spec", "fury" )) if (TALENT_TIER( 1 ) == 3) {
+        script += "\"enemy_health_percent(rti)>=80\",\n";
+    }
+    script += "\"rti->player.power<20\",\n";
+    script += "\"rti->player.power<40\",\n";
+    script += "\"rti->player.power<60\",\n";
+    script += "\"rti->player.power<80\",\n";
+    script += "\"rti->player.power>power_max-10\",\n";
+    if (TEST_PARAM( "spec", "fury" )) {
+        script += "\"taste_for_blood_stack>=1\",\n";
+        script += "\"taste_for_blood_stack>=2\",\n";
+        script += "\"taste_for_blood_stack>=3\",\n";
+        script += "\"taste_for_blood_stack>=4\",\n";
+        script += "\"taste_for_blood_stack>=5\",\n";
+        script += "\"taste_for_blood_stack>=6\",\n";
+        script += "\"TO_SECONDS(REMAIN(taste_for_blood_expire))<3\",\n";
+        script += "\"UP(enrage_expire)\",\n";
+        script += "\"TO_SECONDS(REMAIN(enrage_expire))<3\",\n";
+        if (use_talents) if (TALENT_TIER( 6 ) == 2) {
+            script += "\"frenzy_stack>=1\",\n";
+            script += "\"frenzy_stack>=2\",\n";
+            script += "\"frenzy_stack>=3\",\n";
+            script += "\"TO_SECONDS(REMAIN(frenzy_expire))<3\",\n";
+        }
+        script += "\"UP(meat_cleaver_expire)\",\n";
+        script += "\"TO_SECONDS(REMAIN(meat_cleaver_expire))<3\",\n";
+        if (TALENT_TIER( 3 ) == 1) {
+            script += "\"UP(wrecking_ball_expire)\",\n";
+            script += "\"TO_SECONDS(REMAIN(wrecking_ball_expire))<3\",\n";
+        }
+        if (TALENT_TIER( 5 ) == 1) {
+            script += "\"UP(massacre_expire)\",\n";
+            script += "\"TO_SECONDS(REMAIN(massacre_expire))<3\",\n";
+        }
+        if (TALENT_TIER( 5 ) == 2) {
+            script += "\"UP(frothing_berserker_expire)\",\n";
+            script += "\"TO_SECONDS(REMAIN(frothing_berserker_expire))<3\",\n";
+        }
+        if (use_cooldowns) if (use_talents) if (TALENT_TIER( 6 ) == 1) {
+            script += "\"UP(bloodbath_expire)\",\n";
+            script += "\"TO_SECONDS(REMAIN(bloodbath_expire))<1\",\n";
+            script += "\"TO_SECONDS(REMAIN(bloodbath_expire))<3\",\n";
+            script += "\"TO_SECONDS(REMAIN(bloodbath_expire))<6\",\n";
+            script += "\"UP(bloodbath_cd)\",\n";
+            script += "\"TO_SECONDS(REMAIN(bloodbath_cd))<5\",\n";
+            script += "\"TO_SECONDS(REMAIN(bloodbath_cd))<10\",\n";
+            script += "\"TO_SECONDS(REMAIN(bloodbath_cd))<20\",\n";
+            script += "\"TO_SECONDS(REMAIN(bloodbath_cd))<25\",\n";
+        }
+        if (use_talents) if (TALENT_TIER( 7 ) == 3) {
+            script += "\"UP(dragon_roar_expire)\",\n";
+            script += "\"TO_SECONDS(REMAIN(dragon_roar_expire))<1\",\n";
+            script += "\"TO_SECONDS(REMAIN(dragon_roar_expire))<3\",\n";
+            script += "\"UP(dragon_roar_cd)\",\n";
+            script += "\"TO_SECONDS(REMAIN(dragon_roar_cd))<2\",\n";
+            script += "\"TO_SECONDS(REMAIN(dragon_roar_cd))<5\",\n";
+            script += "\"TO_SECONDS(REMAIN(dragon_roar_cd))<10\",\n";
+            script += "\"TO_SECONDS(REMAIN(dragon_roar_cd))<15\",\n";
+        }
+        script += "\"UP(bloodthirst_cd)\",\n";
+        script += "\"TO_SECONDS(REMAIN(bloodthirst_cd))<1\",\n";
+        script += "\"TO_SECONDS(REMAIN(bloodthirst_cd))<2\",\n";
+        script += "\"TO_SECONDS(REMAIN(bloodthirst_cd))<3\",\n";
+        if (TALENT_TIER( 6 ) == 3) {
+            script += "\"UP(raging_blow_cd)\",\n";
+            script += "\"TO_SECONDS(REMAIN(raging_blow_cd))<1\",\n";
+            script += "\"TO_SECONDS(REMAIN(raging_blow_cd))<2\",\n";
+            script += "\"TO_SECONDS(REMAIN(raging_blow_cd))<3\",\n";
+        }
+        if (use_talents) if (TALENT_TIER( 3 ) == 2) {
+            script += "\"UP(berserker_rage_cd)\",\n";
+            script += "\"TO_SECONDS(REMAIN(berserker_rage_cd))<5\",\n";
+            script += "\"TO_SECONDS(REMAIN(berserker_rage_cd))<15\",\n";
+            script += "\"TO_SECONDS(REMAIN(berserker_rage_cd))<30\",\n";
+            script += "\"TO_SECONDS(REMAIN(berserker_rage_cd))<50\",\n";
+        }
+    }
+    if (TEST_PARAM( "spec", "arms" )) {
+        if (use_talents) if (TALENT_TIER( 1 ) == 2) {
+            script += "\"UP(overpower_expire)\",\n";
+            script += "\"TO_SECONDS(REMAIN(overpower_expire))<3\",\n";
+        }
+        if (use_cooldowns) if (use_talents) if (TALENT_TIER( 7 ) == 3) {
+            script += "\"UP(ravager_expire)\",\n";
+            script += "\"TO_SECONDS(REMAIN(ravager_expire))<3\",\n";
+            script += "\"UP(ravager_cd)\",\n";
+            script += "\"TO_SECONDS(REMAIN(ravager_cd))<5\",\n";
+            script += "\"TO_SECONDS(REMAIN(ravager_cd))<15\",\n";
+            script += "\"TO_SECONDS(REMAIN(ravager_cd))<30\",\n";
+            script += "\"TO_SECONDS(REMAIN(ravager_cd))<50\",\n";
+        }
+        if (use_talents) if (TALENT_TIER( 3 ) == 2) {
+            script += "\"UP(rend_expire(rti->player.target))\",\n";
+            script += "\"TO_SECONDS(REMAIN(rend_expire(rti->player.target)))<5\",\n";
+        }
+        script += "\"UP(cleave_cd)\",\n";
+        script += "\"TO_SECONDS(REMAIN(cleave_cd))<1\",\n";
+        script += "\"TO_SECONDS(REMAIN(cleave_cd))<2\",\n";
+        script += "\"TO_SECONDS(REMAIN(cleave_cd))<3\",\n";
+        script += "\"UP(cleave_expire)\",\n";
+        script += "\"TO_SECONDS(REMAIN(cleave_expire))<3\",\n";
+        script += "\"cleave_stack>=1\",\n";
+        script += "\"cleave_stack>=2\",\n";
+        script += "\"cleave_stack>=3\",\n";
+        script += "\"cleave_stack>=4\",\n";
+        script += "\"cleave_stack>=5\",\n";
+        script += "\"UP(colossus_smash_cd)\",\n";
+        script += "\"TO_SECONDS(REMAIN(colossus_smash_cd))<1\",\n";
+        script += "\"TO_SECONDS(REMAIN(colossus_smash_cd))<5\",\n";
+        script += "\"TO_SECONDS(REMAIN(colossus_smash_cd))<20\",\n";
+        script += "\"TO_SECONDS(REMAIN(colossus_smash_cd))<40\",\n";
+        script += "\"UP(colossus_smash_expire(rti->player.target))\",\n";
+        script += "\"TO_SECONDS(REMAIN(colossus_smash_expire(rti->player.target)))<1\",\n";
+        script += "\"TO_SECONDS(REMAIN(colossus_smash_expire(rti->player.target)))<2\",\n";
+        script += "\"TO_SECONDS(REMAIN(colossus_smash_expire(rti->player.target)))<4\",\n";
+        script += "\"TO_SECONDS(REMAIN(colossus_smash_expire(rti->player.target)))<6\",\n";
+        script += "\"TO_SECONDS(REMAIN(colossus_smash_expire(rti->player.target)))<10\",\n";
+        script += "\"TO_SECONDS(REMAIN(colossus_smash_expire(rti->player.target)))<20\",\n";
+        script += "\"mortal_strike_charge>=1\",\n";
+        if (TALENT_TIER( 5 ) == 2) {
+            script += "\"mortal_strike_charge>=2\",\n";
+        }
+        script += "\"TO_SECONDS(REMAIN(mortal_strike_cd))<1\",\n";
+        script += "\"TO_SECONDS(REMAIN(mortal_strike_cd))<2\",\n";
+        script += "\"TO_SECONDS(REMAIN(mortal_strike_cd))<3\",\n";
+        if (use_talents) if (TALENT_TIER( 5 ) == 3) {
+            script += "\"focused_rage_stack>=1\",\n";
+            script += "\"focused_rage_stack>=2\",\n";
+            script += "\"focused_rage_stack>=3\",\n";
+        }
+    }
+    if (use_cooldowns) if (use_items) if (!TEST_PARAM( "raidbuff_potion", "0" )) script += "\"UP(potion_expire)\",\n";
+    if (use_cooldowns) if (!TEST_PARAM( "raidbuff_bloodlust", "0" )) script += "\"UP(bloodlust_expire)\",\n";
+    script += "\"UP(heroic_leap_cd)\",\n";
+    script += "\"TO_SECONDS(REMAIN(heroic_leap_cd))<5\",\n";
+    script += "\"TO_SECONDS(REMAIN(heroic_leap_cd))<15\",\n";
+    script += "\"TO_SECONDS(REMAIN(heroic_leap_cd))<25\",\n";
+    script += "\"TO_SECONDS(REMAIN(heroic_leap_cd))<40\",\n";
+    if (use_talents) if (TALENT_TIER( 2 ) == 1) {
+        script += "\"UP(shockwave_cd)\",\n";
+        script += "\"TO_SECONDS(REMAIN(shockwave_cd))<5\",\n";
+        script += "\"TO_SECONDS(REMAIN(shockwave_cd))<10\",\n";
+        script += "\"TO_SECONDS(REMAIN(shockwave_cd))<20\",\n";
+        script += "\"TO_SECONDS(REMAIN(shockwave_cd))<30\",\n";
+    }
+    if (use_talents) if (TALENT_TIER( 2 ) == 2) {
+        script += "\"UP(stormbolt_cd)\",\n";
+        script += "\"TO_SECONDS(REMAIN(stormbolt_cd))<5\",\n";
+        script += "\"TO_SECONDS(REMAIN(stormbolt_cd))<10\",\n";
+        script += "\"TO_SECONDS(REMAIN(stormbolt_cd))<20\",\n";
+        script += "\"TO_SECONDS(REMAIN(stormbolt_cd))<25\",\n";
+    }
+    if (use_cooldowns) {
+        script += "\"UP(battle_cry_expire)\",\n";
+        script += "\"TO_SECONDS(REMAIN(battle_cry_expire))<1\",\n";
+        script += "\"TO_SECONDS(REMAIN(battle_cry_expire))<2\",\n";
+        script += "\"TO_SECONDS(REMAIN(battle_cry_expire))<3\",\n";
+        script += "\"UP(battle_cry_cd)\",\n";
+        script += "\"TO_SECONDS(REMAIN(battle_cry_cd))<5\",\n";
+        script += "\"TO_SECONDS(REMAIN(battle_cry_cd))<15\",\n";
+        script += "\"TO_SECONDS(REMAIN(battle_cry_cd))<30\",\n";
+        script += "\"TO_SECONDS(REMAIN(battle_cry_cd))<50\",\n";
+    }
+    if (use_cooldowns) if (use_talents) if (TALENT_TIER( 3 ) == 3) {
+        script += "\"UP(avatar_expire)\",\n";
+        script += "\"TO_SECONDS(REMAIN(avatar_expire))<1\",\n";
+        script += "\"TO_SECONDS(REMAIN(avatar_expire))<5\",\n";
+        script += "\"TO_SECONDS(REMAIN(avatar_expire))<15\",\n";
+        script += "\"UP(avatar_cd)\",\n";
+        script += "\"TO_SECONDS(REMAIN(avatar_cd))<5\",\n";
+        script += "\"TO_SECONDS(REMAIN(avatar_cd))<20\",\n";
+        script += "\"TO_SECONDS(REMAIN(avatar_cd))<60\",\n";
+        script += "\"TO_SECONDS(REMAIN(avatar_cd))<80\",\n";
+    }
+    if (use_cooldowns) if (TEST_PARAM( "spec", "fury" ) && use_talents && TALENT_TIER( 7 ) == 1 || TEST_PARAM( "spec", "arms" )) {
+        script += "\"UP(bladestorm_cd)\",\n";
+        script += "\"TO_SECONDS(REMAIN(bladestorm_cd))<5\",\n";
+        script += "\"TO_SECONDS(REMAIN(bladestorm_cd))<20\",\n";
+        script += "\"TO_SECONDS(REMAIN(bladestorm_cd))<60\",\n";
+        script += "\"TO_SECONDS(REMAIN(bladestorm_cd))<80\",\n";
+    }
+    return script;
+}
+
+QString script_aplga(
+    int spec,
+    int complexity,
+    int use_cooldowns,
+    int use_talents,
+    int use_items
+) {
+    QString script;
+    script = R"RAWSCRIPT(
+Silence(true)
+action_list = {
+)RAWSCRIPT";
+    switch (spec){
+    case SPEC_ARMS_WARRIOR: case SPEC_FURY_WARRIOR:
+        script += script_aplga_actions_warrior(use_cooldowns, use_talents, use_items);
+        break;
+    }
+    script += R"RAWSCRIPT(
+}
+condition_list = {
+)RAWSCRIPT";
+    switch (spec){
+    case SPEC_ARMS_WARRIOR: case SPEC_FURY_WARRIOR:
+        script += script_aplga_conditions_warrior(use_cooldowns, use_talents, use_items);
+        break;
+    }
+    script += R"RAWSCRIPT(
+}
+pool_size = 200
+new_chiasma = 40
+new_mutation = 20
+new_double_mutation = 10
+signature_test_iteration = 128
+evaluation_iteration = 16384
+complexity_soft_bound = )RAWSCRIPT";
+    script += QString( "" ).setNum( complexity );
+    script += R"RAWSCRIPT(
+confidence = 0.95
+error_tolerance = 1.0
+function deepcopy(orig)
+  local orig_type = type(orig)
+  local copy
+  if orig_type == 'table' then
+    copy = {}
+    for orig_key, orig_value in next, orig, nil do
+      copy[deepcopy(orig_key)] = deepcopy(orig_value)
+    end
+    setmetatable(copy, deepcopy(getmetatable(orig)))
+  else
+    copy = orig
+  end
+  return copy
+end
+function new_condition()
+  local cond = {}
+  cond.type = "condition"
+  cond.op = "leaf"
+  cond.leaf = math.random(#condition_list)
+  return cond
+end
+function new_action()
+  local act = {}
+  act.type = "action"
+  act.action = math.random(#action_list)
+  return act
+end
+function new_apl()
+  local apl = {}
+  apl.type = "apl"
+  apl.list = {}
+  apl.list[1] = new_action()
+  if math.random() < 0.5 then apl.list[1].condition = new_condition() end
+  apl.list[2] = new_action()
+  if math.random() < 0.5 then apl.list[2].condition = new_condition() end
+  apl.list[3] = new_action()
+  if math.random() < 0.5 then apl.list[3].condition = new_condition() end
+  apl.list[4] = new_action()
+  if math.random() < 0.5 then apl.list[4].condition = new_condition() end
+  return apl
+end
+function add_mutation(elem)
+  if not elem.type == "condition" then return end
+  if elem.op == "leaf" then
+    new_left = deepcopy(elem)
+    elem.left = new_left
+    if math.random() < 0.333 then
+      elem.op = "and"
+      new_right = new_condition()
+      elem.right = new_right
+    elseif math.random() < 0.5 then
+      elem.op = "or"
+      new_right = new_condition()
+      elem.right = new_right
+    else
+      elem.op = "not"
+      elem.right = nil
+    end
+  elseif elem.op == "not" then
+    if math.random() < 0.2 then
+      new_left = deepcopy(elem)
+      elem.left = new_left
+      if math.random() < 0.5 then
+        elem.op = "and"
+        new_right = new_condition()
+        elem.right = new_right
+      else
+        elem.op = "or"
+        new_right = new_condition()
+        elem.right = new_right
+      end
+    else
+      add_mutation(elem.left)
+    end
+  else
+    if math.random() < 0.2 then
+      new_left = deepcopy(elem)
+      elem.left = new_left
+      if math.random() < 0.333 then
+        elem.op = "and"
+        new_right = new_condition()
+        elem.right = new_right
+      elseif math.random() < 0.5 then
+        elem.op = "or"
+        new_right = new_condition()
+        elem.right = new_right
+      else
+        elem.op = "not"
+        elem.right = nil
+      end
+    elseif math.random() < 0.5 then
+      add_mutation(elem.left)
+    else
+      add_mutation(elem.right)
+    end
+  end
+end
+function delete_mutation(elem)
+  if not elem.type == "condition" then return end
+  if math.random() < 0.2 then
+    child = {}
+    if elem.right and math.random() < 0.5 then
+      child = elem.right
+    else
+      child = elem.left
+    end
+    elem = deepcopy(child)
+  elseif (not elem.left.op == "leaf") and (elem.right and not elem.right.op == "leaf") then
+    if math.random() < 0.5 then
+      delete_mutation(elem.left)
+    else
+      delete_mutation(elem.right)
+    end
+  elseif not elem.left.op == "leaf" then
+    delete_mutation(elem.left)
+  elseif elem.right and not elem.right.op == "leaf" then
+    delete_mutation(elem.right)
+  else
+    child = {}
+    if elem.right and math.random() < 0.5 then
+      child = elem.right
+    else
+      child = elem.left
+    end
+    elem = deepcopy(child)
+  end
+end
+function mutation(elem)
+  if elem.type == "apl" then
+    if math.random() < 0.333 then
+      -- modify
+      mutation(elem.list[math.random(#elem.list)])
+    elseif #elem.list > 1 and math.random() < 0.5 then
+      -- delete
+      local delete_action = math.random(#elem.list)
+      for i = delete_action, #elem.list - 1 do
+        elem.list[i] = elem.list[i+1]
+      end
+      elem.list[#elem.list] = nil
+    else
+      -- add
+      local add_action = math.random(#elem.list + 1)
+      for i = #elem.list + 1, add_action, -1 do
+        elem.list[i] = elem.list[i-1]
+      end
+      elem.list[add_action] = new_action()
+    end
+  elseif elem.type == "action" then
+    if math.random() < 0.5 then
+      -- condition
+      if elem.condition and math.random() < 0.333 then
+        mutation(elem.condition)
+      elseif not elem.condition or math.random() < 0.5 then
+        if elem.condition then
+          add_mutation(elem.condition)
+        else
+          elem.condition = new_condition()
+        end
+      else
+        if elem.condition.op == "leaf" or math.random() < 0.2 then
+          elem.condition = nil
+        else
+          delete_mutation(elem.condition)
+        end
+      end
+    else
+      -- action
+      local new_action = math.random(#action_list - 1)
+      if new_action >= elem.action then new_action = new_action + 1 end
+      elem.action = new_action
+    end
+  elseif elem.type == "condition" then
+    if elem.op == "leaf" then
+      local new_condition = math.random(#condition_list - 1)
+      if new_condition >= elem.leaf then new_condition = new_condition + 1 end
+      elem.leaf = new_condition
+    elseif (elem.op == "and" or elem.op == "or") and math.random() < 0.2 then
+      if elem.op == "and" then
+        elem.op = "or"
+      else
+        elem.op = "and"
+      end
+    elseif elem.right and math.random() < 0.5 then
+      mutation(elem.right)
+    else
+      mutation(elem.left)
+    end
+  end
+end
+function action_chiasma(elem1, elem2)
+  if not elem1.type == "apl" or not elem2.type == "apl" then return end
+  local bp1 = math.random(#elem1.list)
+  local bp2 = math.random(#elem2.list)
+  local temp1 = {}
+  local temp2 = {}
+  for i = bp1, #elem1.list do
+    temp1[i] = deepcopy(elem1.list[i])
+  end
+  for i = bp2, #elem2.list do
+    temp2[i] = deepcopy(elem2.list[i])
+  end
+  for i = 0, math.max(#elem2.list - bp2, #elem1.list - bp1) do
+    elem1.list[i + bp1] = temp2[i + bp2]
+    elem2.list[i + bp2] = temp1[i + bp1]
+  end
+end
+function condition_chiasma(elem1, elem2)
+  if not elem1.type == "condition" or not elem2.type == "condition" then return end
+  local c = math.random()
+  if elem1.left and c < 0.2 then
+    condition_chiasma(elem1.left, elem2)
+  elseif elem1.right and c < 0.4 then
+    condition_chiasma(elem1.right, elem2)
+  elseif elem2.left and c < 0.6 then
+    condition_chiasma(elem1, elem2.left)
+  elseif elem2.right and c < 0.8 then
+    condition_chiasma(elem1, elem2.right)
+  else
+    local tmp = deepcopy(elem2)
+    elem2 = deepcopy(elem1)
+    elem1 = tmp
+  end
+end
+function chiasma(elem1, elem2)
+  if not elem1.type == "apl" or not elem2.type == "apl" then return end
+  if math.random() < 0.3 then
+    action_chiasma(elem1, elem2)
+  else
+    local cp1, cp2
+    cp1 = math.random(#elem1.list)
+    cp2 = math.random(#elem2.list)
+    if elem1.list[cp1].condition and elem2.list[cp2].condition then
+      condition_chiasma(elem1.list[cp1].condition, elem2.list[cp2].condition)
+    else
+      action_chiasma(elem1, elem2)
+    end
+  end
+end
+function complexity(elem)
+  local c = 1
+  if elem.type == "apl" then
+    for i,v in ipairs(elem.list) do
+      c = c + complexity(v)
+    end
+  elseif elem.type == "action" then
+    if elem.condition then
+      c = c + complexity(elem.condition)
+    end
+  elseif elem.type == "condition" then
+    if elem.left then
+      c = c + complexity(elem.left)
+    end
+    if elem.right then
+      c = c + complexity(elem.right)
+    end
+  end
+  return c
+end
+function dump(elem)
+  local c = ""
+  if elem.type == "apl" then
+    for i,v in ipairs(elem.list) do
+      c = c .. "/*" .. i .. "*/" .. dump(v) .. "\n"
+    end
+  elseif elem.type == "action" then
+    if elem.condition then
+      c = c .. "if(" .. dump(elem.condition) .. ")" .. action_list[elem.action] .. ";"
+    else
+      c = c .. action_list[elem.action] .. ";"
+    end
+  elseif elem.type == "condition" then
+    if elem.op == "leaf" then
+      c = c .. condition_list[elem.leaf]
+    elseif elem.op == "and" then
+      c = c .. "(" .. dump(elem.left) .. "&&" .. dump(elem.right) .. ")"
+    elseif elem.op == "or" then
+      c = c .. "(" .. dump(elem.left) .. "||" .. dump(elem.right) .. ")"
+    elseif elem.op == "not" then
+      c = c .. "!" .. dump(elem.left)
+    end
+  end
+  return c
+end
+transpose = {}
+function calc_fitness(item)
+  local rev = 1.0 / ( 1.0 + math.exp( 2 * ( complexity(item.apl) - complexity_soft_bound ) ) )
+  item.fitness = item.dps * rev
+  item.fitness_error = item.dpse * rev
+end
+function eval(item)
+  item.iteration = item.iteration or 0
+  item.dps = item.dps or 0
+  item.dpse = item.dpse or 0
+  local apl = dump(item.apl)
+  local sigcomp = complexity(item.apl)
+  SetParam("actions", apl)
+  if not item.signature then
+    SetParam("iterations", signature_test_iteration)
+    SetParam("deterministic_seed", 4262)
+    local sigdps, _, sigdpse = Run()
+    item.signature = GetLastSignature()
+    if transpose[item.signature] and transpose[item.signature] <= sigcomp then
+      item.dps = -1
+      item.fitness = -1
+      item.fitness_error = 0
+      print("apl("..item.signature.."): bad.")
+      return
+    end
+    transpose[item.signature] = sigcomp
+    item.dps = sigdps
+    item.error = sigdpse
+    item.iteration = signature_test_iteration
+    print("apl("..item.signature.."): good, dps~"..string.format("%.3f",sigdps))
+  end
+  local iter = evaluation_iteration
+  SetParam("iterations", iter)
+  SetParam("deterministic_seed", 0)
+  local dps, _, dpse = Run()
+  item.dps = (item.dps * item.iteration + dps * iter) / (item.iteration + iter)
+  item.dpse = math.sqrt((item.dpse * item.dpse * item.iteration * item.iteration
+                         + dpse * dpse * iter * iter)) / (item.iteration + iter)
+  item.iteration = item.iteration + iter
+  calc_fitness(item)
+end
+function new_item()
+  local item = {}
+  item.apl = new_apl()
+  eval(item)
+  while item.dps < 0 do
+    mutation(item.apl)
+    item.signature = nil
+    eval(item)
+  end
+  return item
+end
+function item_mutation(base)
+  local item = {}
+  item.apl = deepcopy(base.apl)
+  mutation(item.apl)
+  return item
+end
+function item_chiasma(base1, base2)
+  local item1 = {}
+  local item2 = {}
+  item1.apl = deepcopy(base1.apl)
+  item2.apl = deepcopy(base2.apl)
+  chiasma(item1.apl, item2.apl)
+  return item1, item2
+end
+pool = {}
+print("Evaluate default actions as benchmark...")
+SetParam("default_actions", 1)
+benchmark = Run()
+SetParam("default_actions", 0)
+CreatePlotChart(3)
+io.output("aplga.txt")
+gen = 1
+print("Generate first generation...")
+for i = 1, pool_size do
+  pool[i] = new_item()
+  print(i.."/"..pool_size.." generated")
+end
+collectgarbage()
+count_new = new_chiasma + new_mutation + new_double_mutation
+while true do
+  print("Gen"..gen.." start")
+  for i = 1, new_chiasma, 2 do
+    local candidate1 = math.random(pool_size)
+    local candidate2 = math.random(pool_size)
+    local candidate3 = math.random(pool_size)
+    local candidate4 = math.random(pool_size)
+    pool[pool_size + i], pool[pool_size + i + 1] =
+    item_chiasma(pool[math.min(candidate1, candidate2)], pool[math.min(candidate3, candidate4)])
+  end
+  for i = 1, new_mutation do
+    local candidate1 = math.random(pool_size)
+    local candidate2 = math.random(pool_size)
+    pool[pool_size + new_chiasma + i] = item_mutation(pool[math.min(candidate1, candidate2)])
+  end
+  for i = 1, new_double_mutation do
+    local candidate = math.random(new_mutation)
+    pool[pool_size + new_chiasma + new_mutation + i] =
+    item_mutation(pool[pool_size + new_chiasma + candidate])
+  end
+  print("First pass evaluation...")
+  for i = 1, count_new do
+    eval(pool[pool_size + i])
+  end
+  table.sort(pool, function(a,b) return a.fitness > b.fitness end)
+  local fine = false
+  print("Confidence checking...")
+  Silence(false)
+  while not fine do
+    fine = true
+    for i = 1, pool_size do
+      for j = pool_size + 1, pool_size + count_new do
+        if DPSCompareConfidence(pool[i].fitness, pool[i].fitness_error,
+                                pool[j].fitness, pool[j].fitness_error) < confidence then
+            if pool[i].dpse > error_tolerance then
+                eval(pool[i])
+                fine = false
+            end
+            if pool[j].dpse > error_tolerance then
+                eval(pool[j])
+                fine = false
+            end
+        end
+      end
+    end
+    table.sort(pool, function(a,b) return a.fitness > b.fitness end)
+  end
+  Silence(true)
+  print("Select...")
+  for i = pool_size + 1, pool_size + count_new do
+    pool[i] = nil
+  end
+  collectgarbage()
+  AddPlotData(gen, benchmark, pool[1].dps, pool[pool_size].dps)
+  FinishPlotChart()
+  print("Gen"..gen..", max: "..pool[1].dps..", min: "..pool[pool_size].dps)
+  print("/* START OF BEST APL */")
+  print(dump(pool[1].apl))
+  io.write("Gen"..gen..", DPS: "..pool[1].dps.."\n")
+  io.write("/* START OF BEST APL */\n")
+  io.write(dump(pool[1].apl))
+  io.flush()
+  gen = gen + 1
+end
+    )RAWSCRIPT";
+    return script;
+}
