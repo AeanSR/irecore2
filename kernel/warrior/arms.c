@@ -193,15 +193,15 @@ void anger_management_count( rtinfo_t* rti, float rage );
 #endif
 void trigger_tactician( rtinfo_t* rti );
 float spec_power_consume( rtinfo_t* rti, float cost ) {
+    if ( uni_rng( rti ) < 0.0065f * cost ) {
+        trigger_tactician( rti );
+    }
     if ( TALENT_DAUNTLESS ) cost *= 0.8f;
     if ( TALENT_DEADLY_CALM && UP( battle_cry_expire ) ) cost *= 0.0f;
     cost = ( float )( int )( cost );
 #if (TALENT_ANGER_MANAGEMENT)
     anger_management_count( rti, cost );
 #endif
-    if ( uni_rng( rti ) < 0.0065f * cost ) {
-        trigger_tactician( rti );
-    }
     return cost;
 }
 
