@@ -84,8 +84,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(CUDA_PATH)\include\;$(AMDAPPSDKROOT)\include\;$(SolutionDir)\util\;$(IncludePath)</IncludePath>
     <LibraryPath>$(CUDA_PATH)\lib\$(PlatformName)\;$(AMDAPPSDKROOT)\lib\x86\;$(LibraryPath)</LibraryPath>
-    <OutDir>$(SolutionDir)\libic\</OutDir>
-    <IntDir>$(SolutionDir)\intm\vc140\libic\</IntDir>
+    <OutDir>$(SolutionDir)\libic\$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\intm\vc140\libic\32d\</IntDir>
+    <TargetName>libic</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(CUDA_PATH)\include\;$(AMDAPPSDKROOT)\include\;$(SolutionDir)\util\;$(IncludePath)</IncludePath>

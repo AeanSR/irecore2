@@ -1,7 +1,7 @@
 call pack_release.bat
 
 :: Update the qt_dir as necessary
-set qt_dir=E:\Qt\5.6\msvc2015_64
+set qt_dir=E:\Qt\5.7\msvc2015_64
 
 copy "%VS140COMNTOOLS%..\..\VC\redist\x64\Microsoft.VC140.CRT"\vcruntime140.dll release\vcruntime140.dll
 copy "%VS140COMNTOOLS%..\..\VC\redist\x64\Microsoft.VC140.CRT"\msvcp140.dll release\msvcp140.dll

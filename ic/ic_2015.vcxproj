@@ -64,7 +64,7 @@
     <OutDir>$(SolutionDir)</OutDir>
     <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(SolutionDir)\rapidjson;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\qcplib;$(LibraryPath)</LibraryPath>
-    <IntDir>$(SolutionDir)\intm\vc140\ic\</IntDir>
+    <IntDir>$(SolutionDir)\intm\vc140\ic\32d\</IntDir>
     <TargetName>irecore</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -76,7 +76,7 @@
     <OutDir>$(SolutionDir)</OutDir>
     <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(SolutionDir)\rapidjson;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\lua;$(SolutionDir)\libic\Win32\;$(SolutionDir)\qcplib;$(LibraryPath)</LibraryPath>
-    <IntDir>$(SolutionDir)\intm\vc140\ic\32</IntDir>
+    <IntDir>$(SolutionDir)\intm\vc140\ic\32\</IntDir>
     <TargetName>irecore</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -316,7 +316,7 @@ pack_release_x64.bat</Command>
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MocDir=".\GeneratedFiles\$(ConfigurationName)" UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" lupdateOptions="" lupdateOnBuild="0" lreleaseOptions="" Qt5Version_x0020_Win32="vc140qt5.6" Qt5Version_x0020_x64="vc140qt5.6_64" MocOptions="" />
+      <UserProperties MocDir=".\GeneratedFiles\$(ConfigurationName)" UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" lupdateOptions="" lupdateOnBuild="0" lreleaseOptions="" Qt5Version_x0020_Win32="vc140qt5.7" Qt5Version_x0020_x64="vc140qt5.6_64" MocOptions="" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>
