@@ -1,0 +1,8 @@
+..\..\BlackBox.cpp
+..\..\BlackBox.h
+..\..\CrashHandler.cpp
+..\..\CrashHandler.h
+..\..\MemoryStatus.cpp
+..\..\MemoryStatus.h
+..\..\StackTrace.cpp
+..\..\StackTrace.h

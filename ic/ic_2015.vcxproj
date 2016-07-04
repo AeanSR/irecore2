@@ -62,8 +62,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)</OutDir>
-    <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(SolutionDir)\rapidjson;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\qcplib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\rde;$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(SolutionDir)\rapidjson;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\rde\Build\$(PlatformName)\Release;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\qcplib;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)\intm\vc140\ic\32d\</IntDir>
     <TargetName>irecore</TargetName>
   </PropertyGroup>
@@ -74,15 +74,15 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)</OutDir>
-    <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(SolutionDir)\rapidjson;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\lua;$(SolutionDir)\libic\Win32\;$(SolutionDir)\qcplib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\rde;$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(SolutionDir)\rapidjson;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\rde\Build\$(PlatformName)\Release;$(SolutionDir)\lua;$(SolutionDir)\libic\Win32\;$(SolutionDir)\qcplib;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)\intm\vc140\ic\32\</IntDir>
     <TargetName>irecore</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>irecore</TargetName>
-    <IncludePath>$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(SolutionDir)\rapidjson;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\lua\x64;$(SolutionDir)\libic\x64;$(SolutionDir)\qcplib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\rde;$(QTDIR)\include;$(SolutionDir)\lua;$(SolutionDir)\libic;$(SolutionDir)\util;$(SolutionDir)\qcplib;$(SolutionDir)\rapidjson;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\rde\Build\$(PlatformName)\Release;$(SolutionDir)\lua\x64;$(SolutionDir)\libic\x64;$(SolutionDir)\qcplib\x64;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)</OutDir>
     <IntDir>$(SolutionDir)\intm\vc140\ic\64</IntDir>
   </PropertyGroup>
@@ -100,7 +100,7 @@
       <OutputFile>$(OutDir)\irecore.exe</OutputFile>
       <AdditionalLibraryDirectories>$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>qcustomplot1.lib;lua53.lib;libic.lib;qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5Networkd.lib;Qt5Widgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rde.lib;qcustomplot1.lib;lua53.lib;libic.lib;qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5Networkd.lib;Qt5Widgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>cd $(SolutionDir)\
@@ -121,7 +121,7 @@ pack_release_vc140.bat</Command>
       <OutputFile>$(OutDir)\irecore.exe</OutputFile>
       <AdditionalLibraryDirectories>$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>qcustomplot1.lib;lua53.lib;libic.lib;qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5Networkd.lib;Qt5Widgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rde.lib;qcustomplot1.lib;lua53.lib;libic.lib;qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5Networkd.lib;Qt5Widgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>cd $(SolutionDir)\
@@ -141,7 +141,7 @@ pack_release_vc140.bat</Command>
       <OutputFile>$(OutDir)\irecore.exe</OutputFile>
       <AdditionalLibraryDirectories>$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalDependencies>qcustomplot1.lib;lua53.lib;libic.lib;qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5Network.lib;Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rde.lib;qcustomplot1.lib;lua53.lib;libic.lib;qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5Network.lib;Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>cd $(SolutionDir)\
@@ -162,7 +162,7 @@ pack_release_x86.bat</Command>
       <OutputFile>$(OutDir)\irecore.exe</OutputFile>
       <AdditionalLibraryDirectories>$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>No</GenerateDebugInformation>
-      <AdditionalDependencies>qcustomplot1.lib;lua53.lib;libic.lib;qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5Network.lib;Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rde.lib;qcustomplot1.lib;lua53.lib;libic.lib;qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5Network.lib;Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>cd $(SolutionDir)\

@@ -423,7 +423,6 @@ DECL_EVENT( bloodthirst_cast ) {
             if ( DICE_CRIT == dice ) {
                 have_crit = 1;
             }
-            power_gain( rti, 3.0f );
         }
         lprintf( ( "bloodthirst multi-hit" ) );
         meat_cleaver_expire = rti->timestamp;
@@ -527,7 +526,7 @@ DECL_EVENT( meat_cleaver_expire ) {
     }
 }
 DECL_EVENT( meat_cleaver_trigger ) {
-    meat_cleaver_expire = TIME_OFFSET( FROM_SECONDS( 60 ) );
+    meat_cleaver_expire = TIME_OFFSET( FROM_SECONDS( 20 ) );
     eq_enqueue( rti, meat_cleaver_expire, routnum_meat_cleaver_expire, 0 );
     lprintf( ( "meat_cleaver trigger" ) );
 }
@@ -980,7 +979,7 @@ void spec_module_init( rtinfo_t* rti ) {
 void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id ) {
     if ( DICE_MISS != dice && ( ATYPE_WHITE_MELEE == attacktype || ATYPE_YELLOW_MELEE == attacktype ) ) {
 #if (TALENT_WRECKING_BALL)
-        proc_RPPM( rti, &rti->player.spec->wrecking_ball.proc, 5.0f * ( 1.0f + rti->player.stat.haste ), routnum_wrecking_ball_trigger, target_id );
+        proc_RPPM( rti, &rti->player.spec->wrecking_ball.proc, 3.0f * ( 1.0f + rti->player.stat.haste ), routnum_wrecking_ball_trigger, target_id );
 #endif
     }
 #if defined(trinket_worldbreakers_resolve)

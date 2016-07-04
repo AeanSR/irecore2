@@ -13,6 +13,9 @@
 #include <Windows.h>
 
 int main( int argc, char *argv[] ) {
+    // Initialize RDE crash reporter.
+    rde::CrashHandler::Init();
+    rde::CrashHandler::SetDumpCallback( &gic::dbg_dump );
     if (GetStdHandle( STD_OUTPUT_HANDLE ) == 0) // this is a detached gui process. show gui.
     {
         QApplication a( argc, argv );

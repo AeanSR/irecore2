@@ -33,6 +33,7 @@ int& plot_sets() {
 }
 
 void QChartDialog::setQCP( QCustomPlot* pqcp ) {
+    PRINTB( "func call." );
     qcp = pqcp;
 }
 
@@ -41,11 +42,13 @@ void QChartDialog::resizeEvent( QResizeEvent * e ) {
 }
 
 void QChartDialog::closeEvent( QCloseEvent * e ) {
+    PRINTB( "func call." );
     hide();
     e->ignore();
 }
 
 void gic::new_bar_chart() {
+    PRINTB( "func call." );
     delete uiCharts.customPlot;
     delete dlgCharts;
     dlgCharts = new QChartDialog();
@@ -59,10 +62,12 @@ void gic::new_bar_chart() {
 }
 
 void gic::add_bar( QString name, double value, double error ) {
+    PRINTB( "func call." );
     bar_data().push_back( bar_data_t( name, value, error ) );
 }
 
 void gic::finish_bar() {
+    PRINTB( "func call." );
     auto customPlot = uiCharts.customPlot;
     QVector<double> ticks;
     QVector<QString> labels;
@@ -120,6 +125,7 @@ void gic::finish_bar() {
 }
 
 void gic::new_contour_chart( QString xlbl, QString ylbl, QString zlbl ) {
+    PRINTB( "func call." );
     delete uiCharts.customPlot;
     delete dlgCharts;
     dlgCharts = new QChartDialog();
@@ -134,10 +140,12 @@ void gic::new_contour_chart( QString xlbl, QString ylbl, QString zlbl ) {
 }
 
 void gic::add_contour( int x, int y, double value ) {
+    PRINTB( "func call." );
     contour_data().push_back( contour_data_t( x, y, value ) );
 }
 
 void gic::finish_contour() {
+    PRINTB( "func call." );
     auto customPlot = uiCharts.customPlot;
     std::sort( contour_data().begin(), contour_data().end() );
     QCPColorMap* map = new QCPColorMap( customPlot->xAxis, customPlot->yAxis );
@@ -187,6 +195,7 @@ void gic::finish_contour() {
 }
 
 void gic::new_plot_chart( int sets ) {
+    PRINTB( "func call." );
     delete uiCharts.customPlot;
     delete dlgCharts;
     dlgCharts = new QChartDialog();
@@ -203,9 +212,11 @@ void gic::new_plot_chart( int sets ) {
     plot_sets() = sets;
 }
 void gic::add_plot( double x, double y1, double y2, double y3 ) {
+    PRINTB( "func call." );
     plot_data().push_back( plot_data_t( x, y1, y2, y3 ) );
 }
 void gic::finish_plot() {
+    PRINTB( "func call." );
     std::sort(plot_data().begin(), plot_data().end());
     QVector<double> x(plot_data().size());
     QVector<double> y[3];

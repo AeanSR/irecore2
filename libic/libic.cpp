@@ -466,7 +466,7 @@ const char* ic_getparam( const char* key ) {
         }
     } else if (0 == strcmp( key, "talent" )) {
         for (int i = 0; i < 7; i++)
-            exchbuf()[i] = TALENT_TIER( i + 1 );
+            exchbuf()[i] = '0' + TALENT_TIER( i + 1 );
         exchbuf()[7] = 0;
         return exchbuf();
     } else if (0 == strcmp( key, "mh_enchant" )) {
@@ -646,38 +646,38 @@ const char* ic_defaultapl( void ) {
         apl.append( "}\n" );
     }
     if (config().spec == SPEC_RET_PALADIN) {
-        apl.append("if(((UP(bloodlust_expire)||UP(avenging_wrath_expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<=40.000000f)))SPELL(potion);\n");
-        apl.append("if(UP(avenging_wrath_expire))SPELL(thorasus_the_stone_heart_of_draenor);\n");
-        apl.append("if(!UP(avenging_wrath_expire))SPELL(avenging_wrath);\n");
-        apl.append("SPELL(blood_fury);\n");
-        apl.append("SPELL(berserking);\n");
-        apl.append("SPELL(arcane_torrent);\n");
-        apl.append("if((num_enemies>=3.000000f)){\n");
-        apl.append("SPELL(judgment);\n");
-        apl.append("if((rti->player.power>=4.000000f))SPELL(divine_storm);\n");
-        apl.append("if(((rti->player.power>=2.000000f)&&UP(the_fires_of_justice_expire)))SPELL(divine_storm);\n");
-        apl.append("SPELL(divine_hammer);\n");
-        apl.append("SPELL(blade_of_justice);\n");
-        apl.append("SPELL(consecration);\n");
-        apl.append("SPELL(execution_sentence);\n");
-        apl.append("SPELL(zeal);\n");
-        apl.append("SPELL(crusader_strike);\n");
-        apl.append("if((rti->player.power>=3.000000f))SPELL(divine_storm);\n");
-        apl.append("SPELL(blade_of_wrath);\n");
-        apl.append("}\n");
-        apl.append("{\n");
-        apl.append("SPELL(judgment);\n");
-        apl.append("if((rti->player.power>=4.000000f))SPELL(templars_verdict);\n");
-        apl.append("if(((rti->player.power>=2.000000f)&&UP(the_fires_of_justice_expire)))SPELL(templars_verdict);\n");
-        apl.append("SPELL(divine_hammer);\n");
-        apl.append("SPELL(blade_of_justice);\n");
-        apl.append("SPELL(execution_sentence);\n");
-        apl.append("SPELL(consecration);\n");
-        apl.append("SPELL(zeal);\n");
-        apl.append("SPELL(crusader_strike);\n");
-        apl.append("if((rti->player.power>=3.000000f))SPELL(templars_verdict);\n");
-        apl.append("SPELL(blade_of_wrath);\n");
-        apl.append("}\n");
+        apl.append( "if(((UP(bloodlust_expire)||UP(avenging_wrath_expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<=40.000000f)))SPELL(potion);\n" );
+        apl.append( "if(UP(avenging_wrath_expire))SPELL(thorasus_the_stone_heart_of_draenor);\n" );
+        apl.append( "if(!UP(avenging_wrath_expire))SPELL(avenging_wrath);\n" );
+        apl.append( "SPELL(blood_fury);\n" );
+        apl.append( "SPELL(berserking);\n" );
+        apl.append( "SPELL(arcane_torrent);\n" );
+        apl.append( "if((num_enemies>=3.000000f)){\n" );
+        apl.append( "SPELL(judgment);\n" );
+        apl.append( "if((rti->player.power>=4.000000f))SPELL(divine_storm);\n" );
+        apl.append( "if(((rti->player.power>=2.000000f)&&UP(the_fires_of_justice_expire)))SPELL(divine_storm);\n" );
+        apl.append( "SPELL(divine_hammer);\n" );
+        apl.append( "SPELL(blade_of_justice);\n" );
+        apl.append( "SPELL(consecration);\n" );
+        apl.append( "SPELL(execution_sentence);\n" );
+        apl.append( "SPELL(zeal);\n" );
+        apl.append( "SPELL(crusader_strike);\n" );
+        apl.append( "if((rti->player.power>=3.000000f))SPELL(divine_storm);\n" );
+        apl.append( "SPELL(blade_of_wrath);\n" );
+        apl.append( "}\n" );
+        apl.append( "{\n" );
+        apl.append( "SPELL(judgment);\n" );
+        apl.append( "if((rti->player.power>=4.000000f))SPELL(templars_verdict);\n" );
+        apl.append( "if(((rti->player.power>=2.000000f)&&UP(the_fires_of_justice_expire)))SPELL(templars_verdict);\n" );
+        apl.append( "SPELL(divine_hammer);\n" );
+        apl.append( "SPELL(blade_of_justice);\n" );
+        apl.append( "SPELL(execution_sentence);\n" );
+        apl.append( "SPELL(consecration);\n" );
+        apl.append( "SPELL(zeal);\n" );
+        apl.append( "SPELL(crusader_strike);\n" );
+        apl.append( "if((rti->player.power>=3.000000f))SPELL(templars_verdict);\n" );
+        apl.append( "SPELL(blade_of_wrath);\n" );
+        apl.append( "}\n" );
     }
 
     return apl.c_str();
@@ -1041,7 +1041,7 @@ IC_LOCAL int ttprobe( std::string hashkey, cl_program* p ) {
 }
 IC_LOCAL void ttsave( std::string hashkey, cl_program p ) {
     if (clptt().size() > 512) {
-        for( auto i = clptt().begin(); i != clptt().end(); i++ ) {
+        for (auto i = clptt().begin(); i != clptt().end(); i++) {
             clReleaseProgram( i->second );
         }
         clptt().clear();
@@ -1255,4 +1255,130 @@ const char* ic_apltranslate_f( const char* filename ) {
 
 unsigned long long ic_getlastsignature( void ) {
     return config().last_signature;
+}
+
+const char* ic_debugdump( void ) {
+    static std::string dump;
+    dump = "DUMP FROM LIBIC\n";
+    #define DUMPI(k) dump += STR(k); dump += ":\n"; dump += _itoa(config().k, exchbuf(), 10); dump += "\n"
+    #define DUMPBUF(k) dump += "raidbuff_"; dump += STR(k); dump += ":\n"; dump += _itoa(config().raidbuff.k, exchbuf(), 10); dump += "\n"
+    #define DUMPF(k) dump += STR(k); dump += ":\n"; dump += ftoa(config().k, exchbuf()); dump += "\n"
+    DUMPBUF( flask );
+    DUMPBUF( food );
+    DUMPBUF( potion );
+    DUMPBUF( bloodlust );
+    DUMPI( gear_str );
+    DUMPI( gear_crit );
+    DUMPI( gear_haste );
+    DUMPI( gear_mastery );
+    DUMPI( gear_vers );
+    DUMPI( seed );
+    DUMPI( iterations );
+    DUMPF( vary_combat_length );
+    DUMPF( max_length );
+    DUMPF( initial_health_percentage );
+    DUMPF( death_pct );
+    DUMPI( power_max );
+    DUMPI( num_enemies );
+    DUMPI( plate_specialization );
+    DUMPF( mh_speed );
+    DUMPF( oh_speed );
+    DUMPI( mh_low );
+    DUMPI( mh_high );
+    DUMPI( oh_low );
+    DUMPI( oh_high );
+    DUMPI( strict_gcd );
+    DUMPI( sync_melee );
+    DUMPI( wbr_never_expire );
+    DUMPI( default_actions );
+    DUMPI( archmages_incandescence );
+    DUMPI( archmages_greater_incandescence );
+    DUMPI( legendary_ring );
+    DUMPI( t17_2pc );
+    DUMPI( t17_4pc );
+    DUMPI( t18_2pc );
+    DUMPI( t18_4pc );
+    DUMPI( trinket1_ilvl );
+    DUMPI( trinket2_ilvl );
+    DUMPI( enemy_is_demonic );
+    DUMPI( opencl_device_id );
+    DUMPI( developer_debug );
+    dump += "spec:\n";
+    switch (config().spec) {
+    case SPEC_ARMS_WARRIOR: dump += "arms"; break;
+    case SPEC_FURY_WARRIOR: dump += "fury"; break;
+    case SPEC_RET_PALADIN:  dump += "retribution"; break;
+    }
+    dump += "\n";
+    dump += "talent:\n";
+    for (int i = 0; i < 7; i++)
+        exchbuf()[i] = '0' + TALENT_TIER( i + 1 );
+    exchbuf()[7] = 0;
+    dump += exchbuf();
+    dump += "\n";
+    dump += "mh_enchant:\n";
+    if (config().thunderlord_mh) dump += "thunderlord";
+    else if (config().bleeding_hollow_mh) dump += "bleedinghollow";
+    else if (config().shattered_hand_mh) dump += "shatteredhand";
+    else dump += "none";
+    dump += "\n";
+    dump += "oh_enchant:\n";
+    if (config().thunderlord_oh) dump += "thunderlord";
+    else if (config().bleeding_hollow_oh) dump += "bleedinghollow";
+    else if (config().shattered_hand_oh) dump += "shatteredhand";
+    else dump += "none";
+    dump += "\n";
+    dump += "mh_type:\n";
+    const char* typestr[] = { "2h", "1h", "dagger", };
+    dump += typestr[config().mh_type];
+    dump += "\n";
+    dump += "oh_type:\n";
+    dump += typestr[config().oh_type];
+    dump += "\n";
+    dump += "trinket1:\n";
+    dump += trinket_list[config().trinket1];
+    dump += "\n";
+    dump += "trinket2:\n";
+    dump += trinket_list[config().trinket2];
+    dump += "\n";
+    dump += "race:\n";
+    dump += race_str_param[config().race];
+    dump += "\n";
+    dump += "rng_engine:\n";
+    switch (config().rng_engine) {
+    case 127: dump += "mt127"; break;
+    case 64: dump += "mwc64x"; break;
+    case 32: default: dump += "lcg32"; break;
+    }
+    dump += "\n";
+    dump += "actions:\n";
+    dump += config().apl.c_str();
+    dump += "\n";
+    dump += "simc_actions:\n";
+    dump += config().simc_actions.c_str();
+    dump += "\n";
+    dump += "LAST_SIGNATURE:\n";
+    sprintf(exchbuf(), "%llu", config().last_signature);
+    dump += exchbuf();
+    dump += "\n";
+    dump += "PREDEF:\n";
+    dump += generate_predef( config() );
+    dump += "\n";
+    dump += "DEVICE LIST:\n";
+    for (auto i = config().device_list.begin(); i != config().device_list.end(); i++) {
+        dump += "id:";
+        dump += _itoa(i->id, exchbuf(), 10);
+        dump += ", name:";
+        dump += i->device_name;
+        dump += ", plat:";
+        dump += i->platform_name;
+        dump += ", CONTEXT:";
+        dump += _itoa((uintptr_t)i->context, exchbuf(), 16);
+        dump += ", QUEUE:";
+        dump += _itoa((uintptr_t)i->queue, exchbuf(), 16);
+        dump += ", DEVICE:";
+        dump += _itoa((uintptr_t)i->device_id, exchbuf(), 16);
+        dump += "\n";
+    }
+    return dump.c_str();
 }

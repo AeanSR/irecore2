@@ -18,6 +18,7 @@
 
 gic::gic( QWidget *parent )
     : QMainWindow( parent ), paperdoll( ui ) {
+    PRINTB( "func call." );
     // show splash.
     QPixmap pixmap( ":/gic/logo/splash.png" );
     QSplashScreen splash( pixmap );
@@ -282,6 +283,7 @@ gic::~gic() {
 
 }
 void gic::usage_statistics() {
+    PRINTB( "func call." );
     QSettings history;
     int startups = history.value( "statistics/startups", 0 ).toInt();
     QDateTime first_date = history.value( "statistics/first/date" ).toDateTime();
@@ -333,6 +335,7 @@ void gic::usage_statistics() {
     ui.lblStatisticCombatLength->setText( QApplication::translate( "gicClass", "Total Combat Length: " ) + text );
 }
 void gic::mh_dps_calculate() {
+    PRINTB( "func call." );
     int mh_high = ui.txtMHHigh->text().toInt();
     int mh_low = ui.txtMHLow->text().toInt();
     float mh_speed = ui.txtMHSpeed->text().toFloat();
@@ -343,6 +346,7 @@ void gic::mh_dps_calculate() {
     ui.lblMHDPS->setText( buf );
 }
 void gic::oh_dps_calculate() {
+    PRINTB( "func call." );
     int oh_high = ui.txtOHHigh->text().toInt();
     int oh_low = ui.txtOHLow->text().toInt();
     float oh_speed = ui.txtOHSpeed->text().toFloat();
@@ -353,13 +357,16 @@ void gic::oh_dps_calculate() {
     ui.lblOHDPS->setText( buf );
 }
 void gic::gear_summary_calculate() {
+    PRINTB( "func call." );
     paperdoll.gear_summary_calculate();
 }
 void gic::slot_switched() {
+    PRINTB( "func call." );
     paperdoll.slot_switched();
 }
 
 void gic::set_parameters() {
+    PRINTB( "func call." );
     paperdoll.gear_summary_calculate();
 
     ic_setparam( "iterations", ui.comboIterations->currentData().toString().toLocal8Bit() );
@@ -475,20 +482,24 @@ void gic::set_parameters() {
 }
 
 void gic::on_listActions_itemDoubleClicked() {
+    PRINTB( "func call: %s.", ui.listActions->currentItem()->text() );
     if (ui.listActions->currentItem())
         ui.txtAPL->textCursor().insertText( ui.listActions->currentItem()->text() );
 }
 
 void gic::on_listConditions_itemDoubleClicked() {
+    PRINTB( "func call: %s.", ui.listConditions->currentItem()->text() );
     if (ui.listConditions->currentItem())
         ui.txtAPL->textCursor().insertText( ui.listConditions->currentItem()->text() );
 }
 
 void gic::on_comboIncandescence_currentIndexChanged( int idx ) {
+    PRINTB( "func call." );
     ui.txtLegendaryRing->setEnabled( ui.comboIncandescence->currentIndex() == 3 );
 }
 
 void gic::on_comboSpec_currentIndexChanged( int idx ) {
+    PRINTB( "func call." );
     int t1 = ui.comboTalent1->currentIndex();
     int t2 = ui.comboTalent2->currentIndex();
     int t3 = ui.comboTalent3->currentIndex();
@@ -723,6 +734,7 @@ void gic::on_comboSpec_currentIndexChanged( int idx ) {
 }
 
 void gic::on_btnImport_clicked() {
+    PRINTB( "func call." );
     ui.btnImport->setDisabled( true );
     std::string region;
     std::string realm;
@@ -735,6 +747,7 @@ void gic::on_btnImport_clicked() {
 }
 
 void gic::on_btnGenerateDefaultAPL_clicked() {
+    PRINTB( "func call." );
     if (QMessageBox::question( this, QApplication::translate( "gicClass", "Generate Default APL" ),
         QApplication::translate( "gicClass", "This will overwrite texts of the editor. Are you sure?" ),
         QMessageBox::Ok | QMessageBox::Cancel ) == QMessageBox::Ok) {
@@ -745,6 +758,7 @@ void gic::on_btnGenerateDefaultAPL_clicked() {
 }
 
 void gic::on_btnResetBuild_clicked() {
+    PRINTB( "func call." );
     ui.txtCharacter->clear();
     ui.txtRealm->clear();
     ui.txtItemCrit->clear();
@@ -785,11 +799,13 @@ void gic::on_btnResetBuild_clicked() {
 }
 
 void gic::on_radioDefaultActions_toggled() {
+    PRINTB( "func call." );
     if (ui.radioDefaultActions->isChecked()) {
 
     }
 }
 void gic::on_radioIreCoreActions_toggled() {
+    PRINTB( "func call." );
     if (ui.radioIreCoreActions->isChecked()) {
         ui.txtAPL->show();
         ui.listActions->show();
@@ -803,6 +819,7 @@ void gic::on_radioIreCoreActions_toggled() {
     }
 }
 void gic::on_radioSimCActions_toggled() {
+    PRINTB( "func call." );
     if (ui.radioSimCActions->isChecked()) {
         ui.txtSimCAPL->show();
         ui.btnLoadFromFile->show();
@@ -812,6 +829,7 @@ void gic::on_radioSimCActions_toggled() {
     }
 }
 void gic::on_btnLoadFromFile_clicked() {
+    PRINTB( "func call." );
     QSettings history;
     QString filename = QFileDialog::getOpenFileName( this, tr( "Load From SimC Profile" ),
         history.value( "policy/loadfromsimc" ).toString(),
@@ -827,6 +845,7 @@ void gic::on_btnLoadFromFile_clicked() {
 }
 
 void gic::on_btnApplyPresetTask_clicked() {
+    PRINTB( "apply preset task %d.", ui.tabPresetTask->currentIndex() );
     if (!ui.txtScript->toPlainText().isEmpty())
         if (QMessageBox::question( this, QApplication::translate( "gicClass", "Apply Preset Task" ),
             QApplication::translate( "gicClass", "This will overwrite texts of the editor. Are you sure?" ),
@@ -916,6 +935,7 @@ void gic::on_btnApplyPresetTask_clicked() {
     ui.txtScript->setPlainText( script );
 }
 void gic::on_btnSelectTrinkets_clicked() {
+    PRINTB( "func call." );
     if (!dlgTrinkets) {
         dlgTrinkets = new QDialog();
         uiTrinkets.setupUi( dlgTrinkets );
@@ -937,6 +957,7 @@ void gic::on_btnSelectTrinkets_clicked() {
 }
 
 void gic::on_btnSelectTrinketsBtns_accepted() {
+    PRINTB( "func call." );
     for (int i = 0; i < trinket_ladder().size(); i++) {
         trinket_ladder()[i].not_selected = uiTrinkets.listTrinketList->item( i )->checkState() != Qt::Checked;
     }
@@ -944,10 +965,12 @@ void gic::on_btnSelectTrinketsBtns_accepted() {
 }
 
 void gic::on_btnSelectTrinketsBtns_rejected() {
+    PRINTB( "func call." );
     dlgTrinkets->hide();
 }
 
 void gic::on_btnToggleAllTrinkets_clicked() {
+    PRINTB( "func call." );
     static int toggle = 0;
     for (int i = 0; i < uiTrinkets.listTrinketList->count(); i++) {
         uiTrinkets.listTrinketList->item( i )->setCheckState( toggle ? Qt::Checked : Qt::Unchecked );
@@ -956,6 +979,7 @@ void gic::on_btnToggleAllTrinkets_clicked() {
 }
 
 void gic::on_btnToggleUpgradedTrinkets_clicked() {
+    PRINTB( "func call." );
     static int toggle = 0;
     for (int i = 0; i < uiTrinkets.listTrinketList->count(); i++) {
         if (trinket_ladder()[i].upgrade)
@@ -987,8 +1011,20 @@ int gic::printq( QString text ) {
     QMetaObject::invokeMethod( static_this, "TxtBoxNotify", Q_ARG( QString, text ) );
     return text.length();
 }
+std::string gic::dbg_dump() {
+    std::string dump;
+    dump += "SCRIPT:\n";
+    dump += static_this->ui.txtScript->toPlainText().toStdString();
+    dump += "\n";
+    dump += "RESULT PAGE:\n";
+    dump += static_this->ui.txtResult->toPlainText().toStdString();
+    dump += "\n";
+    dump += ic_debugdump();
+    return dump;
+}
 
 void gic::on_btnRun_clicked() {
+    PRINTB( "func call." );
     char header[80];
     time_t rawtime;
     time( &rawtime );
@@ -1005,6 +1041,7 @@ void gic::on_btnRun_clicked() {
 }
 
 void gic::closeEvent( QCloseEvent * e ) {
+    PRINTB( "func call." );
     // TODO: find a way to break lua.
     e->accept();
 }

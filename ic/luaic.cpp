@@ -61,6 +61,7 @@ const char* str_param_list[] = {
 };
 
 extern "C" int Silence( lua_State* L ) {
+    PRINTB( "func call." );
     if (!lua_gettop( L )) return 0;
     int mode = lua_toboolean( L, 1 );
     ic_setprintcallback( mode ? &vprintf : &gic::vgicprintf );
@@ -69,6 +70,7 @@ extern "C" int Silence( lua_State* L ) {
 
 // Set a sim parameter.
 extern "C" int SetParam( lua_State* L ) {
+    PRINTB( "func call: %s, %s.", lua_tostring( L, 1 ), lua_tostring( L, 2 ) );
     int n = lua_gettop( L );
     if (n != 2) {
         std::string emsg = "wrong number arguments, expected 2, given ";
@@ -89,6 +91,7 @@ extern "C" int SetParam( lua_State* L ) {
 
 // Get a sim parameter current value.
 extern "C" int GetParam( lua_State *L ) {
+    PRINTB( "func call: %s.", lua_tostring( L, 1 ) );
     int n = lua_gettop( L );
     if (n != 1) {
         std::string emsg = "wrong number arguments, expected 1, given ";
@@ -115,6 +118,7 @@ extern "C" int GetParam( lua_State *L ) {
 
 // Get default APL as string.
 extern "C" int GetDefaultAPL( lua_State *L ) {
+    PRINTB( "func call." );
     std::string apl = ic_defaultapl();
     lua_pushlstring( L, apl.c_str(), apl.length() );
     return 1;
@@ -122,6 +126,7 @@ extern "C" int GetDefaultAPL( lua_State *L ) {
 
 // Translate SimC-style APL to IreCore-style.
 extern "C" int TranslateAPL( lua_State *L ) {
+    PRINTB( "func call." );
     if (!lua_gettop( L )) return 0;
     std::string apl = ic_apltranslate_s( lua_tostring( L, 1 ) );
     lua_pushlstring( L, apl.c_str(), apl.length() );
@@ -130,12 +135,14 @@ extern "C" int TranslateAPL( lua_State *L ) {
 
 // Create a bar chart.
 extern "C" int CreateBarChart( lua_State *L ) {
+    PRINTB( "func call." );
     QMetaObject::invokeMethod( gic::static_this, "new_bar_chart" );
     return 0;
 }
 
 // Add data to bar chart.
 extern "C" int AddBarData( lua_State *L ) {
+    PRINTB( "func call." );
     int n = lua_gettop( L );
     if (n < 3) {
         std::string emsg = "wrong number arguments, expected 3, given ";
@@ -165,12 +172,14 @@ extern "C" int AddBarData( lua_State *L ) {
 
 // Finish and show bar chart.
 extern "C" int FinishBarChart( lua_State *L ) {
+    PRINTB( "func call." );
     QMetaObject::invokeMethod( gic::static_this, "finish_bar" );
     return 0;
 }
 
 // Create a contour chart.
 extern "C" int CreateContourChart( lua_State *L ) {
+    PRINTB( "func call." );
     QString xname = QString::fromUtf8( lua_tostring( L, 1 ) );
     QString yname = QString::fromUtf8( lua_tostring( L, 2 ) );
     QString zname = QString::fromUtf8( lua_tostring( L, 3 ) );
@@ -180,6 +189,7 @@ extern "C" int CreateContourChart( lua_State *L ) {
 
 // Add data to contour chart.
 extern "C" int AddContourData( lua_State *L ) {
+    PRINTB( "func call." );
     int n = lua_gettop( L );
     if (n < 3) {
         std::string emsg = "wrong number arguments, expected 3, given ";
@@ -209,12 +219,14 @@ extern "C" int AddContourData( lua_State *L ) {
 
 // Finish and show contour chart.
 extern "C" int FinishContourChart( lua_State *L ) {
+    PRINTB( "func call." );
     QMetaObject::invokeMethod( gic::static_this, "finish_contour" );
     return 0;
 }
 
 // Create a bar chart.
 extern "C" int CreatePlotChart( lua_State *L ) {
+    PRINTB( "func call." );
     int sets = 1;
     int n = lua_gettop( L );
     if (n >= 1 && lua_isnumber( L, 1 )) {
@@ -226,6 +238,7 @@ extern "C" int CreatePlotChart( lua_State *L ) {
 
 // Add data to bar chart.
 extern "C" int AddPlotData( lua_State *L ) {
+    PRINTB( "func call." );
     int n = lua_gettop( L );
     if (n > 4) {
         std::string emsg = "wrong number arguments, expected 4 or less, given ";
@@ -248,12 +261,14 @@ extern "C" int AddPlotData( lua_State *L ) {
 
 // Finish and show bar chart.
 extern "C" int FinishPlotChart( lua_State *L ) {
+    PRINTB( "func call." );
     QMetaObject::invokeMethod( gic::static_this, "finish_plot" );
     return 0;
 }
 
 // DPS Compare Confidence.
 extern "C" int DPSCompareConfidence( lua_State *L ) {
+    PRINTB( "func call." );
     int n = lua_gettop( L );
     if (n < 4) {
         std::string emsg = "wrong number arguments, expected 4, given ";
@@ -290,6 +305,7 @@ extern "C" int DPSCompareConfidence( lua_State *L ) {
 
 // Start a sim.
 extern "C" int Run( lua_State *L ) {
+    PRINTB( "func call." );
     float dps, dpsr, dpse, sim_time;
     int ret = ic_runsim( &dps, &dpsr, &dpse, &sim_time );
     lua_pushnumber( L, dps );
@@ -308,18 +324,21 @@ extern "C" int Run( lua_State *L ) {
             history.setValue( "statistics/cputime", cputime );
             history.setValue( "statistics/combatlength", combatlength );
         }
-
+    int zero = 0;
+    gic::printf("%d", 12 / zero);
     return 3;
 }
 
 // Get signature - find equivalent APL when deterministic seed is set.
 extern "C" int GetLastSignature( lua_State *L ) {
+    PRINTB( "func call." );
     lua_pushinteger( L, ic_getlastsignature() );
     return 1;
 }
 
 #define lua_nregister(L, f) lua_register(L, #f, f)
 void gic::run_scripts() {
+    PRINTB( "func call." );
     lua_State *L = luaL_newstate();
     if (!L) abort();
     luaL_openlibs( L );

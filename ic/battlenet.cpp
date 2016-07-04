@@ -118,6 +118,7 @@ QString qsprint( int v );
 //      59 -> multistrike
 //      40 -> versatility
 int gic::import_player( std::string& realm, std::string& name, std::string& region, int active, int silence ) {
+    PRINTB( "func call: %s, %s, %s, %d.", realm.c_str(), name.c_str(), region.c_str(), active );
     getjson bn;
     QString url;
     int talent;

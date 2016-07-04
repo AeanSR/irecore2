@@ -60,6 +60,7 @@ QString* gear_type_list[] = {
 };
 
 paperdoll_t::paperdoll_t( Ui::gicClass& ui ) : selected_gear_slot( 0 ), ui( &ui ) {
+    PRINTB( "func call." );
     gear_type_list_armor[GEARSUBCLASS_CLOTH] = QApplication::translate( "gicClass", "Cloth" );
     gear_type_list_armor[GEARSUBCLASS_LEATHER] = QApplication::translate( "gicClass", "Leather" );
     gear_type_list_armor[GEARSUBCLASS_MAIL] = QApplication::translate( "gicClass", "Mail" );
@@ -98,6 +99,7 @@ QString qsprint( float v ) {
 }
 
 void paperdoll_t::clear() {
+    PRINTB( "func call." );
     for (int i = 0; i < 16; i++) {
         gear_list[i] = item_t();
         if (gear_type_list[i] == gear_type_list_armor)
@@ -110,6 +112,7 @@ void paperdoll_t::clear() {
 }
 
 void paperdoll_t::slot_switched() {
+    PRINTB( "func call." );
     if (ui->radioHelm->isChecked()) selected_gear_slot = 0;
     if (ui->radioNeck->isChecked()) selected_gear_slot = 1;
     if (ui->radioShoulder->isChecked()) selected_gear_slot = 2;
@@ -156,6 +159,7 @@ void paperdoll_t::slot_switched() {
 #define RACE_PANDAREN 14
 
 void paperdoll_t::gear_summary_calculate() {
+    PRINTB( "func call." );
     char buf[32];
     int race = ui->comboRace->currentIndex();
     int spec = ui->comboSpec->currentIndex();

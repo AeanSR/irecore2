@@ -21,6 +21,10 @@
 #include "ui_select_trinkets.h"
 #include "ui_charts.h"
 
+#include <CrashHandler.h>
+#include <BlackBox.h>
+#define PRINTB(fmt,...) rde::BlackBox::AddMessagef( "%s#%d:%s: " fmt, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__ )
+
 struct item_t {
     std::string name;
     int type;
@@ -81,6 +85,7 @@ public:
     static int vgicprintf( const char* format, va_list vl );
     static int printf( const char* format, ... );
     static int printq( QString text );
+    static std::string dbg_dump();
     int import_player( std::string& realm, std::string& name, std::string& region, int active, int silence = 0 );
     void run_scripts();
 
