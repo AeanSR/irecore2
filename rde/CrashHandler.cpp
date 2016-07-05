@@ -253,6 +253,19 @@ namespace
 		//fprintf(f, (miniDumpOK ? "\nMini dump saved successfully.\n" : "\nFailed to save minidump.\n"));
 		::fclose(f);
 
+        DWORD dwCreationFlags = CREATE_DEFAULT_ERROR_MODE | DETACHED_PROCESS;
+        STARTUPINFO startinfo;
+        PROCESS_INFORMATION procinfo;
+        ZeroMemory( &startinfo, sizeof( startinfo ) );
+        startinfo.cb = sizeof( startinfo );
+        CHAR cl[MAX_PATH + 32];
+        lstrcpy(cl, TEXT("irecrash.exe "));
+        lstrcat(cl, s_reportFileName);
+        if (!CreateProcess( TEXT("irecrash.exe"), cl, NULL, NULL, FALSE, dwCreationFlags, NULL, NULL, &startinfo, &procinfo ))
+            MessageBox( 0, TEXT( "CreateProcess failed." ), TEXT( "" ), 0 );
+
+        exit(-1);
+
 		return returnCode;
 	}
 } // namespace

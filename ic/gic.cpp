@@ -1013,6 +1013,9 @@ int gic::printq( QString text ) {
 }
 std::string gic::dbg_dump() {
     std::string dump;
+    dump += "VERSION:\n";
+    dump += ic_getversion();
+    dump += "\n";
     dump += "SCRIPT:\n";
     dump += static_this->ui.txtScript->toPlainText().toStdString();
     dump += "\n";

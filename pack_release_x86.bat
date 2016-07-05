@@ -15,3 +15,4 @@ copy lua\lua53.dll release\lua53.dll
 copy %windir%\SYSWOW64\ssleay32.dll release\ssleay32.dll
 copy %windir%\SYSWOW64\libeay32.dll release\libeay32.dll
 copy qcplib\qcustomplot1.dll release\qcustomplot1.dll
+copy irecrash\SMTPEmail\SMTPEmail.dll release\SMTPEmail.dll

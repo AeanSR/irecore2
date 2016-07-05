@@ -23,6 +23,7 @@ mkdir release_libic\include
 :: Nolib release.
 xcopy profile release_nolib\profile /I
 copy irecore.exe release_nolib\irecore.exe
+copy irecrash\irecrash.exe release_nolib\irecrash.exe
 copy kernel\kernel.c release_nolib\kernel\kernel.c
 copy kernel\entry.c release_nolib\kernel\entry.c
 copy kernel\common.c release_nolib\kernel\common.c
@@ -32,11 +33,13 @@ copy kernel\warrior\fury.c release_nolib\kernel\warrior\fury.c
 copy kernel\paladin\paladin.c release_nolib\kernel\paladin\paladin.c
 copy kernel\paladin\retribution.c release_nolib\kernel\paladin\retribution.c
 copy ic\gic_zh.qm release_nolib\gic_zh.qm
+copy irecrash\icc_zh.qm release_nolib\icc_zh.qm
 copy LICENSE release_nolib\LICENSE
 
 :: Normal release.
 xcopy profile release\profile /I
 copy irecore.exe release\irecore.exe
+copy irecrash\irecrash.exe release\irecrash.exe
 copy kernel\kernel.c release\kernel\kernel.c
 copy kernel\entry.c release\kernel\entry.c
 copy kernel\common.c release\kernel\common.c
@@ -46,6 +49,7 @@ copy kernel\warrior\fury.c release\kernel\warrior\fury.c
 copy kernel\paladin\paladin.c release\kernel\paladin\paladin.c
 copy kernel\paladin\retribution.c release\kernel\paladin\retribution.c
 copy ic\gic_zh.qm release\gic_zh.qm
+copy irecrash\icc_zh.qm release\icc_zh.qm
 copy LICENSE release\LICENSE
 
 :: libic release

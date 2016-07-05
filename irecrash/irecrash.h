@@ -19,6 +19,11 @@ class irecrash : public QMainWindow
 {
     Q_OBJECT
 
+public slots:
+    void illegal_start();
+    void send_report();
+    void on_btnSend_clicked();
+    void on_btnDontSend_clicked();
 public:
     irecrash(QWidget *parent = 0);
     ~irecrash();
