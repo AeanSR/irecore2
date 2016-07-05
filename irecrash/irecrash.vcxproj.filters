@@ -52,6 +52,9 @@
     <ClCompile Include="GeneratedFiles\qrc_irecrash.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="bincpt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="irecrash.h">

@@ -11,7 +11,12 @@
 #include <QtWidgets/QApplication>
 #include <QMessageBox>
 #include <QTranslator>
-#include "auth.h"
+
+/* email auth info encrypted at compile time, see bincpt.c */
+extern "C" char* SMTP_HOST();
+extern "C" char* SMTP_USER();
+extern "C" char* SMTP_PASS();
+extern "C" void STR_CLEAR();
 
 int main( int argc, char *argv[] ) {
     QApplication a( argc, argv );
@@ -53,10 +58,10 @@ irecrash::irecrash( QWidget *parent )
     size_t len = ftell(f);
     rewind(f);
     char* buf = (char*)alloca(len+1);
+    memset(buf, 0, len+1);
     fread(buf, 1, len, f);
     fclose(f);
     ui.txtReport->setText(QString().fromUtf8(buf));
-
 }
 
 irecrash::~irecrash() {
@@ -64,13 +69,16 @@ irecrash::~irecrash() {
 }
 
 void irecrash::send_report() {
-    SmtpClient smtp(ICC_SMTP_HOST, 465, SmtpClient::SslConnection);
-    smtp.setUser(ICC_USER_NAME);
-    smtp.setPassword(ICC_PASSWORD);
+    SmtpClient smtp(SMTP_HOST(), 465, SmtpClient::SslConnection);
+    smtp.setUser(SMTP_USER());
+    smtp.setPassword(SMTP_PASS());
+    STR_CLEAR();
 
     MimeMessage message;
 
-    EmailAddress sender(ICC_USER_NAME, "IreCore Crash Report");
+    EmailAddress sender(SMTP_USER(), "IreCore Crash Report");
+    STR_CLEAR();
+
     message.setSender(&sender);
 
     EmailAddress to("ic_dev@aean.net", "Aean");
