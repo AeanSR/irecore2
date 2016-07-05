@@ -324,6 +324,7 @@ extern "C" int Run( lua_State *L ) {
             history.setValue( "statistics/cputime", cputime );
             history.setValue( "statistics/combatlength", combatlength );
         }
+    return 3;
 }
 
 // Get signature - find equivalent APL when deterministic seed is set.
