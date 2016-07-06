@@ -346,13 +346,13 @@ DECL_EVENT( auto_attack_mh ) {
     //#endif
     //icy talon implementation
     #if(TALENT_ICY_TALONS)
-        aspeed = aspeed *(1 + 0.1f * icy_talons_stack);
+        aspeed = aspeed *(1 + 0.12f * icy_talons_stack);
     #endif
     //Avalanche implementation
     #if(TALENT_AVALANCHE)
         if(dice == DICE_CRIT)
         {
-            float d = ap_dmg(rti, 1.0f);
+            float d = ap_dmg(rti, 0.75f);
             k32u dice = round_table_dice( rti, rti->player.target, ATYPE_YELLOW_MELEE, 0 );
             deal_damage( rti, rti->player.target, d, DTYPE_FROST, dice, 0, 0 );
             lprintf( ( "avalanche hit caused by mh crit") );
@@ -418,8 +418,8 @@ DECL_EVENT( frost_strike_cast ) {
     #if(TALENT_SHATTING_STRIKES)
         if(rti->enemy[target].class->razorice.stack == 5)
         {
-            float d = weapon_dmg(rti, 2.25f, 1, 0) * 1.5;
-            float dOH = weapon_dmg(rti, 2.25f, 1, 1) * 1.5;
+            float d = weapon_dmg(rti, 2.65f, 1, 0) * 1.5;
+            float dOH = weapon_dmg(rti, 2.65f, 1, 1) * 1.5;
             k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);//TODO: is this a spell
             deal_damage(rti, target_id, d, DTYPE_FROST, dice, 0, 0);
             deal_damage(rti, target_id, dOH, DTYPE_FROST, dice, 0, 0);
@@ -468,8 +468,8 @@ DECL_SPELL( frost_strike ) {
 }
 // === Obliterate =============================================================
 DECL_EVENT( obliterate_cast ) {
-    float d = weapon_dmg(rti, 3.0f, 1, 0);
-    float dOH = weapon_dmg(rti, 3.0f, 1, 1);
+    float d = weapon_dmg(rti, 3.2f, 1, 0);
+    float dOH = weapon_dmg(rti, 3.2f, 1, 1);
     k32u dice;
     //kiling machine implementation
     if( UP (killing_machine_expire) ) {
@@ -540,10 +540,10 @@ DECL_SPELL( obliterate ) {
 }
 // === howling blast ==========================================================
 DECL_EVENT( howling_blast_cast ) {
-    float dMain = ap_dmg(rti, 0.45f);
+    float dMain = ap_dmg(rti, 0.50f);
     //freezing fog implementation
     #if(TALENT_FREEZING_FOG)
-        dMain * 1.5f;
+        dMain * 1.3f;
     #endif
     if(UP(rime_expire))
     {
@@ -557,7 +557,7 @@ DECL_EVENT( howling_blast_cast ) {
     eq_enqueue(rti, rti->timestamp, routnum_frost_fever_cast, 0);
     lprintf( ( "howling blast hit" ) );
     for ( int i = 1; i < num_enemies; i++ ) {
-        float dAOE = 0.8f * dMain;
+        float dAOE = 0.85f * dMain;
         k32u dice = round_table_dice( rti, i, ATYPE_SPELL, 0 );
         deal_damage( rti, i, dAOE, DTYPE_FROST, dice, 0, 0 );
         eq_enqueue(rti, rti->timestamp, routnum_frost_fever_cast, i);
@@ -804,7 +804,8 @@ DECL_EVENT ( horn_of_winter_cd) {
     }
 }
 DECL_EVENT ( horn_of_winter_cast) {
-    power_gain(rti, 5);
+    power_gain(rti, 10);
+    rune_reactive(rti);
     rune_reactive(rti);
     //TODO: check if this is correct in terms of game mechanics and code
 }
@@ -816,7 +817,7 @@ DECL_SPELL( hungering_rune_weapon ) {
     if ( hungering_rune_weapon_cd > rti->timestamp ) return 0;
     hungering_rune_weapon_cd = TIME_OFFSET( FROM_SECONDS( 180.0f) );//TODO: check cd
     eq_enqueue( rti, hungering_rune_weapon_cd, routnum_hungering_rune_weapon_cd, 0 );
-    hungering_rune_weapon_expire = TIME_OFFSET( FROM_SECONDS ( 9.0f));
+    hungering_rune_weapon_expire = TIME_OFFSET( FROM_SECONDS ( 12.0f));
     eq_enqueue(rti, hungering_rune_weapon_expire, routnum_hungering_rune_weapon_expire, 0);
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1);
     eq_enqueue( rti, rti->timestamp, routnum_hungering_rune_weapon_cast, 0);
@@ -833,7 +834,7 @@ DECL_EVENT ( hungering_rune_weapon_cast ) {
 }
 DECL_EVENT ( hungering_rune_weapon_tick )
 {
-    if(hungering_rune_weapon_cd < rti->timestamp) return;
+    if(hungering_rune_weapon_expire < rti->timestamp) return;
     eq_enqueue(rti, TIME_OFFSET(FROM_SECONDS(1.5f)), routnum_hungering_rune_weapon_tick, 0);
     rune_reactive(rti);
     power_gain(rti,5);
@@ -945,13 +946,13 @@ DECL_EVENT ( breath_of_sindragosa_cd) {
     }
 }
 DECL_EVENT( breath_of_sindragosa_tick){
-    if(!power_check(rti, 12)) {
+    if(!power_check(rti, 13)) {
         eq_enqueue(rti,rti->timestamp, routnum_breath_of_sindragosa_expire,0);
         return;
     }
     breath_of_sindragosa_duration++;
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1.0f ) ), routnum_breath_of_sindragosa_tick, target_id );
-    float d = ap_dmg(rti, 1.0f);//TODO: potential constant damage
+    float d = ap_dmg(rti, 1.4f);//TODO: potential constant damage
     k32u dice = round_table_dice( rti, target_id, ATYPE_SPELL, 0);
     deal_damage( rti, target_id, d, DTYPE_FROST, dice, 0, 0);
     for ( int i = 1; i < num_enemies; i++ ) {
