@@ -14,4 +14,3 @@ copy %qt_dir%\plugins\platforms\qwindows.dll release\platforms\qwindows.dll
 copy lua\x64\lua53.dll release\lua53.dll
 copy %windir%\System32\ssleay32.dll release\ssleay32.dll
 copy %windir%\System32\libeay32.dll release\libeay32.dll
-copy qcplib\x64\qcustomplot1.dll release\qcustomplot1.dll

@@ -1045,6 +1045,6 @@ void gic::on_btnRun_clicked() {
 
 void gic::closeEvent( QCloseEvent * e ) {
     PRINTB( "func call." );
-    // TODO: find a way to break lua.
     e->accept();
+    TerminateProcess(GetCurrentProcess(), 0);
 }

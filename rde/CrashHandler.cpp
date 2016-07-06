@@ -264,7 +264,7 @@ namespace
         if (!CreateProcess( TEXT("irecrash.exe"), cl, NULL, NULL, FALSE, dwCreationFlags, NULL, NULL, &startinfo, &procinfo ))
             MessageBox( 0, TEXT( "CreateProcess failed." ), TEXT( "" ), 0 );
 
-        exit(-1);
+        TerminateProcess(GetCurrentProcess(), -1);
 
 		return returnCode;
 	}
