@@ -719,6 +719,45 @@ QString script_aplga_conditions_warrior(
     }
     return script;
 }
+QString script_aplga_actions_paladin(
+    int use_cooldowns,
+    int use_talents,
+    int use_items
+) {
+    QString script;
+    int talent = atoi( ic_getparam( "talent" ) );
+    if (use_cooldowns) if (use_items) if (!TEST_PARAM( "raidbuff_potion", "0" )) script += "\"SPELL(potion)\",\n";
+    if (use_cooldowns) if (use_items) if (atoi( ic_getparam( "legendary_ring" ) )) script += "\"SPELL(thorasus_the_stone_heart_of_draenor)\",\n";
+    if (use_cooldowns) if (TEST_PARAM( "race", "bloodelf" )) script += "\"SPELL(arcane_torrent)\",\n";
+    if (use_cooldowns) if (TEST_PARAM( "race", "orc" )) script += "\"SPELL(blood_fury)\",\n";
+    if (use_cooldowns) if (TEST_PARAM( "race", "troll" )) script += "\"SPELL(berserking)\",\n";
+    if (use_cooldowns) if (use_items) if (TEST_PARAM( "trinket1", "vial_of_convulsive_shadows" ) || TEST_PARAM( "trinket2", "vial_of_convulsive_shadows" )) script += "\"SPELL(vial_of_convulsive_shadows)\",\n";
+    if (use_cooldowns) if (use_items) if (TEST_PARAM( "trinket1", "scabbard_of_kyanos" ) || TEST_PARAM( "trinket1", "scabbard_of_kyanos" )) script += "\"SPELL(scabbard_of_kyanos)\",\n";
+    if (use_cooldowns) if (use_items) if (TEST_PARAM( "trinket1", "bonemaws_big_toe" ) || TEST_PARAM( "trinket2", "bonemaws_big_toe" )) script += "\"SPELL(bonemaws_big_toe)\",\n";
+    if (use_cooldowns) if (use_items) if (TEST_PARAM( "trinket1", "emberscale_talisman" ) || TEST_PARAM( "trinket2", "emberscale_talisman" )) script += "\"SPELL(emberscale_talisman)\",\n";
+    if (use_cooldowns) if (use_items) if (TEST_PARAM( "trinket1", "badge_of_victory" ) || TEST_PARAM( "trinket2", "badge_of_victory" )) script += "\"SPELL(badge_of_victory)\",\n";
+    return script;
+}
+QString script_aplga_conditions_paladin(
+    int use_cooldowns,
+    int use_talents,
+    int use_items
+) {
+    QString script;
+    int talent = atoi( ic_getparam( "talent" ) );
+    script += "\"enemy_health_percent(rti)<=20\",\n";
+    if (TALENT_TIER( 2 ) == 3) {
+        script += "\"enemy_health_percent(rti)>=85\",\n";
+    }
+    script += "\"rti->player.power==0\",\n";
+    script += "\"rti->player.power<=1\",\n";
+    script += "\"rti->player.power<=2\",\n";
+    script += "\"rti->player.power<=3\",\n";
+    script += "\"rti->player.power<=4\",\n";
+    if (use_cooldowns) if (use_items) if (!TEST_PARAM( "raidbuff_potion", "0" )) script += "\"UP(potion_expire)\",\n";
+    if (use_cooldowns) if (!TEST_PARAM( "raidbuff_bloodlust", "0" )) script += "\"UP(bloodlust_expire)\",\n";
+    return script;
+}
 
 QString script_aplga(
     int spec,
@@ -736,6 +775,9 @@ action_list = {
     case SPEC_ARMS_WARRIOR: case SPEC_FURY_WARRIOR:
         script += script_aplga_actions_warrior(use_cooldowns, use_talents, use_items);
         break;
+    case SPEC_RET_PALADIN:
+        script += script_aplga_actions_paladin(use_cooldowns, use_talents, use_items);
+        break;
     }
     script += R"RAWSCRIPT(
 }
@@ -744,6 +786,9 @@ condition_list = {
     switch (spec){
     case SPEC_ARMS_WARRIOR: case SPEC_FURY_WARRIOR:
         script += script_aplga_conditions_warrior(use_cooldowns, use_talents, use_items);
+        break;
+    case SPEC_RET_PALADIN:
+        script += script_aplga_conditions_paladin(use_cooldowns, use_talents, use_items);
         break;
     }
     script += R"RAWSCRIPT(

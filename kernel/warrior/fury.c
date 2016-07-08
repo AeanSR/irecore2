@@ -179,7 +179,7 @@ float spec_crit_increament( rtinfo_t* rti ){
 
 float spec_haste_coefficient( rtinfo_t* rti ){
     float coeff = 1.0f;
-    coeff *= 1.0f + frenzy_stack * 0.05f;
+    coeff *= 1.0f + frenzy_stack * 0.04f;
 #if defined(trinket_worldbreakers_resolve)
     coeff *= 1.0f + ( trinket_worldbreakers_resolve * worldbreakers_resolve_stack ) * 0.0001f;
 #endif
@@ -245,14 +245,14 @@ float weapon_dmg( rtinfo_t* rti, float weapon_multiplier, kbool normalized, kboo
     dmg += uni_rng( rti ) * ( weapon[offhand].high - weapon[offhand].low );
     dmg += ( normalized ? normalized_weapon_speed[weapon[offhand].type] : weapon[offhand].speed ) * rti->player.stat.ap / 3.5f;
     dmg *= weapon_multiplier;
-    if ( weapon[offhand].type == WEAPON_1H ) dmg *= 1.3f; // TODO: check if SMF need both weapon to be 1h when go live.
-    if ( offhand ) dmg *= ( ( OH_TYPE == WEAPON_1H ) ? 1.2f : 1.0f ) * 0.5f;
+    // if ( weapon[offhand].type == WEAPON_1H ) dmg *= 1.3f;
+    if ( offhand ) dmg *= /*( ( OH_TYPE == WEAPON_1H ) ? 1.2f : 1.0f ) **/ 0.5f;
     return dmg;
 }
 
 float ap_dmg( rtinfo_t* rti, float ap_multiplier ) {
     float dmg = ap_multiplier * rti->player.stat.ap;
-    if ( MH_TYPE == WEAPON_1H ) dmg *= 1.3f;
+    // if ( MH_TYPE == WEAPON_1H ) dmg *= 1.3f;
     return dmg;
 }
 
@@ -378,12 +378,12 @@ DECL_EVENT( rampage_expire ) {
 
 DECL_EVENT( rampage_refresh ) {
     if ( rampage_stack == 0 ) {
-        rampage_expire = TIME_OFFSET( FROM_SECONDS( 14 ) );
+        rampage_expire = TIME_OFFSET( FROM_SECONDS( 9 ) );
         eq_enqueue( rti, rampage_expire, routnum_rampage_expire, target_id );
     }
     rampage_stack++;
     refresh_crit( rti );
-    if ( rampage_stack < 10 )
+    if ( rampage_stack < 5 )
         eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1 ) ), routnum_rampage_refresh, target_id );
 }
 #endif
@@ -400,7 +400,7 @@ DECL_EVENT( bloodthirst_cd ) {
 }
 DECL_EVENT( bloodthirst_cast ) {
     kbool have_crit = 0;
-    float d = weapon_dmg( rti, 3.25f, 1, 0 );
+    float d = weapon_dmg( rti, 2.25f, 1, 0 );
     float cr = 0.15f * taste_for_blood_stack;
     if ( TALENT_FRESH_MEAT && enemy_health_percent( rti ) > 80.0f ) cr += 0.3f;
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, cr );
@@ -416,7 +416,7 @@ DECL_EVENT( bloodthirst_cast ) {
         for( int i = 0; c < 4 && i < num_enemies; i++ ) {
             if ( i == target_id ) continue;
             c++;
-            d = weapon_dmg( rti, 3.25f, 1, 0 );
+            d = weapon_dmg( rti, 2.25f, 1, 0 );
             dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, cr );
             final_dmg = deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
             trigger_dots( rti, final_dmg, target_id );
@@ -437,6 +437,7 @@ DECL_EVENT( bloodthirst_cast ) {
     }
 }
 DECL_SPELL( bloodthirst ) {
+    if ( MH_TYPE != WEAPON_2H ) return 0;
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( bloodthirst_cd > rti->timestamp ) return 0;
     bloodthirst_cd = TIME_OFFSET( FROM_SECONDS( 4.5f / ( 1.0f + rti->player.stat.haste ) ) );
@@ -462,18 +463,20 @@ DECL_EVENT( enrage_trigger ) {
 // === execute ================================================================
 DECL_EVENT( execute_cast ) {
     float d = weapon_dmg( rti, 4.65f, 1, 0 );
-    if ( MH_TYPE == WEAPON_1H ) d *= 1.15f; // TODO: check if SMF need both weapon to be 1h when go live.
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
 #if (TALENT_MASSACRE)
-    if ( DICE_CRIT == dice ) // TODO: see if massacre triggers from off-hand execute when go live.
-        eq_enqueue( rti, rti->timestamp, routnum_massacre_trigger, 0 );
+    kbool have_crit = ( DICE_CRIT == dice );
 #endif
     d = weapon_dmg( rti, 4.65f, 1, 1 );
-    if ( OH_TYPE == WEAPON_1H ) d *= 1.15f;
     dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     final_dmg += deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     trigger_dots( rti, final_dmg, target_id );
+#if (TALENT_MASSACRE)
+    have_crit = have_crit || ( DICE_CRIT == dice );
+    if ( have_crit )
+        eq_enqueue( rti, rti->timestamp, routnum_massacre_trigger, 0 );
+#endif
     lprintf( ( "execute hit" ) );
 }
 DECL_SPELL( execute ) {
@@ -489,13 +492,20 @@ DECL_SPELL( execute ) {
 
 // === furious slash ==========================================================
 DECL_EVENT( furious_slash_cast ) {
-    float d = weapon_dmg( rti, 3.7f, 1, 1 );
+    float d = weapon_dmg( rti, 2.8f, 1, 1 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, ( t18_2pc ? 0.05f : 0.0f ) );
     float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, ( t18_2pc ? 0.12f : 0.0f ) , 0 );
     trigger_dots( rti, final_dmg, target_id );
     eq_enqueue( rti, rti->timestamp, routnum_taste_for_blood_trigger, 0 );
 #if (TALENT_FRENZY)
     eq_enqueue( rti, rti->timestamp, routnum_frenzy_trigger, 0 );
+#endif
+#if (t18_4pc)
+    if ( DICE_CRIT == dice ) {
+        time_t reduction = min( (k32u)battle_cry_cd, (k32u)FROM_SECONDS( 10 ) );
+        battle_cry_cd -= reduction;
+        eq_enqueue( rti, battle_cry_cd, routnum_battle_cry_cd, 0 );
+    }
 #endif
     lprintf( ( "furious_slash hit" ) );
 }
@@ -512,6 +522,7 @@ DECL_EVENT( taste_for_blood_trigger ) {
     lprintf( ( "taste_for_blood stack %d", taste_for_blood_stack ) );
 }
 DECL_SPELL( furious_slash ) {
+    if ( MH_TYPE != WEAPON_2H ) return 0;
     if ( rti->player.gcd > rti->timestamp ) return 0;
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_furious_slash_cast, rti->player.target );
@@ -533,13 +544,13 @@ DECL_EVENT( meat_cleaver_trigger ) {
 
 // === raging blow ============================================================
 DECL_EVENT( raging_blow_cast ) {
-    float d = weapon_dmg( rti, 2.15f * ( TALENT_INNER_RAGE ? 2.0f : 1.0f ), 1, 0 );
+    float d = weapon_dmg( rti, 1.60f * ( TALENT_INNER_RAGE ? 2.0f : 1.0f ), 1, 0 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     if ( t17_2pc && DICE_CRIT == dice && uni_rng( rti ) < 0.2 ) {
         eq_enqueue( rti, rti->timestamp, routnum_enrage_trigger, target_id );
     }
-    d = weapon_dmg( rti, 2.15f * ( TALENT_INNER_RAGE ? 2.0f : 1.0f ), 1, 1 );
+    d = weapon_dmg( rti, 1.60f * ( TALENT_INNER_RAGE ? 2.0f : 1.0f ), 1, 1 );
     dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     final_dmg += deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     trigger_dots( rti, final_dmg, target_id );
@@ -555,6 +566,7 @@ DECL_EVENT( raging_blow_cd ) {
 }
 #endif
 DECL_SPELL( raging_blow ) {
+    if ( MH_TYPE != WEAPON_2H ) return 0;
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( TALENT_INNER_RAGE ) {
         if ( raging_blow_cd > rti->timestamp ) return 0;
@@ -631,6 +643,7 @@ DECL_EVENT( rampage_cast_4 ) {
     lprintf( ( "rampage 4/5th hit" ) );
 }
 DECL_SPELL( rampage ) {
+    if ( MH_TYPE != WEAPON_2H ) return 0;
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( UP( rampage_cd ) ) return 0;
     if ( !UP( massacre_expire ) ){
@@ -774,7 +787,7 @@ DECL_EVENT( bloodbath_tick ) {
         eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 2 ) ), routnum_bloodbath_tick, target_id );
 }
 void trigger_bloodbath( rtinfo_t* rti, float dmg, k32u target_id ) {
-    rti->enemy[target_id].spec->bloodbath.pool += dmg * 0.2f;
+    rti->enemy[target_id].spec->bloodbath.pool += dmg * 0.4f;
     if ( rti->enemy[target_id].spec->bloodbath.ticks < 1.0f ) {
         rti->enemy[target_id].spec->bloodbath.dot_start = rti->timestamp;
         rti->enemy[target_id].spec->bloodbath.ticks = 3.0f;
@@ -836,7 +849,7 @@ DECL_EVENT( dragon_roar_cd ) {
 }
 DECL_EVENT( dragon_roar_cast ) {
     for ( int i = 0; i < num_enemies; i++ ) {
-        float d = ap_dmg( rti, 1.98f );
+        float d = ap_dmg( rti, 1.50f );
         k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 1 );
         float final_dmg = deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 1 );
         trigger_dots( rti, final_dmg, i );
