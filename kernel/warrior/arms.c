@@ -79,6 +79,7 @@ struct spec_debuff_t {
 #if (TALENT_REND)
     struct {
         time_t expire;
+        time_t last_tick;
     } rend;
 #define rend_expire(target) (rti->enemy[target].spec->rend.expire)
 #else
@@ -250,6 +251,9 @@ enum {
     START_OF_WILD_ROUTNUM,
 };
 
+void trigger_opportunity_strikes( rtinfo_t* rti, k32u target_id );
+void trigger_trauma( rtinfo_t* rti, float dmg, k32u target_id );
+
 // === auto-attack ============================================================
 DECL_EVENT( auto_attack ) {
     float d = weapon_dmg( rti, 1.0f, 0, 0 );
@@ -301,11 +305,13 @@ DECL_EVENT( cleave_cast ) {
     float d = weapon_dmg( rti, 0.9f, 1, 0 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    trigger_opportunity_strikes( rti, target_id );
     for( int i = 0; c < 5 && i < num_enemies; i++ ) {
         if ( i == target_id ) continue;
         d = weapon_dmg( rti, 0.9f, 1, 0 );
         dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
         deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        trigger_opportunity_strikes( rti, i );
         cleave_stack ++;
         lprintf( ( "cleave hit @tar%d", i ) );
     }
@@ -338,7 +344,7 @@ DECL_EVENT( colossus_smash_expire ) {
 }
 DECL_EVENT( colossus_smash_trigger ) {
     colossus_smash_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 8.0f + ( TALENT_TITANIC_MIGHT ? 16.0f : 0.0f ) ) );
-    rti->enemy[target_id].spec->colossus_smash.increament = 1.0f + ( 0.15f + rti->player.stat.mastery ) * ( TALENT_TITANIC_MIGHT ? 0.5f : 1.0f );
+    rti->enemy[target_id].spec->colossus_smash.increament = 1.0f + ( 0.15f + rti->player.stat.mastery ) * ( TALENT_TITANIC_MIGHT ? 0.7f : 1.0f );
     lprintf( ( "colossus_smash start @tar%d", target_id ) );
 }
 DECL_EVENT( colossus_smash_cast ) {
@@ -346,6 +352,7 @@ DECL_EVENT( colossus_smash_cast ) {
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     eq_enqueue( rti, rti->timestamp, routnum_colossus_smash_trigger, target_id );
+    trigger_opportunity_strikes( rti, target_id );
     lprintf( ( "colossus_smash hit" ) );
 }
 DECL_SPELL( colossus_smash ) {
@@ -360,26 +367,22 @@ DECL_SPELL( colossus_smash ) {
 }
 
 // === execute ================================================================
-float execute_base_rage_cost( rtinfo_t* rti ) {
-    float r = 10.0f;
+float execute_extra_rage_cost( rtinfo_t* rti ) {
+    float r = 30.0f;
     if ( TALENT_DAUNTLESS ) r *= 0.8f;
+    if ( TALENT_DEADLY_CALM && UP( battle_cry_expire ) ) r *= 0.0f;
     return ( float )( ( int )r );
 }
 DECL_EVENT( execute_cast ) {
-    /* execute works wierd with rage cost reduction. hard code to define execute behavior. */
-    float r = min( rti->player.power, 40.0f );
-    float multiplier = r / 10.0f;
-    r += execute_base_rage_cost( rti ) - 10.0f; /* so the rage cost could even be negative. */
-    /* if base rage cost reduced to 0, current rage = 0, multiplier could even be 0. */
-    if ( TALENT_DAUNTLESS ) {
-        power_consume( rti, r );
-        rti->player.power -= r * 0.2f; /* this is safe. to avoid anger management & dauntless. */
-    } else {
-        power_consume( rti, r );
-    }
+    float r = min( rti->player.power, execute_extra_rage_cost( rti ) );
+    if ( TALENT_DAUNTLESS ) r /= 0.8f;
+    if ( TALENT_DEADLY_CALM && UP( battle_cry_expire ) ) r = 30.0f;
+    float multiplier = 1.0f + r / 10.0f;
+    power_consume( rti, r );
     float d = weapon_dmg( rti, 1.75f, 1, 0 ) * multiplier;
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    trigger_opportunity_strikes( rti, target_id );
     lprintf( ( "execute hit" ) );
     if ( TALENT_SWEEPING_STRIKES ) {
         for ( int i = 0; i < num_enemies; i++ ) {
@@ -390,12 +393,14 @@ DECL_EVENT( execute_cast ) {
             lprintf( ( "execute sweepstrike" ) );
             break;
         }
+        // sweepstrike execute wont proc opportunity strikes, while sweepstrike mortal strike will.
     }
 }
 DECL_SPELL( execute ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( enemy_health_percent( rti ) > 20.0f ) return 0;
-    if ( !power_check( rti, execute_base_rage_cost( rti ) ) ) return 0;
+    if ( !power_check( rti, 10.0f ) ) return 0;
+    power_consume( rti, 10.0f );
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_execute_cast, rti->player.target );
     lprintf( ( "cast execute" ) );
@@ -410,6 +415,7 @@ DECL_EVENT( hamstring_cast ) {
     float d = weapon_dmg( rti, 0.05f, 1, 0 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    trigger_opportunity_strikes( rti, target_id );
     lprintf( ( "hamstring hit" ) );
 }
 DECL_SPELL( hamstring ) {
@@ -442,6 +448,7 @@ DECL_EVENT( mortal_strike_cast ) {
     float d = weapon_dmg( rti, 3.5f, 1, 0 ) * multiplier;
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    trigger_opportunity_strikes( rti, target_id );
     lprintf( ( "mortal_strike hit" ) );
     if ( TALENT_SWEEPING_STRIKES ) {
         for ( int i = 0; i < num_enemies; i++ ) {
@@ -449,6 +456,7 @@ DECL_EVENT( mortal_strike_cast ) {
             d = weapon_dmg( rti, 3.5f, 1, 0 ) * multiplier;
             dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
             deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+            trigger_opportunity_strikes( rti, i );
             lprintf( ( "mortal_strike sweepstrike" ) );
             break;
         }
@@ -460,7 +468,7 @@ DECL_SPELL( mortal_strike ) {
     if ( !power_check( rti, 20.0f ) ) return 0;
     power_consume( rti, 20.0f );
     if ( TALENT_IN_FOR_THE_KILL && enemy_health_percent( rti ) <= 20.0f ) {
-        power_gain( rti, 40.0f ); // TODO: does sweeping strike ms proc in4thekill?
+        power_gain( rti, 40.0f );
     }
     mortal_strike_charge --;
     if ( !UP( mortal_strike_cd ) ) {
@@ -474,19 +482,12 @@ DECL_SPELL( mortal_strike ) {
 }
 
 // === slam ===================================================================
-#if (TALENT_TRAUMA)
-void trigger_trauma( rtinfo_t* rti, float dmg, k32u target_id );
-#endif
 DECL_EVENT( slam_cast ) {
     float d = weapon_dmg( rti, 1.8f, 1, 0 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
-    if ( uni_rng( rti ) < 0.15f ) {
-        eq_enqueue( rti, rti->timestamp, routnum_tactician_trigger, 0 );
-    }
-#if (TALENT_TRAUMA)
+    trigger_opportunity_strikes( rti, target_id );
     trigger_trauma( rti, final_dmg, target_id );
-#endif
     lprintf( ( "slam hit" ) );
 }
 DECL_SPELL( slam ) {
@@ -501,7 +502,6 @@ DECL_SPELL( slam ) {
 
 // === tactician ==============================================================
 DECL_EVENT( tactician_trigger ) {
-    // TODO: how tactician works with mortal combo?
     mortal_strike_charge = min( ( int )mortal_strike_maxcharge, ( int )mortal_strike_charge + 1 );
     if ( mortal_strike_charge == mortal_strike_maxcharge ) mortal_strike_cd = rti->timestamp;
     if ( UP( colossus_smash_cd ) ) {
@@ -523,22 +523,18 @@ DECL_EVENT( whirlwind_cast ) {
     }
     for( int i = 0; i < num_enemies; i++ ) {
         float final_dmg = 0.0f;
-        float d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier * ( TALENT_FERVOR_OF_BATTLE && i == target_id ? 1.4f : 1.0f );
+        float d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier * ( TALENT_FERVOR_OF_BATTLE && i == target_id ? 1.5f : 1.0f );
         k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
         final_dmg += deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
-        d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier * ( TALENT_FERVOR_OF_BATTLE && i == target_id ? 1.4f : 1.0f );
+        d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier * ( TALENT_FERVOR_OF_BATTLE && i == target_id ? 1.5f : 1.0f );
         dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
         final_dmg += deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
-        d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier * ( TALENT_FERVOR_OF_BATTLE && i == target_id ? 1.4f : 1.0f );
+        d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier * ( TALENT_FERVOR_OF_BATTLE && i == target_id ? 1.5f : 1.0f );
         dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
         final_dmg += deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         lprintf( ( "whirlwind hit @tar%d", i ) );
-        if ( uni_rng( rti ) < 0.15f ) {
-            eq_enqueue( rti, rti->timestamp, routnum_tactician_trigger, 0 );
-        }
-#if (TALENT_TRAUMA)
         trigger_trauma( rti, final_dmg, i );
-#endif
+        trigger_opportunity_strikes( rti, i );
     }
 }
 DECL_SPELL( whirlwind ) {
@@ -567,6 +563,7 @@ DECL_EVENT( overpower_cast ) {
     float d = weapon_dmg( rti, 3.75f, 1, 0 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0.6f );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    trigger_opportunity_strikes( rti, target_id );
     lprintf( ( "overpower hit" ) );
 }
 DECL_SPELL( overpower ) {
@@ -590,25 +587,32 @@ DECL_SPELL( overpower ) {
 // === rend ===================================================================
 #if (TALENT_REND)
 DECL_EVENT( rend_tick ) {
+    float mult = TO_SECONDS( rti->timestamp - rti->enemy[target_id].spec->rend.last_tick ) / 3.0f;
+    if ( mult < 1.0f && rend_expire( target_id ) > rti->timestamp ) return; // last tick canceled if extended.
     if ( rend_expire( target_id ) < rti->timestamp ) return; // last tick evaluates as equal.
     float d = ap_dmg( rti, 1.2f );
+    d *= mult;
+    if ( d <= 0.0f ) return;
     k32u dice = round_table_dice2( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    rti->enemy[target_id].spec->rend.last_tick = rti->timestamp;
     lprintf( ( "rend tick" ) );
     if ( TIME_DISTANT( rend_expire( target_id ) ) >= FROM_SECONDS( 3 ) ) {
         eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 3 ) ), routnum_rend_tick, target_id );
+    } else if ( UP( rend_expire( target_id ) ) ) {
+        eq_enqueue( rti, rend_expire( target_id ), routnum_rend_tick, target_id );
     }
 }
 DECL_EVENT( rend_cast ) {
     if ( UP( rend_expire( target_id ) ) ) {
-        k32u ticks_remain = TIME_DISTANT( rend_expire( target_id ) ) / FROM_SECONDS( 3 );
-        rend_expire( target_id ) += TIME_OFFSET( FROM_SECONDS( 3 * ( 5 - ticks_remain ) ) ); // TODO: how rend extends?
+        rend_expire( target_id ) = TIME_OFFSET( min( (k32u)( FROM_SECONDS( 15 ) + TIME_DISTANT( rend_expire( target_id ) ) ), (k32u)FROM_SECONDS( 20 ) ) );
         lprintf( ( "rend_expire extends to %f sec", TO_SECONDS( TIME_DISTANT( rend_expire( target_id ) ) ) ) );
     } else {
         rend_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 15 ) );
         eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 3 ) ), routnum_rend_tick, target_id );
         lprintf( ( "rend start" ) );
     }
+    trigger_opportunity_strikes( rti, target_id ); // rend will proc opportunity strikes on apply, but wont on ticks.
 }
 DECL_SPELL( rend ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
@@ -632,6 +636,7 @@ void spec_bladestorm_tick( rtinfo_t* rti ) {
         float d = weapon_dmg( rti, 1.45f, 1, 0 );
         k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
         deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        trigger_opportunity_strikes( rti, i );
         lprintf( ( "bladestorm tick @tar%d", i ) );
     }
 }
@@ -671,7 +676,9 @@ DECL_EVENT( trauma_tick ) {
     if ( rti->enemy[target_id].spec->trauma.ticks >= 1.0f )
         eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 2 ) ), routnum_trauma_tick, target_id );
 }
+#endif
 void trigger_trauma( rtinfo_t* rti, float dmg, k32u target_id ) {
+#if (TALENT_TRAUMA)
     rti->enemy[target_id].spec->trauma.pool += dmg * 0.2f;
     if ( rti->enemy[target_id].spec->trauma.ticks < 1.0f ) {
         rti->enemy[target_id].spec->trauma.dot_start = rti->timestamp;
@@ -684,8 +691,8 @@ void trigger_trauma( rtinfo_t* rti, float dmg, k32u target_id ) {
         rti->enemy[target_id].spec->trauma.dot_start += FROM_SECONDS( new_ticks * 2 );
         lprintf( ( "trauma @tar%d extends", target_id ) );
     }
-}
 #endif
+}
 
 // === anger management =======================================================
 #if (TALENT_ANGER_MANAGEMENT)
@@ -700,11 +707,19 @@ void anger_management_count( rtinfo_t* rti, float rage ) {
 #if (TALENT_OPPORTUNITY_STRIKES)
 DECL_EVENT( opportunity_strikes_trigger ) {
     float d = weapon_dmg( rti, 1.6f, 1, 0 );
-    k32u dice = round_table_dice2( rti, target_id, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
+    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     lprintf( ( "opportunity_strikes hit" ) );
 }
 #endif
+void trigger_opportunity_strikes( rtinfo_t* rti, k32u target_id ) {
+#if (TALENT_OPPORTUNITY_STRIKES)
+    if ( uni_rng( rti ) < mix( 0.6f, 0.0f, enemy_health_percent( rti ) * 0.01f ) ) {
+        eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1.0f ) ), routnum_opportunity_strikes_trigger, target_id );
+    }
+#endif
+}
+
 
 // === ravager ================================================================
 #if (TALENT_RAVAGER)
@@ -808,13 +823,6 @@ void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_
     if ( DICE_MISS != dice && ( ATYPE_WHITE_MELEE == attacktype || ATYPE_YELLOW_MELEE == attacktype ) ) {
 #if (TALENT_OVERPOWER)
         proc_RPPM( rti, &rti->player.spec->overpower.proc, 5.0f * ( 1.0f + rti->player.stat.haste ), routnum_overpower_trigger, target_id );
-#endif
-    }
-    if ( DICE_MISS != dice && ATYPE_YELLOW_MELEE == attacktype ) {
-#if (TALENT_OPPORTUNITY_STRIKES)
-        if ( uni_rng( rti ) < mix( 0.6f, 0.0f, enemy_health_percent( rti ) * 0.01f ) ) {
-            eq_enqueue( rti, rti->timestamp, routnum_opportunity_strikes_trigger, target_id );
-        }
 #endif
     }
 }

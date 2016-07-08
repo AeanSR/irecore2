@@ -399,7 +399,6 @@ DECL_EVENT( bloodthirst_cd ) {
     lprintf( ( "bloodthirst cd" ) );
 }
 DECL_EVENT( bloodthirst_cast ) {
-    kbool have_crit = 0;
     float d = weapon_dmg( rti, 2.25f, 1, 0 );
     float cr = 0.15f * taste_for_blood_stack;
     if ( TALENT_FRESH_MEAT && enemy_health_percent( rti ) > 80.0f ) cr += 0.3f;
@@ -407,7 +406,11 @@ DECL_EVENT( bloodthirst_cast ) {
     float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     trigger_dots( rti, final_dmg, target_id );
     if ( DICE_CRIT == dice ) {
-        have_crit = 1;
+        if ( UP( taste_for_blood_expire ) ) {
+            taste_for_blood_expire = rti->timestamp;
+            eq_enqueue( rti, rti->timestamp, routnum_taste_for_blood_expire, 0 );
+        }
+        eq_enqueue( rti, rti->timestamp, routnum_enrage_trigger, 0 );
     }
     power_gain( rti, 10.0f );
     lprintf( ( "bloodthirst hit" ) );
@@ -419,21 +422,11 @@ DECL_EVENT( bloodthirst_cast ) {
             d = weapon_dmg( rti, 2.25f, 1, 0 );
             dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, cr );
             final_dmg = deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
-            trigger_dots( rti, final_dmg, target_id );
-            if ( DICE_CRIT == dice ) {
-                have_crit = 1;
-            }
+            trigger_dots( rti, final_dmg, i );
         }
         lprintf( ( "bloodthirst multi-hit" ) );
         meat_cleaver_expire = rti->timestamp;
         eq_enqueue( rti, rti->timestamp, routnum_meat_cleaver_expire, 0 );
-    }
-    if ( have_crit ) {
-        if ( UP( taste_for_blood_expire ) ) {
-            taste_for_blood_expire = rti->timestamp;
-            eq_enqueue( rti, rti->timestamp, routnum_taste_for_blood_expire, 0 );
-        }
-        eq_enqueue( rti, rti->timestamp, routnum_enrage_trigger, 0 );
     }
 }
 DECL_SPELL( bloodthirst ) {
