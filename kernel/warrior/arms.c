@@ -488,12 +488,18 @@ DECL_EVENT( slam_cast ) {
     float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     trigger_opportunity_strikes( rti, target_id );
     trigger_trauma( rti, final_dmg, target_id );
+#if (t18_2pc)
+    if ( uni_rng( rti ) < 0.3f ) {
+        mortal_strike_charge = min( ( int )mortal_strike_maxcharge, ( int )mortal_strike_charge + 1 );
+        if ( mortal_strike_charge == mortal_strike_maxcharge ) mortal_strike_cd = rti->timestamp;
+    }
+#endif
     lprintf( ( "slam hit" ) );
 }
 DECL_SPELL( slam ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
-    if ( !power_check( rti, 15.0f ) ) return 0;
-    power_consume( rti, 15.0f );
+    if ( !power_check( rti, ( t18_4pc ? 10.0f : 15.0f ) ) ) return 0;
+    power_consume( rti, ( t18_4pc ? 10.0f : 15.0f ) );
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_slam_cast, rti->player.target );
     lprintf( ( "cast slam" ) );
