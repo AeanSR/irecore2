@@ -419,7 +419,7 @@ DECL_EVENT( bloodthirst_cast ) {
         for( int i = 0; c < 4 && i < num_enemies; i++ ) {
             if ( i == target_id ) continue;
             c++;
-            d = weapon_dmg( rti, 2.25f, 1, 0 );
+            d = weapon_dmg( rti, 2.25f, 1, 0 ) * 0.5f;
             dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, cr );
             final_dmg = deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
             trigger_dots( rti, final_dmg, i );
@@ -861,7 +861,7 @@ DECL_SPELL( dragon_roar ) {
     if ( dragon_roar_cd > rti->timestamp ) return 0;
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_dragon_roar_cast, 0 );
-    dragon_roar_cd = TIME_OFFSET( FROM_SECONDS( 20 ) );
+    dragon_roar_cd = TIME_OFFSET( FROM_SECONDS( 25 ) );
     eq_enqueue( rti, dragon_roar_cd, routnum_dragon_roar_cd, 0 );
     lprintf( ( "cast dragon_roar" ) );
     return 1;
