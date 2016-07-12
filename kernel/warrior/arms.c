@@ -594,7 +594,10 @@ DECL_SPELL( overpower ) {
 #if (TALENT_REND)
 DECL_EVENT( rend_tick ) {
     float mult = TO_SECONDS( rti->timestamp - rti->enemy[target_id].spec->rend.last_tick ) / 3.0f;
-    if ( mult < 1.0f && rend_expire( target_id ) > rti->timestamp ) return; // last tick canceled if extended.
+    if ( mult < 1.0f && rend_expire( target_id ) > rti->timestamp ) {
+        eq_enqueue( rti, rti->enemy[target_id].spec->rend.last_tick + FROM_SECONDS( 3 ), routnum_rend_tick, target_id );
+        return; // last tick canceled if extended.
+    }
     if ( rend_expire( target_id ) < rti->timestamp ) return; // last tick evaluates as equal.
     float d = ap_dmg( rti, 1.2f );
     d *= mult;
