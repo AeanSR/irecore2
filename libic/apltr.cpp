@@ -204,6 +204,7 @@ namespace apltr {
         "templars_verdict",
         "execution_sentence",
         "consecration",
+        "justicars_vengeance",
         "crusade",
         0,
     };

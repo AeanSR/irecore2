@@ -286,6 +286,9 @@ enum {
 #if (TALENT_DIVINE_HAMMER)
     routnum_divine_hammer_tick,
 #endif
+#if (TALENT_JUSTICARS_VENGEANCE)
+    routnum_justicars_vengeance_cast,
+#endif
 #if (TALENT_DIVINE_PURPOSE)
     routnum_divine_purpose_trigger,
     routnum_divine_purpose_expire,
@@ -735,6 +738,52 @@ DECL_EVENT( divine_hammer_tick ) {
 }
 #endif
 
+// === justicar's vengeance ===================================================
+#if (TALENT_JUSTICARS_VENGEANCE)
+DECL_EVENT( justicars_vengeance_cast ) {
+    float multiplier = 1.0f;
+    if ( UP( judgment_expire( target_id ) ) ) multiplier *= 1.0f + 0.5f * rti->player.stat.mastery;
+    float d = ap_dmg( rti, 8.0f, 1, 0 ) * multiplier;
+    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );  // TODO: does justicars vengeance triggers as yellow melee or spell? or both?
+    deal_damage( rti, target_id, d, DTYPE_HOLY, dice, 0, 0 );
+    lprintf( ( "justicars_vengeance hit" ) );
+#if (TALENT_DIVINE_PURPOSE)
+    if ( uni_rng( rti ) < 0.15f ) {
+        eq_enqueue( rti, rti->timestamp, routnum_divine_purpose_trigger, 0 );
+    }
+#endif
+}
+DECL_SPELL( justicars_vengeance ) {
+    if ( rti->player.gcd > rti->timestamp ) return 0;
+    float cost = 5.0f;
+    if ( UP( divine_purpose_expire ) ) cost = 0.0f;
+    else if ( UP( the_fires_of_justice_expire ) ) cost -= 1.0f;
+    if ( !power_check( rti, cost ) ) return 0;
+    power_consume( rti, cost );
+#if (TALENT_DIVINE_PURPOSE)
+    if ( UP( divine_purpose_expire ) ) {
+        divine_purpose_expire = rti->timestamp;
+        eq_enqueue( rti, rti->timestamp, routnum_divine_purpose_expire, 0 );
+    } else
+#endif
+#if (TALENT_THE_FIRES_OF_JUSTICE)
+    if ( UP( the_fires_of_justice_expire ) ) {
+        the_fires_of_justice_expire = rti->timestamp;
+        eq_enqueue( rti, rti->timestamp, routnum_the_fires_of_justice_expire, 0 );
+    }
+#endif
+    ;
+    gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
+    eq_enqueue( rti, rti->timestamp, routnum_justicars_vengeance_cast, rti->player.target );
+    lprintf( ( "cast justicars_vengeance" ) );
+    return 1;
+}
+#else
+DECL_SPELL( justicars_vengeance ) {
+    return 0;
+}
+#endif
+
 // === divine purpose =========================================================
 #if (TALENT_DIVINE_PURPOSE)
 DECL_EVENT( divine_purpose_expire ) {
@@ -809,6 +858,9 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
 #endif
 #if (TALENT_DIVINE_HAMMER)
         HOOK_EVENT( divine_hammer_tick );
+#endif
+#if (TALENT_JUSTICARS_VENGEANCE)
+        HOOK_EVENT( justicars_vengeance_cast );
 #endif
 #if (TALENT_DIVINE_PURPOSE)
         HOOK_EVENT( divine_purpose_trigger );
