@@ -487,6 +487,7 @@ void refresh_crit( rtinfo_t* rti ) {
 }
 
 float spec_haste_coefficient( rtinfo_t* rti );
+float spec_haste_increament( rtinfo_t* rti );
 
 void refresh_haste( rtinfo_t* rti ) {
     float haste = ( float ) rti->player.stat.gear_haste;
@@ -497,6 +498,7 @@ void refresh_haste( rtinfo_t* rti ) {
     if (UP( berserking_expire )) haste *= 1.15f;
     if (UP(bloodlust_expire)) haste *= 1.3f;
     haste *= spec_haste_coefficient( rti );
+    haste += spec_haste_increament( rti );
     rti->player.stat.haste = haste - 1.0f;
 }
 

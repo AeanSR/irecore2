@@ -6,35 +6,6 @@
 //
 //
 
-/**
-    Comment by Aean:
-
-    I did not read in depth. added several comments in the code where I have checked.
-    the code remains unchanged, it is up to you to edit.
-
-    gcd_start() is misused. the 3rd arg indicates whether the gcd is affected by haste.
-    all your calls to gcd_start() gives constant 0 as the 3rd arg, which means the gcd is NOT scaled with haste.
-    you used gcd_start() in several off-gcd spells. double check it.
-
-    you want some abilities to use same crit dice for both hand.
-        float d = weapon_dmg(rti, 3.0f, 1, 0)+weapon_dmg(rti, 3.0f, 1, 1);
-        k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0.0f);
-        deal_damage(rti, target_id, d, DTYPE_PHYSICAL, dice, 0,0);
-    your implement will result in only one bigger hit landing on the target.
-    it is equivalent under most situation. but imagine when the player have empty_drinking_horn as his trinket.
-    your implement will apply only 1 stack of fel fire, while in actual game it should be 2.
-    what you should do: calculate and deal damages for both hand respectively, but use the same dice result.
-        float d = weapon_dmg(rti, 3.0f, 1, 0);                                  // calculate dmg for mh.
-        k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0.0f); // dice for both.
-        deal_damage(rti, target_id, d, DTYPE_PHYSICAL, dice, 0,0);              // deal dmg for mh.
-        d = weapon_dmg(rti, 3.0f, 1, 1);                                        // calculate dmg for oh.
-        deal_damage(rti, target_id, d, DTYPE_PHYSICAL, dice, 0,0);              // deal dmg for oh, with the same dice result from mh.
-    for most spells, you just write what happens in the actual game AS IS.
-    hacks should be carefully used, double check if the hack is equivalent to the actual game, under ANY situation.
-
-    good job this time. your code quality has improved significantly.
-**/
-
 struct spec_state_t{
     struct{
         time_t cd;
@@ -131,8 +102,21 @@ struct spec_state_t{
         time_t expire;
     }rime;
     #define rime_expire (rti->player.spec->rime.expire)
+//=================================================================================
+#if (t18_2pc)
+    struct{
+        time_t expire;
+    }t18obliteration;
+    #define t18obliteration_expire (rti->player.spec->t18obliteration.expire)
+    struct{
+        time_t expire;
+    }t18frozen_wake;
+    #define t18frozen_wake_expire (rti->player.spec->t18frozen_wake.expire)
+#else
+    #define t18obliteration_expire (0);
+    #define t18frozen_wake_expire (0);
+#endif
 //==================================================================================
-
 };
 struct spec_debuff_t {
 //==================================================================================
@@ -204,6 +188,12 @@ enum {
     routnum_glacial_advance_cd,
     routnum_glacial_advance_cast,
 #endif
+#if(t18_2pc)
+    routnum_t18obliteration_cast,
+    routnum_t18obliteration_expire,
+    routnum_t18frozen_wake_cast,
+    routnum_t18frozen_wake_expire,
+#endif
     START_OF_WILD_ROUTNUM,
 };
 //Stat&Uitility=====================================================================
@@ -223,6 +213,12 @@ float spec_crit_increament( rtinfo_t* rti ){
 }
 float spec_haste_coefficient( rtinfo_t* rti ){
     return 1.0f; //TODO: some passives
+}
+float spec_haste_increament( rtinfo_t* rti ){
+    if(UP(t18obliteration_expire))
+        return 0.03f;
+    else
+        return 0.0f;
 }
 
 float spec_power_gain( rtinfo_t* rti, float power ) {
@@ -281,7 +277,15 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
         rti->damage_collected += dmg;
         return dmg;
     }
-    float cdb = ( 1.0f + extra_crit_bonus ) * 2.0f;
+    float cdb;
+    if(UP(t18frozen_wake_expire))
+    {
+        cdb = ( 1.0f + extra_crit_bonus + 0.06) * 2.0f;
+    }
+    else
+    {
+        cdb = ( 1.0f + extra_crit_bonus ) * 2.0f;
+    }
                                                                     dmg *= 1.0f + rti->player.stat.vers;
     if ( UP( thorasus_the_stone_heart_of_draenor_expire ) )         dmg *= 1.0f + legendary_ring * 0.0001f;
     if ( ENEMY_IS_DEMONIC && UP(gronntooth_war_horn_expire ) )      dmg *= 1.1f;
@@ -290,6 +294,7 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
         if ( !ignore_armor )                                        dmg *= 0.650684f; // 0.680228f @110lvl
     }
     if ( DICE_CRIT == dice )                                        dmg *= cdb;
+    if(DTYPE_FROST == dmgtype)                                      dmg *= (1.0f+rti->player.stat.mastery);//added mastery
     if(rti->enemy[target_id].spec->razorice.stack > 0 && DTYPE_FROST == dmgtype)
                                                                     dmg *= (1.0f + 0.02f * rti->enemy[target_id].spec->razorice.stack);
     //TODO: check on razorice later
@@ -417,14 +422,14 @@ DECL_EVENT( auto_attack_oh ) {
 DECL_EVENT( frost_strike_cast ) {
     //shattering strikes implementation
     #if(TALENT_SHATTERING_STRIKES)
-        if(rti->enemy[target].class->razorice.stack == 5)
+        if(rti->enemy[target_id].spec->razorice.stack == 5)
         {
             float d = weapon_dmg(rti, 2.65f, 1, 0) * 1.5;
             float dOH = weapon_dmg(rti, 2.65f, 1, 1) * 1.5;
             k32u dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);//TODO: is this a spell
             deal_damage(rti, target_id, d, DTYPE_FROST, dice, 0, 0);
-            deal_damage(rti, target_id, dOH, DTYPE_FROST, dice, 0, 0);
-            rti->enemy[target].class->razorice.stack = 0;//as of Jun 16 2016, on ptr Pre0Patch 7.03, frost strike does damage before consuming the stacks
+            deal_damage(rti, target_id, dOH, DTYPE_FROST, dice, 0,0);
+            rti->enemy[target_id].spec->razorice.stack = 0;//as of Jun 16 2016, on ptr Pre0Patch 7.03, frost strike does damage before consuming the stacks
             lprintf( ( "frost strike hit, consumed 5 stacks of razorice to increase damage by 50 percent" ) );
         }
     #endif
@@ -457,6 +462,10 @@ DECL_EVENT( frost_strike_cast ) {
     #if(TALENT_ICY_TALONS)
         eq_enqueue(rti,rti->timestamp, routnum_icy_talons_trigger, 0);
     #endif
+    if(t18_2pc&&dice == DICE_CRIT)
+    {
+        eq_enqueue(rti, rti->timestamp, routnum_t18frozen_wake_cast,0);
+    }
 }
 DECL_SPELL( frost_strike ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
@@ -472,11 +481,23 @@ DECL_EVENT( obliterate_cast ) {
     float d = weapon_dmg(rti, 3.2f, 1, 0);
     float dOH = weapon_dmg(rti, 3.2f, 1, 1);
     k32u dice;
+#if defined (trinket_reapers_harvest)
+{ //TODO find scale
+    float dF = trinket_reapers_harvest * d;
+    float dFOH = trinket_reapers_harvest * dOH;
+}
+#endif
     //kiling machine implementation
     if( UP (killing_machine_expire) ) {
         dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 1.0f);
         deal_damage(rti, target_id, d, DTYPE_PHYSICAL, dice, 0,0);
         deal_damage(rti, target_id, dOH, DTYPE_PHYSICAL, dice, 0,0);
+#if defined (trinket_reapers_harvest)
+{
+        deal_damage(rti, target_id, dF, DTYPE_FROST, dice, 0,0);
+        deal_damage(rti, target_id, dFOH, DTYPE_FROST, dice, 0,0);
+}
+#endif
         killing_machine_expire = rti->timestamp;
         eq_enqueue(rti, killing_machine_expire, routnum_killing_machine_expire,0);
         lprintf( ( "killing machine buff consumed by obliterate, 100 percent crit chance" ) );
@@ -494,6 +515,12 @@ DECL_EVENT( obliterate_cast ) {
         dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 0);
         deal_damage(rti, target_id, d, DTYPE_PHYSICAL, dice, 0,0);
         deal_damage(rti, target_id, dOH, DTYPE_PHYSICAL, dice, 0,0);
+#if defined (trinket_reapers_harvest)
+{
+        deal_damage(rti, target_id, dF, DTYPE_FROST, dice, 0,0);
+        deal_damage(rti, target_id, dFOH, DTYPE_FROST, dice, 0,0);
+}
+#endif
     }
     //icecap implementation
     #if(TALENT_ICECAP)
@@ -514,6 +541,10 @@ DECL_EVENT( obliterate_cast ) {
         lprintf( ( "rime triggered" ) );
     }
     lprintf( ( "obliterate hit" ) );
+        if(t18_2pc&&dice == DICE_CRIT)
+    {
+        eq_enqueue(rti, rti->timestamp, routnum_t18obliteration_cast,0);
+    }
 }
 DECL_SPELL( obliterate ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
@@ -737,7 +768,8 @@ DECL_EVENT( pillar_of_frost_cast ) {
     refresh_str(rti);
     refresh_ap(rti);
 }
-DECL_EVENT( pillar_of_frost_expire) {
+DECL_EVENT ( pillar_of_frost_expire )
+{
     if(pillar_of_frost_expire == rti->timestamp)
     {
         refresh_str(rti);
@@ -1000,6 +1032,37 @@ DECL_EVENT ( glacial_advance_cast) {
     }
 }
 #endif
+//tire 18 two piece bonus
+#if(t18_2pc)
+DECL_EVENT ( t18obliteration_cast )
+{
+    t18obliteration_expire = TIME_OFFSET( FROM_SECONDS (12.0f) );
+    eq_enqueue(rti,t18obliteration_expire, routnum_t18obliteration_expire, 0);
+    lprintf(("Obliterate hit with a critical strike, gained the \"obliteration\" buff."));
+    refresh_haste( rti );
+}
+DECL_EVENT ( t18obliteration_expire )
+{
+    if(t18obliteration_expire == rti->timestamp)
+    {
+        lprintf(("Obliteration buff expired(t18)"));
+    }
+    refresh_haste( rti );
+}
+DECL_EVENT ( t18frozen_wake_cast )
+{
+    t18frozen_wake_expire = TIME_OFFSET( FROM_SECONDS (12.0f) );
+    eq_enqueue(rti,t18obliteration_expire, routnum_t18frozen_wake_expire, 0);
+    lprintf(("Frost Strike hit with a critical strike, gained the \"frozen wake\" buff."));
+}
+DECL_EVENT ( t18frozen_wake_expire )
+{
+    if(t18obliteration_expire == rti->timestamp)
+    {
+        lprintf(("frozen wake buff expired(t18)"));
+    }
+}
+#endif
 // === initilazation =========================================================================
 void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
     switch( e.routine ) {
@@ -1053,6 +1116,12 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
 #if(TALENT_GLACIAL_ADVANCE)
     HOOK_EVENT( glacial_advance_cd );
     HOOK_EVENT( glacial_advance_cast );
+#endif
+#if(t18_2pc)
+    HOOK_EVENT( t18obliteration_cast );
+    HOOK_EVENT( t18obliteration_expire );
+    HOOK_EVENT( t18frozen_wake_cast );
+    HOOK_EVENT( t18frozen_wake_expire );
 #endif
     default:
         lprintf( ( "wild spec routine entry %d, last defined routnum %d", e.routine, START_OF_WILD_ROUTNUM - 1 ) );
