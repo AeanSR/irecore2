@@ -50,7 +50,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>4</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tabCompute">
         <attribute name="title">
@@ -363,7 +363,7 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
               <item>
                <widget class="QCheckBox" name="checkRaidBuffFood">
                 <property name="text">
-                 <string>Food (+125 Crit Rating)</string>
+                 <string>Food (+125 Combat Rating)</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
