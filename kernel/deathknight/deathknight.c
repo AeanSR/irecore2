@@ -15,7 +15,7 @@
 
 /* class state infos. */
 /* Tier 1 */
-#define TALENT_SHATTERING_STRIKE             ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1))
+#define TALENT_SHATTERING_STRIKES            ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==1))
 #define TALENT_ICY_TALONS                    ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==2))
 #define TALENT_MURDEROUS_EFFICIENCY          ((SPEC == SPEC_FROST_DK) && (TALENT_TIER1 ==3))
 /* Tier 2 */
@@ -28,12 +28,12 @@
 #define TALENT_AVALANCHE                     ((SPEC == SPEC_FROST_DK) && (TALENT_TIER3 ==3))
 /* Tier 4 */
 #define TALENT_ABOMINATIONS_MIGHT            ((SPEC == SPEC_FROST_DK) && (TALENT_TIER4 ==1))
-#define TALENT_BLINIDING_SHEET               ((SPEC == SPEC_FROST_DK) && (TALENT_TIER4 ==2))
+#define TALENT_BLINDING_SLEET                ((SPEC == SPEC_FROST_DK) && (TALENT_TIER4 ==2))
 #define TALENT_WINTER_IS_COMING              ((SPEC == SPEC_FROST_DK) && (TALENT_TIER4 ==3))
 /* Tier 5 */
 #define TALENT_VOLATILE_SHIELDING            ((SPEC == SPEC_FROST_DK) && (TALENT_TIER5 ==1))
 #define TALENT_PERMAFROST                    ((SPEC == SPEC_FROST_DK) && (TALENT_TIER5 ==2))
-#define TALENT_WHITE_STALKER                 ((SPEC == SPEC_FROST_DK) && (TALENT_TIER5 ==3))
+#define TALENT_WHITE_WALKER                  ((SPEC == SPEC_FROST_DK) && (TALENT_TIER5 ==3))
 /* Tier 6 */
 #define TALENT_FROSTSCYTHE                   ((SPEC == SPEC_FROST_DK) && (TALENT_TIER6 ==1))
 #define TALENT_RUNIC_ATTENUATION             ((SPEC == SPEC_FROST_DK) && (TALENT_TIER6 ==2))
@@ -56,8 +56,15 @@ struct class_debuff_t {
 };
 
 void rune_reactive( rtinfo_t* rti ) {
-    if ( rune_ready >= rune_max - 3 ) return;
-    rune_ready ++;
+    if ( rune_ready == rune_max ) {
+        return;
+    } else if ( rune_ready >= rune_max - 3 ) {
+        k32u rune_on_cd = min( rune_max - rune_ready, (k32u)3 );
+        rti->player.class->rune.charge_progress[rune_on_cd - 1] = 0.0f;
+        rune_ready ++;
+    } else {
+        rune_ready ++;
+    }
 }
 void rune_reactive_all( rtinfo_t* rti ) {
     rune_ready = rune_max;

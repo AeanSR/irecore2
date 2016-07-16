@@ -159,7 +159,7 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
     bn.set_url( url );
     rapidjson::Document j = bn.get();
     int class_id = j["class"].GetInt();
-    if (class_id != 1 && class_id != 2) {
+    if (class_id != 1 && class_id != 2 && class_id != 6) {
         if (!silence)
             QMessageBox::information( this, QApplication::translate( "gicClass", "Import Fail" ), QApplication::translate( "gicClass", "This character's class is not supported by IreCore." ), QMessageBox::Ok );
         return -1;
@@ -179,6 +179,8 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
                 spec = SPEC_ARMS_WARRIOR;
             } else if (class_id == 2 && 0 == std::string( "b" ).compare( jtalentlist[i]["calcSpec"].GetString() )) {
                 spec = SPEC_RET_PALADIN;
+            } else if (class_id == 6 && 0 == std::string( "Z" ).compare( jtalentlist[i]["calcSpec"].GetString() )) {
+                spec = SPEC_FROST_DEATHKNIGHT;
             } else {
                 if (!silence)
                     QMessageBox::information( this, QApplication::translate( "gicClass", "Import Fail" ), QApplication::translate( "gicClass", "Selected specialization is not a valid DPS spec. Try toggle the \"active\" option?" ), QMessageBox::Ok );

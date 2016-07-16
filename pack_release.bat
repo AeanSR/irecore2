@@ -6,11 +6,13 @@ mkdir release\profile
 mkdir release\kernel
 mkdir release\kernel\warrior
 mkdir release\kernel\paladin
+mkdir release\kernel\deathknight
 mkdir release\platforms
 mkdir release_nolib
 mkdir release_nolib\kernel
 mkdir release_nolib\kernel\warrior
 mkdir release_nolib\kernel\paladin
+mkdir release_nolib\kernel\deathknight
 mkdir release_nolib\profile
 mkdir release_libic
 mkdir release_libic\Win32
@@ -18,6 +20,7 @@ mkdir release_libic\x64
 mkdir release_libic\kernel
 mkdir release_libic\kernel\warrior
 mkdir release_libic\kernel\paladin
+mkdir release_libic\kernel\deathknight
 mkdir release_libic\include
 
 :: Nolib release.
@@ -32,6 +35,8 @@ copy kernel\warrior\arms.c release_nolib\kernel\warrior\arms.c
 copy kernel\warrior\fury.c release_nolib\kernel\warrior\fury.c
 copy kernel\paladin\paladin.c release_nolib\kernel\paladin\paladin.c
 copy kernel\paladin\retribution.c release_nolib\kernel\paladin\retribution.c
+copy kernel\deathknight\deathknight.c release_nolib\kernel\deathknight\deathknight.c
+copy kernel\deathknight\frost_dk.c release_nolib\kernel\deathknight\frost_dk.c
 copy ic\gic_zh.qm release_nolib\gic_zh.qm
 copy irecrash\icc_zh.qm release_nolib\icc_zh.qm
 copy LICENSE release_nolib\LICENSE
@@ -48,6 +53,8 @@ copy kernel\warrior\arms.c release\kernel\warrior\arms.c
 copy kernel\warrior\fury.c release\kernel\warrior\fury.c
 copy kernel\paladin\paladin.c release\kernel\paladin\paladin.c
 copy kernel\paladin\retribution.c release\kernel\paladin\retribution.c
+copy kernel\deathknight\deathknight.c release\kernel\deathknight\deathknight.c
+copy kernel\deathknight\frost_dk.c release\kernel\deathknight\frost_dk.c
 copy ic\gic_zh.qm release\gic_zh.qm
 copy irecrash\icc_zh.qm release\icc_zh.qm
 copy LICENSE release\LICENSE
@@ -64,5 +71,7 @@ copy kernel\warrior\arms.c release_libic\kernel\warrior\arms.c
 copy kernel\warrior\fury.c release_libic\kernel\warrior\fury.c
 copy kernel\paladin\paladin.c release_libic\kernel\paladin\paladin.c
 copy kernel\paladin\retribution.c release_libic\kernel\paladin\retribution.c
+copy kernel\deathknight\deathknight.c release_libic\kernel\deathknight\deathknight.c
+copy kernel\deathknight\frost_dk.c release_libic\kernel\deathknight\frost_dk.c
 copy libic\Win32\libic.lib release_libic\Win32\libic.lib
 copy libic\x64\libic.lib release_libic\x64\libic.lib

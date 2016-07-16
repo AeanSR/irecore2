@@ -107,6 +107,8 @@ struct config_t {
         char* fury_str;
         char* paladin_str;
         char* retribution_str;
+        char* deathknight_str;
+        char* frost_dk_str;
     } kernel;
     FILE* output_file;
     std::vector<ic_computedevice_t> device_list;

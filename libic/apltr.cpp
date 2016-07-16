@@ -206,6 +206,18 @@ namespace apltr {
         "consecration",
         "justicars_vengeance",
         "crusade",
+        "frost_strike",
+        "obliterate",
+        "howling_blast",
+        "remorseless_winter",
+        "pillar_of_frost",
+        "empower_rune_weapon",
+        "horn_of_winter",
+        "hungering_rune_weapon",
+        "frostscythe",
+        "obliteration",
+        "breath_of_sindragosa",
+        "glacial_advance",
         0,
     };
     IC_LOCAL item_t act_list[] =
@@ -248,6 +260,7 @@ namespace apltr {
         {"consecration", 0},
         {"divine_hammer", 0},
         {"zeal", 4},
+        {"howling_blast", 0},
         {0,0},
     };
     IC_LOCAL const char* talent_list[] = {
@@ -308,6 +321,27 @@ namespace apltr {
         "anger_management",
         "opportunity_strikes",
         "ravager",
+        "shattering_strikes",
+        "icy_talons",
+        "murderous_efficiency",
+        "freezing_fog",
+        "frozen_pulse",
+        "horn_of_winter",
+        "icecap",
+        "hungering_rune_weapon",
+        "avalanche",
+        "abominations_might",
+        "blinding_sleet",
+        "winter_is_coming",
+        "volatile_shielding",
+        "permafrost",
+        "white_walker",
+        "frostscythe",
+        "runic_attenuation",
+        "gathering_storm",
+        "obliteration",
+        "breath_of_sindragosa",
+        "glacial_advance",
         0,
     };
     IC_LOCAL const char* stack_buff_list[] = {
@@ -320,6 +354,8 @@ namespace apltr {
         "zeal",
         "sanctified_wrath",
         "libram_of_vindication",
+        "remorseless_winter",
+        "icy_talons",
         0,
     };
     IC_LOCAL const char* expire_buff_list[] = {
@@ -348,6 +384,13 @@ namespace apltr {
         "frothing_berserker",
         "bloodbath",
         "dragon_roar",
+        "pillar_of_frost",
+        "remorseless_winter",
+        "icy_talons",
+        "hungering_rune_weapon",
+        "obliteration",
+        "killing_machine",
+        "rime",
         "potion",
         "bloodlust",
         0,
@@ -379,6 +422,13 @@ namespace apltr {
         "zeal",
         "divine_hammer",
         "crusade",
+        "empower_rune_weapon",
+        "pillar_of_frost",
+        "remorseless_winter",
+        "horn_of_winter",
+        "obliteration",
+        "breath_of_sindragosa",
+        "glacial_advance",
         "thorasus_the_stone_heart_of_draenor",
         "arcane_torrent",
         "blood_fury",
@@ -392,6 +442,7 @@ namespace apltr {
         0,
     };
     IC_LOCAL const char* stack_debuff_list[] = {
+        "razorice",
         0,
     };
     IC_LOCAL const char* expire_debuff_list[] = {
@@ -400,6 +451,8 @@ namespace apltr {
         "colossus_smash",
         "rend",
         "blade_of_wrath",
+        "razorice",
+        "frost_fever",
         0,
     };
     IC_LOCAL item_t var_list[] =
@@ -414,6 +467,8 @@ namespace apltr {
         { "target.health.pct", "enemy_health_percent(rti)", 0 },
         { "rage", "rti->player.power", 0 },
         { "rage.max", "power_max", 0 },
+        { "rune", "rune_ready", 0 },
+        { "rune.max", "rune_max", 0 },
         { "rage.deficit", "(power_max-rti->player.power)", 0 },
         { "holy_power", "rti->player.power", 0 },
         { "holy_power.max", "power_max", 0 },

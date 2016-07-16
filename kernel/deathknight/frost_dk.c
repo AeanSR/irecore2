@@ -80,13 +80,12 @@ struct spec_state_t{
 //==================================================================================
 #if (TALENT_HUNGERING_RUNE_WEAPON)
     struct{
-        time_t cd;
         time_t expire;
     }hungering_rune_weapon;
-    #define hungering_rune_weapon_cd (rti->player.spec->hungering_rune_weapon.cd)
+    #define hungering_rune_weapon_cd (empower_rune_weapon_cd)
     #define hungering_rune_weapon_expire (rti->player.spec->hungering_rune_weapon.expire)
 #else
-    #define hungering_rune_weapon_cd (0)
+    #define hungering_rune_weapon_cd (empower_rune_weapon_cd)
     #define hungering_rune_weapon_expire (0)
 #endif
 //==================================================================================
@@ -170,8 +169,10 @@ enum {
     routnum_pillar_of_frost_cd,
     routnum_pillar_of_frost_cast,
     routnum_pillar_of_frost_expire,
+#if !(TALENT_HUNGERING_RUNE_WEAPON)
     routnum_empower_rune_weapon_cd,
     routnum_empower_rune_weapon_cast,
+#endif
 #if(TALENT_ICY_TALONS)
     routnum_icy_talons_expire,
     routnum_icy_talons_trigger,
@@ -212,7 +213,7 @@ float spec_str_coefficient( rtinfo_t* rti ){
     return coeff;
 }
 float spec_mastery_coefficient( rtinfo_t* rti ){
-    return 1.0f; //TODO: find out the coefficient
+    return 1.5f;
 }
 float spec_mastery_increament( rtinfo_t* rti ){
     return 0.0f;
@@ -415,7 +416,7 @@ DECL_EVENT( auto_attack_oh ) {
 //TODO: change damage calculation
 DECL_EVENT( frost_strike_cast ) {
     //shattering strikes implementation
-    #if(TALENT_SHATTING_STRIKES)
+    #if(TALENT_SHATTERING_STRIKES)
         if(rti->enemy[target].class->razorice.stack == 5)
         {
             float d = weapon_dmg(rti, 2.65f, 1, 0) * 1.5;
@@ -591,7 +592,7 @@ DECL_EVENT( frost_fever_tick ) {
     #endif
     k32u dice = round_table_dice( rti, target_id, ATYPE_SPELL, 0);//TODO: does this proc trinks?Is disease a special atype?
     deal_damage( rti, target_id, d, DTYPE_FROST, dice, 0, 0);
-    power_gain(rti,5);  
+    power_gain(rti,5);
     lprintf(( "frost fever tick on tar %d, grants the dk 5 runic power",target_id ));
     if(TIME_DISTANT(frost_fever_expire( target_id)) >= FROM_SECONDS( 3)) {
         eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS ( 3.0f ) ), routnum_frost_fever_tick, target_id);
@@ -750,6 +751,7 @@ DECL_EVENT ( pillar_of_frost_cd) {
     }
 }
 // === empower rune weapon ====================================================
+#if !(TALENT_HUNGERING_RUNE_WEAPON)
 DECL_SPELL( empower_rune_weapon ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( empower_rune_weapon_cd > rti->timestamp ) return 0;
@@ -768,6 +770,8 @@ DECL_EVENT ( empower_rune_weapon_cast) {
     rune_reactive_all(rti);
     power_gain(rti,25);
 }
+#endif
+
 // === icy talons =============================================================
 #if (TALENT_ICY_TALONS)
 DECL_EVENT (icy_talons_expire) {
@@ -812,7 +816,7 @@ DECL_EVENT ( horn_of_winter_cast) {
 #endif
 // === hungering rune weapon ==================================================
 #if(TALENT_HUNGERING_RUNE_WEAPON)
-DECL_SPELL( hungering_rune_weapon ) {
+DECL_SPELL( empower_rune_weapon ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( hungering_rune_weapon_cd > rti->timestamp ) return 0;
     hungering_rune_weapon_cd = TIME_OFFSET( FROM_SECONDS( 180.0f) );//TODO: check cd
@@ -843,6 +847,8 @@ DECL_EVENT ( hungering_rune_weapon_expire ) {
     lprintf( ( "hungering rune weapon expired" ) );
 }
 #endif
+SPELL_ALIAS( hungering_rune_weapon, empower_rune_weapon )
+
 // === frostscythe ============================================================
 //TODO: do frost strike, obliterate, and frostscythe hit twice? or only once?
 #if (TALENT_FROSTSCYTHE)

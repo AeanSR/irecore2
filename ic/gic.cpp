@@ -93,12 +93,19 @@ gic::gic( QWidget *parent )
 
     // Init health pct.
     ui.comboInitialHealthPercentage->addItem( "100", 100.0f );
-    ui.comboInitialHealthPercentage->addItem( "19", 19.0f );
+    ui.comboInitialHealthPercentage->addItem( "80", 80.0f );
+    ui.comboInitialHealthPercentage->addItem( "50", 50.0f );
+    ui.comboInitialHealthPercentage->addItem( "20", 20.0f );
+    ui.comboInitialHealthPercentage->addItem( "10", 10.0f );
+    ui.comboInitialHealthPercentage->addItem( "5", 5.0f );
 
     // Death pct.
     ui.comboDeathPct->addItem( "0", 0.0f );
+    ui.comboDeathPct->addItem( "5", 5.0f );
     ui.comboDeathPct->addItem( "10", 10.0f );
-    ui.comboDeathPct->addItem( "21", 21.0f );
+    ui.comboDeathPct->addItem( "20", 20.0f );
+    ui.comboDeathPct->addItem( "50", 50.0f );
+    ui.comboDeathPct->addItem( "80", 80.0f );
 
     // Num Enemies.
     for (int i = 1; i <= 20; i++) {
@@ -132,10 +139,11 @@ gic::gic( QWidget *parent )
     ui.comboImportActive->setCurrentIndex( 0 );
 
     std::vector<QString> spec_name;
-    spec_name.resize( 3 );
+    spec_name.resize( 4 );
     spec_name[SPEC_ARMS_WARRIOR] = QApplication::translate( "gicClass", "Arms Warrior" );
     spec_name[SPEC_FURY_WARRIOR] = QApplication::translate( "gicClass", "Fury Warrior" );
     spec_name[SPEC_RET_PALADIN] = QApplication::translate( "gicClass", "Retribution Paladin" );
+    spec_name[SPEC_FROST_DEATHKNIGHT] = QApplication::translate( "gicClass", "Frost Deathknight" );
     for (auto i = spec_name.begin(); i != spec_name.end(); i++) ui.comboSpec->addItem( *i );
     on_comboSpec_currentIndexChanged( 0 );
 
@@ -405,6 +413,13 @@ void gic::set_parameters() {
         ic_setparam( "spec", "retribution" );
         ic_setparam( "rage_max", "5" );
         break;
+    case SPEC_FROST_DEATHKNIGHT:
+        ic_setparam( "spec", "frost_dk" );
+        if (ui.comboRace->currentIndex() == 3)
+            ic_setparam( "power_max", "105" );
+        else
+            ic_setparam( "power_max", "100" );
+        break;
     }
 
     QString talent;
@@ -607,6 +622,35 @@ void gic::on_comboSpec_currentIndexChanged( int idx ) {
         ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Divine Purpose" ) );
         ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Crusade" ) );
         ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Holy Wrath" ) );
+    }
+    if (idx == SPEC_FROST_DEATHKNIGHT) {
+        ui.comboTalent1->addItem( QApplication::translate( "gicClass", "Shattering Strike" ) );
+        ui.comboTalent1->addItem( QApplication::translate( "gicClass", "Icy Talons" ) );
+        ui.comboTalent1->addItem( QApplication::translate( "gicClass", "Murderous Efficiency" ) );
+
+        ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Freezing Fog" ) );
+        ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Frozen Pulse" ) );
+        ui.comboTalent2->addItem( QApplication::translate( "gicClass", "Horn of Winter" ) );
+
+        ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Icecap" ) );
+        ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Hungering Rune Weapon" ) );
+        ui.comboTalent3->addItem( QApplication::translate( "gicClass", "Avalanche" ) );
+
+        ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Abomination's Might" ) );
+        ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Blinding Sleet" ) );
+        ui.comboTalent4->addItem( QApplication::translate( "gicClass", "Winter is Coming" ) );
+
+        ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Volatile Shielding" ) );
+        ui.comboTalent5->addItem( QApplication::translate( "gicClass", "Permafrost" ) );
+        ui.comboTalent5->addItem( QApplication::translate( "gicClass", "White Walker" ) );
+
+        ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Frostscythe" ) );
+        ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Runic Attenuation" ) );
+        ui.comboTalent6->addItem( QApplication::translate( "gicClass", "Gathering Storm" ) );
+
+        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Obliteration" ) );
+        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Breath of Sindragosa" ) );
+        ui.comboTalent7->addItem( QApplication::translate( "gicClass", "Glacial Advance" ) );
     }
     // Policy Action List.
     QStringList listWarrior, listArms, listFury;

@@ -22,6 +22,7 @@
 enum {
     SPEC_ARMS_WARRIOR, SPEC_FURY_WARRIOR,
     SPEC_RET_PALADIN,
+    SPEC_FROST_DEATHKNIGHT,
 };
 
 IC_LOCAL double approx_scale_coeff( int current_itemlvl, int new_itemlvl );

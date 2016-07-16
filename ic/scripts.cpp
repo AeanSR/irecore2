@@ -758,6 +758,46 @@ QString script_aplga_conditions_paladin(
     if (use_cooldowns) if (!TEST_PARAM( "raidbuff_bloodlust", "0" )) script += "\"UP(bloodlust_expire)\",\n";
     return script;
 }
+QString script_aplga_actions_deathknight(
+    int use_cooldowns,
+    int use_talents,
+    int use_items
+) {
+    QString script;
+    int talent = atoi( ic_getparam( "talent" ) );
+    if (use_cooldowns) if (use_items) if (!TEST_PARAM( "raidbuff_potion", "0" )) script += "\"SPELL(potion)\",\n";
+    if (use_cooldowns) if (use_items) if (atoi( ic_getparam( "legendary_ring" ) )) script += "\"SPELL(thorasus_the_stone_heart_of_draenor)\",\n";
+    if (use_cooldowns) if (TEST_PARAM( "race", "bloodelf" )) script += "\"SPELL(arcane_torrent)\",\n";
+    if (use_cooldowns) if (TEST_PARAM( "race", "orc" )) script += "\"SPELL(blood_fury)\",\n";
+    if (use_cooldowns) if (TEST_PARAM( "race", "troll" )) script += "\"SPELL(berserking)\",\n";
+    if (use_cooldowns) if (use_items) if (TEST_PARAM( "trinket1", "vial_of_convulsive_shadows" ) || TEST_PARAM( "trinket2", "vial_of_convulsive_shadows" )) script += "\"SPELL(vial_of_convulsive_shadows)\",\n";
+    if (use_cooldowns) if (use_items) if (TEST_PARAM( "trinket1", "scabbard_of_kyanos" ) || TEST_PARAM( "trinket1", "scabbard_of_kyanos" )) script += "\"SPELL(scabbard_of_kyanos)\",\n";
+    if (use_cooldowns) if (use_items) if (TEST_PARAM( "trinket1", "bonemaws_big_toe" ) || TEST_PARAM( "trinket2", "bonemaws_big_toe" )) script += "\"SPELL(bonemaws_big_toe)\",\n";
+    if (use_cooldowns) if (use_items) if (TEST_PARAM( "trinket1", "emberscale_talisman" ) || TEST_PARAM( "trinket2", "emberscale_talisman" )) script += "\"SPELL(emberscale_talisman)\",\n";
+    if (use_cooldowns) if (use_items) if (TEST_PARAM( "trinket1", "badge_of_victory" ) || TEST_PARAM( "trinket2", "badge_of_victory" )) script += "\"SPELL(badge_of_victory)\",\n";
+    return script;
+}
+QString script_aplga_conditions_deathknight(
+    int use_cooldowns,
+    int use_talents,
+    int use_items
+) {
+    QString script;
+    int talent = atoi( ic_getparam( "talent" ) );
+    script += "\"enemy_health_percent(rti)<=20\",\n";
+    script += "\"rti->player.power<=20\",\n";
+    script += "\"rti->player.power<=40\",\n";
+    script += "\"rti->player.power<=60\",\n";
+    script += "\"rti->player.power<=80\",\n";
+    script += "\"rune_ready<1\",\n";
+    script += "\"rune_ready<2\",\n";
+    script += "\"rune_ready<3\",\n";
+    script += "\"rune_ready<4\",\n";
+    script += "\"rune_ready<5\",\n";
+    if (use_cooldowns) if (use_items) if (!TEST_PARAM( "raidbuff_potion", "0" )) script += "\"UP(potion_expire)\",\n";
+    if (use_cooldowns) if (!TEST_PARAM( "raidbuff_bloodlust", "0" )) script += "\"UP(bloodlust_expire)\",\n";
+    return script;
+}
 
 QString script_aplga(
     int spec,
@@ -778,6 +818,9 @@ action_list = {
     case SPEC_RET_PALADIN:
         script += script_aplga_actions_paladin(use_cooldowns, use_talents, use_items);
         break;
+    case SPEC_FROST_DEATHKNIGHT:
+        script += script_aplga_actions_deathknight(use_cooldowns, use_talents, use_items);
+        break;
     }
     script += R"RAWSCRIPT(
 }
@@ -789,6 +832,9 @@ condition_list = {
         break;
     case SPEC_RET_PALADIN:
         script += script_aplga_conditions_paladin(use_cooldowns, use_talents, use_items);
+        break;
+    case SPEC_FROST_DEATHKNIGHT:
+        script += script_aplga_conditions_deathknight(use_cooldowns, use_talents, use_items);
         break;
     }
     script += R"RAWSCRIPT(
@@ -1158,7 +1204,7 @@ print("Evaluate default actions as benchmark...")
 SetParam("default_actions", 1)
 benchmark = Run()
 SetParam("default_actions", 0)
-CreatePlotChart(3)
+-- CreatePlotChart(3)
 io.output("aplga.txt")
 gen = 1
 print("Generate first generation...")
@@ -1221,8 +1267,8 @@ while true do
     pool[i] = nil
   end
   collectgarbage()
-  AddPlotData(gen, benchmark, pool[1].dps, pool[pool_size].dps)
-  FinishPlotChart()
+  -- AddPlotData(gen, benchmark, pool[1].dps, pool[pool_size].dps)
+  -- FinishPlotChart()
   print("Gen"..gen..", max: "..pool[1].dps..", min: "..pool[pool_size].dps)
   print("/* START OF BEST APL */")
   print(dump(pool[1].apl))

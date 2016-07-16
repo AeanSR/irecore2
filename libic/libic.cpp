@@ -88,6 +88,8 @@ void ic_init( void ) {
     load_source( fury_str, "warrior\\fury.c" );
     load_source( paladin_str, "paladin\\paladin.c" );
     load_source( retribution_str, "paladin\\retribution.c" );
+    load_source( deathknight_str, "deathknight\\deathknight.c" );
+    load_source( frost_dk_str, "deathknight\\frost_dk.c" );
     // Lookup available devices.
     if (config().device_list.empty()) {
         config().device_list.clear();
@@ -165,6 +167,7 @@ void ic_setparam( const char* key, const char* value ) {
         if (0 == strcmp( value, "arms" )) config().spec = SPEC_ARMS_WARRIOR;
         else if (0 == strcmp( value, "fury" )) config().spec = SPEC_FURY_WARRIOR;
         else if (0 == strcmp( value, "retribution" )) config().spec = SPEC_RET_PALADIN;
+        else if (0 == strcmp( value, "frost_dk" )) config().spec = SPEC_FROST_DEATHKNIGHT;
         else  cbprintf( "No such specialization \"%s\".\n", value );
         switch (config().spec) {
         case SPEC_RET_PALADIN:
@@ -463,6 +466,7 @@ const char* ic_getparam( const char* key ) {
         case SPEC_ARMS_WARRIOR: return "arms"; break;
         case SPEC_FURY_WARRIOR: return "fury"; break;
         case SPEC_RET_PALADIN:  return "retribution"; break;
+        case SPEC_FROST_DEATHKNIGHT: return "frost_dk"; break;
         }
     } else if (0 == strcmp( key, "talent" )) {
         for (int i = 0; i < 7; i++)
@@ -679,7 +683,9 @@ const char* ic_defaultapl( void ) {
         apl.append( "SPELL(blade_of_wrath);\n" );
         apl.append( "}\n" );
     }
+    if (config().spec == SPEC_FROST_DEATHKNIGHT) {
 
+    }
     return apl.c_str();
 }
 
@@ -706,7 +712,7 @@ IC_LOCAL config_t parameters_consistency() {
         cbprintf( "MH Speed less than or equal to zero, reset to 1.5s.\n" );
         blank.mh_speed = 1.5;
     }
-    if (blank.spec == SPEC_FURY_WARRIOR && blank.oh_speed <= .0) {
+    if ((blank.spec == SPEC_FURY_WARRIOR || blank.spec == SPEC_FROST_DEATHKNIGHT) && blank.oh_speed <= .0) {
         cbprintf( "OH Speed less than or equal to zero, reset to 1.5s.\n" );
         blank.oh_speed = 1.5;
     }
@@ -830,6 +836,10 @@ IC_LOCAL std::string generate_predef( config_t& blank ) {
     case SPEC_RET_PALADIN:
         predef.append( "#define CLASS CLASS_PALADIN\r\n" );
         predef.append( "#define SPEC SPEC_RETRIBUTION\r\n" );
+        break;
+    case SPEC_FROST_DEATHKNIGHT:
+        predef.append( "#define CLASS CLASS_DEATHKNIGHT\r\n" );
+        predef.append( "#define SPEC SPEC_FROST_DK\r\n" );
         break;
     }
 
@@ -1104,6 +1114,10 @@ int ic_runsim( float* dps, float* dpsr, float* dpse, float* sim_time ) {
             source += config().kernel.paladin_str;
             source += config().kernel.retribution_str;
             break;
+        case SPEC_FROST_DEATHKNIGHT:
+            source += config().kernel.deathknight_str;
+            source += config().kernel.frost_dk_str;
+            break;
         }
         source += config().kernel.entry_str;
         source = predef + source;
@@ -1308,6 +1322,7 @@ const char* ic_debugdump( void ) {
     case SPEC_ARMS_WARRIOR: dump += "arms"; break;
     case SPEC_FURY_WARRIOR: dump += "fury"; break;
     case SPEC_RET_PALADIN:  dump += "retribution"; break;
+    case SPEC_FROST_DEATHKNIGHT:  dump += "frost_dk"; break;
     }
     dump += "\n";
     dump += "talent:\n";
