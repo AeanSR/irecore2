@@ -194,6 +194,9 @@ enum {
     routnum_t18frozen_wake_cast,
     routnum_t18frozen_wake_expire,
 #endif
+#if(razorice_mh || razorice_oh)
+    routnum_razorice_expire,
+#endif
     START_OF_WILD_ROUTNUM,
 };
 //Stat&Uitility=====================================================================
@@ -325,9 +328,9 @@ void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_
 // === auto-attack ============================================================
 DECL_EVENT( auto_attack_mh ) {
     float d = weapon_dmg( rti, 1.0f, 0, 0 );
-    k32u dice = round_table_dice( rti, rti->player.target, ATYPE_WHITE_MELEE, 0 );
-    deal_damage( rti, rti->player.target, d, DTYPE_PHYSICAL, dice, 0, 0 );
-    if ( dice == DICE_MISS ) {
+    k32u diceMH = round_table_dice( rti, rti->player.target, ATYPE_WHITE_MELEE, 0 );
+    deal_damage( rti, rti->player.target, d, DTYPE_PHYSICAL, diceMH, 0, 0 );
+    if ( diceHM == DICE_MISS ) {
         /* Miss */
         lprintf( ( "mh miss" ) );
     } else {
@@ -356,13 +359,12 @@ DECL_EVENT( auto_attack_mh ) {
     #endif
     //Avalanche implementation
     #if(TALENT_AVALANCHE)
-        if(dice == DICE_CRIT)
+        if(diceMH == DICE_CRIT&&UP(pillar_of_frost_cd))
         {
             float d = ap_dmg(rti, 0.75f);
             k32u dice = round_table_dice( rti, rti->player.target, ATYPE_YELLOW_MELEE, 0 );
             deal_damage( rti, rti->player.target, d, DTYPE_FROST, dice, 0, 0 );
             lprintf( ( "avalanche hit caused by mh crit") );
-
         }
     #endif
     //runic attenuation implementation
@@ -370,12 +372,32 @@ DECL_EVENT( auto_attack_mh ) {
         power_gain(rti,1);
     #endif
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( weapon[0].speed / aspeed ) ), routnum_auto_attack_mh, rti->player.target );
+    //razorice implementation
+    #if(razorice_mh)
+    {
+        float dF = weapon_dmg( rti, 0.1f, 0, 0 );
+        deal_damage( rti, rti->player.target, dF, DTYPE_FROST, diceMH, 0, 0 );
+        if(UP(razorice_expire(1)))
+        {
+            if(razorice_stack(1) < 5)
+            {
+                razorice_stack(1) += 1;
+            }
+            else
+            {
+                razorice_stack(1) = 1;
+            }
+            razorice_expire(1) = TIME_OFFSET(FROM_SECONDS(20.0f));
+            eq_enqueue( rti , razorice_expire(1), routnum_razorice_expire, rti->player.target);
+        }
+
+    }
 }
 DECL_EVENT( auto_attack_oh ) {
     float d = weapon_dmg( rti, 1.0f, 0, 1 );
-    k32u dice = round_table_dice( rti, rti->player.target, ATYPE_WHITE_MELEE, 0 );
-    deal_damage( rti, rti->player.target, d, DTYPE_PHYSICAL, dice, 0, 0 );
-    if ( dice == DICE_MISS ) {
+    k32u diceOH = round_table_dice( rti, rti->player.target, ATYPE_WHITE_MELEE, 0 );
+    deal_damage( rti, rti->player.target, d, DTYPE_PHYSICAL, diceOH, 0, 0 );
+    if ( diceOH == DICE_MISS ) {
         /* Miss */
         lprintf( ( "oh miss" ) );
     } else {
@@ -403,7 +425,7 @@ DECL_EVENT( auto_attack_oh ) {
     #endif
     //Avalanche implementation
     #if(TALENT_AVALANCHE)
-        if(dice == DICE_CRIT)
+        if(diceOH == DICE_CRIT&&UP(pillar_of_frost_cd))
         {
             float d = ap_dmg(rti, 1.0f);
             k32u dice = round_table_dice( rti, rti->player.target, ATYPE_YELLOW_MELEE, 0 );
@@ -416,6 +438,26 @@ DECL_EVENT( auto_attack_oh ) {
         power_gain(rti,1);
     #endif
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( weapon[1].speed / aspeed ) ), routnum_auto_attack_oh, rti->player.target );
+    //razorice
+    #if(razorice_oh)
+    {
+        float dF = weapon_dmg( rti, 0.1f, 0, 1 );
+        deal_damage( rti, rti->player.target, dF, DTYPE_FROST, diceOH, 0, 0 );
+        if(UP(razorice_expire(1)))
+        {
+            if(razorice_stack(1) < 5)
+            {
+                razorice_stack(1) += 1;
+            }
+            else
+            {
+                razorice_stack(1) = 1;
+            }
+            razorice_expire(1) = TIME_OFFSET(FROM_SECONDS(20.0f));
+            eq_enqueue( rti , razorice_expire(1), routnum_razorice_expire, rti->pillaryer.target);
+        }
+
+    }
 }
 // === Frost Strike ===========================================================
 //TODO: change damage calculation
@@ -498,7 +540,15 @@ DECL_EVENT( obliterate_cast ) {
         deal_damage(rti, target_id, dFOH, DTYPE_FROST, dice, 0,0);
 }
 #endif
+        time_t tempSave = killing_machine_expire; 
         killing_machine_expire = rti->timestamp;
+#if defined(t18_4pc)
+        if(.65 > uni_rng(rti))
+        {
+            killing_machine_expire = tempSave;
+            lprintf( ( "killing machine buff consumed by obliterate, but not consumed due to t18" ) );
+        }
+#endif  
         eq_enqueue(rti, killing_machine_expire, routnum_killing_machine_expire,0);
         lprintf( ( "killing machine buff consumed by obliterate, 100 percent crit chance" ) );
         //murderous efficiency implementation
@@ -882,14 +932,14 @@ DECL_EVENT ( hungering_rune_weapon_expire ) {
 SPELL_ALIAS( hungering_rune_weapon, empower_rune_weapon )
 
 // === frostscythe ============================================================
-//TODO: do frost strike, obliterate, and frostscythe hit twice? or only once?
+//TODO: is this only mainhand?
 #if (TALENT_FROSTSCYTHE)
 DECL_SPELL( frostscythe ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( !rune_check( rti, 1 ) ) return 0;
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1);
     eq_enqueue( rti, rti->timestamp, routnum_frostscythe_cast, 0);
-    lprintf( ( "empower rune weapon casted" ) );
+    lprintf( ( "frostscythe casted" ) );
     return 1;
 }
 DECL_EVENT ( frostscythe_cast) {
@@ -898,21 +948,21 @@ DECL_EVENT ( frostscythe_cast) {
     //kiling machine implementation
     if( UP (killing_machine_expire) ) {
         lprintf( ( "killing machine buff consumed by frostscythe" ) );
+        time_t tempSave = killing_machine_expire;
+        killing_machine_expire = rti->timestamp;
+        #if defined(t18_4pc)
+            if(.65 > uni_rng(rti))
+            {
+                killing_machine_expire = tempSave;
+                lprintf( ( "killing machine buff consumed by frostscythe, but not consumed due to t18" ) );
+            }
+        #endif
+        dice = round_table_dice(rti, i, ATYPE_YELLOW_MELEE, 1.0f);//TODO: melee or spell          
         for ( int i = 0; i < num_enemies; i++ ) {
-            dice = round_table_dice(rti, i, ATYPE_YELLOW_MELEE, 1.0f);//TODO: melee or spell
-            deal_damage(rti, i, d, DTYPE_FROST, dice, 1.0f,0);
-            killing_machine_expire = rti->timestamp;
+            deal_damage(rti, i, d, DTYPE_FROST, dice, 1.0f, 0);
             eq_enqueue(rti, killing_machine_expire, routnum_killing_machine_expire,0);
             lprintf( ( "frostscythe hit tar %d", i ) );
         }
-        //murderous efficiency implementation
-        #if(TALENT_MURDEROUS_EFFICIENCY)
-        if(uni_rng(rti)<0.5f)
-        {
-            rune_reactive(rti);
-            //TODO: check if this is correct in terms of game mechanics and code
-        }
-        #endif
     }
     else {
         for ( int i = 0; i < num_enemies; i++ ) {
@@ -922,7 +972,6 @@ DECL_EVENT ( frostscythe_cast) {
         }
     }
     //icecap implementation
-    //TODO: how the fuck does icecap work with frostscythe--one crit or multiple secod off?
     #if(TALENT_ICECAP)
         if(dice == DICE_CRIT)
         {
@@ -930,6 +979,14 @@ DECL_EVENT ( frostscythe_cast) {
             pillar_of_frost_cd -= reduction;
             eq_enqueue( rti, pillar_of_frost_cd, routnum_pillar_of_frost_cd, 0 );
             lprintf( ( "Icecap triggered by a frostscythe crit" ) );
+        }
+    #endif
+    //murderous efficiency implementation
+    #if(TALENT_MURDEROUS_EFFICIENCY)
+        if(uni_rng(rti)<0.5f)
+        {
+            rune_reactive(rti);
+            //TODO: check if this is correct in terms of game mechanics and code
         }
     #endif
 }
@@ -1063,6 +1120,14 @@ DECL_EVENT ( t18frozen_wake_expire )
     }
 }
 #endif
+//razorice
+DECL_EVENT(routnum_razorice_expire)
+{
+    if(razorice_expire(target_id)==rti->timestamp)
+    {
+        razorice_stack(target_id) = 0;
+    }
+}
 // === initilazation =========================================================================
 void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
     switch( e.routine ) {
