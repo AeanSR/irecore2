@@ -256,8 +256,10 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
         paperdoll.gear_list[i].name = item["name"].GetString();
         if (itemid >= 115580 && itemid <= 115584) t17_count++;
         if (itemid >= 115565 && itemid <= 115569) t17_count++;
+        if (itemid >= 115535 && itemid <= 115539) t17_count++;
         if (itemid == 124319 || itemid == 124329 || itemid == 124334 || itemid == 124340 || itemid == 124346) t18_count++;
         if (itemid == 124318 || itemid == 124328 || itemid == 124333 || itemid == 124339 || itemid == 124345) t18_count++;
+        if (itemid == 124317 || itemid == 124327 || itemid == 124332 || itemid == 124338 || itemid == 124344) t18_count++;
         if (itemid == 118305) archmages_greater_incandescence = 1;
         if (itemid == 118300) archmages_incandescence = 1;
         if (itemid == 124634) {
@@ -306,6 +308,8 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
             if (enchid == 5330) ui.comboMHEnchant->setCurrentIndex( 1 );
             else if (enchid == 5384) ui.comboMHEnchant->setCurrentIndex( 2 );
             else if (enchid == 5331) ui.comboMHEnchant->setCurrentIndex( 3 );
+            else if (enchid == 3370) ui.comboMHEnchant->setCurrentIndex( 4 );
+            else if (enchid == 3368) ui.comboMHEnchant->setCurrentIndex( 5 );
             else ui.comboMHEnchant->setCurrentIndex( 0 );
             mh_low = item["weaponInfo"]["damage"]["min"].GetInt();
             mh_high = item["weaponInfo"]["damage"]["max"].GetInt();
@@ -316,6 +320,8 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
             if (enchid == 5330) ui.comboOHEnchant->setCurrentIndex( 1 );
             else if (enchid == 5384) ui.comboOHEnchant->setCurrentIndex( 2 );
             else if (enchid == 5331) ui.comboOHEnchant->setCurrentIndex( 3 );
+            else if (enchid == 3370) ui.comboOHEnchant->setCurrentIndex( 4 );
+            else if (enchid == 3368) ui.comboOHEnchant->setCurrentIndex( 5 );
             else ui.comboOHEnchant->setCurrentIndex( 0 );
             oh_low = item["weaponInfo"]["damage"]["min"].GetInt();
             oh_high = item["weaponInfo"]["damage"]["max"].GetInt();

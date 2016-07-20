@@ -32,6 +32,7 @@ IC_LOCAL const char* trinket_list[] = {
     "emberscale_talisman",
     "gronntooth_war_horn",
     "libram_of_vindication",
+    "reapers_harvest",
     0
 };
 
@@ -221,6 +222,11 @@ IC_LOCAL int trinket_scaling( int trinket, int itemlvl, int spec ) {
         case 705: return 314;
         default:  return ( int ) ( 314.0 * approx_scale_coeff( 705, itemlvl ) );
         }
+    } else if (trinket == 21) {
+        switch (itemlvl) {
+        case 690: return 1735;
+        default:  return ( int ) ( 1735.0 * approx_scale_coeff( 690, itemlvl ) );
+        }
     } else return 0;
 }
 
@@ -246,6 +252,7 @@ IC_LOCAL int trinket_from_id( int id ) {
     case 110013: return 18;
     case 133595: return 19;
     case 124518: return 20;
+    case 124513: return 21;
     default: return 0;
     }
 }

@@ -163,6 +163,10 @@ gic::gic( QWidget *parent )
     ui.comboOHEnchant->addItem( QApplication::translate( "gicClass", "Bleeding Hollow" ) );
     ui.comboMHEnchant->addItem( QApplication::translate( "gicClass", "Shattered Hand" ) );
     ui.comboOHEnchant->addItem( QApplication::translate( "gicClass", "Shattered Hand" ) );
+    ui.comboMHEnchant->addItem( QApplication::translate( "gicClass", "Rune of Razorice" ) );
+    ui.comboOHEnchant->addItem( QApplication::translate( "gicClass", "Rune of Razorice" ) );
+    ui.comboMHEnchant->addItem( QApplication::translate( "gicClass", "Rune of Fallen Crusader" ) );
+    ui.comboOHEnchant->addItem( QApplication::translate( "gicClass", "Rune of Fallen Crusader" ) );
 
     // trinket list.
     QStringList lists;
@@ -187,7 +191,8 @@ gic::gic( QWidget *parent )
         QApplication::translate( "gicClass", "Bonemaw's Big Toe" ) <<
         QApplication::translate( "gicClass", "Emberscale Talisman" ) <<
         QApplication::translate( "gicClass", "Gronntooth War Horn" ) <<
-        QApplication::translate( "gicClass", "Libram of Vindication" );
+        QApplication::translate( "gicClass", "Libram of Vindication" ) <<
+        QApplication::translate( "gicClass", "Reaper's Harvest" );
     ui.comboTrinketSpecial1->addItems( lists );
     ui.comboTrinketSpecial2->addItems( lists );
     lists.clear();
@@ -482,10 +487,14 @@ void gic::set_parameters() {
     if (ui.comboMHEnchant->currentIndex() == 1) ic_setparam( "mh_enchant", "thunderlord" );
     if (ui.comboMHEnchant->currentIndex() == 2) ic_setparam( "mh_enchant", "bleedinghollow" );
     if (ui.comboMHEnchant->currentIndex() == 3) ic_setparam( "mh_enchant", "shatteredhand" );
+    if (ui.comboMHEnchant->currentIndex() == 4) ic_setparam( "mh_enchant", "razorice" );
+    if (ui.comboMHEnchant->currentIndex() == 5) ic_setparam( "mh_enchant", "fallen_crusader" );
     if (ui.comboOHEnchant->currentIndex() == 0) ic_setparam( "oh_enchant", "none" );
     if (ui.comboOHEnchant->currentIndex() == 1) ic_setparam( "oh_enchant", "thunderlord" );
     if (ui.comboOHEnchant->currentIndex() == 2) ic_setparam( "oh_enchant", "bleedinghollow" );
     if (ui.comboOHEnchant->currentIndex() == 3) ic_setparam( "oh_enchant", "shatteredhand" );
+    if (ui.comboOHEnchant->currentIndex() == 4) ic_setparam( "oh_enchant", "razorice" );
+    if (ui.comboOHEnchant->currentIndex() == 5) ic_setparam( "oh_enchant", "fallen_crusader" );
     ic_setparam( "actions", ui.txtAPL->toPlainText().toLocal8Bit() );
     ic_setparam( "default_actions", ui.radioDefaultActions->isChecked() ? "1" : "0" );
 

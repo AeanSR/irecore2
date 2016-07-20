@@ -90,6 +90,10 @@ struct config_t {
     int bleeding_hollow_oh;
     int shattered_hand_mh;
     int shattered_hand_oh;
+    int razorice_mh;
+    int razorice_oh;
+    int fallen_crusader_mh;
+    int fallen_crusader_oh;
     int trinket1;
     int trinket2;
     int trinket1_ilvl;

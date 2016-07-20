@@ -336,16 +336,22 @@ void ic_setparam( const char* key, const char* value ) {
     } else if (0 == strcmp( key, "t18_4pc" )) {
         config().t18_4pc = !!atoi( value );
     } else if (0 == strcmp( key, "mh_enchant" )) {
-        config().thunderlord_mh = !strcmp( value, "thunderlord" );
-        config().bleeding_hollow_mh = !strcmp( value, "bleedinghollow" );
-        config().shattered_hand_mh = !strcmp( value, "shatteredhand" );
-        if (strcmp( value, "none" ) && !config().thunderlord_mh && !config().bleeding_hollow_mh && !config().shattered_hand_mh)
+        int set = 0;
+        set |= (config().thunderlord_mh = !strcmp( value, "thunderlord" ));
+        set |= (config().bleeding_hollow_mh = !strcmp( value, "bleedinghollow" ));
+        set |= (config().shattered_hand_mh = !strcmp( value, "shatteredhand" ));
+        set |= (config().razorice_mh = !strcmp( value, "razorice" ));
+        set |= (config().fallen_crusader_mh = !strcmp( value, "fallen_crusader" ));
+        if (strcmp( value, "none" ) && !set)
             cbprintf( "No such weapon enchant\"%s\".\n", value );
     } else if (0 == strcmp( key, "oh_enchant" )) {
-        config().thunderlord_oh = !strcmp( value, "thunderlord" );
-        config().bleeding_hollow_oh = !strcmp( value, "bleedinghollow" );
-        config().shattered_hand_oh = !strcmp( value, "shatteredhand" );
-        if (strcmp( value, "none" ) && !config().thunderlord_oh && !config().bleeding_hollow_oh && !config().shattered_hand_oh)
+        int set = 0;
+        set |= (config().thunderlord_oh = !strcmp( value, "thunderlord" ));
+        set |= (config().bleeding_hollow_oh = !strcmp( value, "bleedinghollow" ));
+        set |= (config().shattered_hand_oh = !strcmp( value, "shatteredhand" ));
+        set |= (config().razorice_oh = !strcmp( value, "razorice" ));
+        set |= (config().fallen_crusader_oh = !strcmp( value, "fallen_crusader" ));
+        if (strcmp( value, "none" ) && !set)
             cbprintf( "No such weapon enchant\"%s\".\n", value );
     } else if (0 == strcmp( key, "trinket1" )) {
         int x;
@@ -477,11 +483,15 @@ const char* ic_getparam( const char* key ) {
         if (config().thunderlord_mh) return "thunderlord";
         if (config().bleeding_hollow_mh) return "bleedinghollow";
         if (config().shattered_hand_mh) return "shatteredhand";
+        if (config().razorice_mh) return "razorice";
+        if (config().fallen_crusader_mh) return "fallen_crusader";
         return "none";
     } else if (0 == strcmp( key, "oh_enchant" )) {
         if (config().thunderlord_oh) return "thunderlord";
         if (config().bleeding_hollow_oh) return "bleedinghollow";
         if (config().shattered_hand_oh) return "shatteredhand";
+        if (config().razorice_oh) return "razorice";
+        if (config().fallen_crusader_oh) return "fallen_crusader";
         return "none";
     } else if (0 == strcmp( key, "mh_type" )) {
         const char* typestr[] = { "2h", "1h", "dagger", };
@@ -1010,6 +1020,22 @@ IC_LOCAL std::string generate_predef( config_t& blank ) {
 
     predef.append( "#define shatteredhand_oh " );
     sprintf( buffer, "%d", !!blank.shattered_hand_oh );
+    predef.append( buffer ); predef.append( "\r\n" );
+
+    predef.append( "#define razorice_mh " );
+    sprintf( buffer, "%d", !!blank.razorice_mh );
+    predef.append( buffer ); predef.append( "\r\n" );
+
+    predef.append( "#define razorice_oh " );
+    sprintf( buffer, "%d", !!blank.razorice_oh );
+    predef.append( buffer ); predef.append( "\r\n" );
+
+    predef.append( "#define fallen_crusader_mh " );
+    sprintf( buffer, "%d", !!blank.fallen_crusader_mh );
+    predef.append( buffer ); predef.append( "\r\n" );
+
+    predef.append( "#define fallen_crusader_oh " );
+    sprintf( buffer, "%d", !!blank.fallen_crusader_oh );
     predef.append( buffer ); predef.append( "\r\n" );
 
     if (blank.rng_engine == 127) predef.append( "#define RNG_MT127\r\n" );
