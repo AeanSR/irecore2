@@ -224,8 +224,8 @@ IC_LOCAL int trinket_scaling( int trinket, int itemlvl, int spec ) {
         }
     } else if (trinket == 21) {
         switch (itemlvl) {
-        case 690: return 1735;
-        default:  return ( int ) ( 1735.0 * approx_scale_coeff( 690, itemlvl ) );
+        case 705: return 1998;
+        default:  return ( int ) ( 1998.0 * approx_scale_coeff( 705, itemlvl ) );
         }
     } else return 0;
 }
