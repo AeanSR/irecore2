@@ -92,6 +92,7 @@ struct spec_state_t{
 #else
     #define glacial_advance_cd (0)
 #endif
+//==================================================================================    
     struct{
         time_t expire;
         RPPM_t proc;
@@ -233,7 +234,7 @@ float spec_power_check( rtinfo_t* rti, float cost ) {
 }
 float spec_power_consume( rtinfo_t* rti, float cost ) {
     //runic empowerment implementation
-    if(uni_rng(rti)<(cost/100)) // Comment by Aean: uni_rng(rti) gives random numbers between [0,1), so it is guaranteed to be lesser than cost, since cost is at least 1.0
+    if(uni_rng(rti)<(cost/100))
     {
         rune_reactive(rti);
     }
@@ -253,7 +254,7 @@ void spec_rune_consume( rtinfo_t* rti, k32u count)
             remorseless_winter_stack += count;
             lprintf( ( "gthering storm triggered" ) );
         }
-    #endif // Comment by Aean: this is added by me, otherwise my editor keeps complaining about the miss of endif.
+    #endif
 }
 k32u round_table_dice( rtinfo_t* rti, k32u target_id, k32u attacktype, float extra_crit_rate ) {
     k32u dice = round_table_dice2( rti, target_id, attacktype, extra_crit_rate );
@@ -330,7 +331,7 @@ DECL_EVENT( auto_attack_mh ) {
     float d = weapon_dmg( rti, 1.0f, 0, 0 );
     k32u diceMH = round_table_dice( rti, rti->player.target, ATYPE_WHITE_MELEE, 0 );
     deal_damage( rti, rti->player.target, d, DTYPE_PHYSICAL, diceMH, 0, 0 );
-    if ( diceHM == DICE_MISS ) {
+    if ( diceMH == DICE_MISS ) {
         /* Miss */
         lprintf( ( "mh miss" ) );
     } else {
@@ -350,10 +351,6 @@ DECL_EVENT( auto_attack_mh ) {
         }
     #endif
     float aspeed = (1.0f + rti->player.stat.haste);
-    //#if(/*razorice blahblahblah*/)
-
-    //#endif
-    //icy talon implementation
     #if(TALENT_ICY_TALONS)
         aspeed = aspeed *(1 + 0.12f * icy_talons_stack);
     #endif
@@ -392,6 +389,7 @@ DECL_EVENT( auto_attack_mh ) {
         }
 
     }
+    #endif
 }
 DECL_EVENT( auto_attack_oh ) {
     float d = weapon_dmg( rti, 1.0f, 0, 1 );
@@ -458,6 +456,7 @@ DECL_EVENT( auto_attack_oh ) {
         }
 
     }
+    #endif
 }
 // === Frost Strike ===========================================================
 //TODO: change damage calculation
@@ -492,7 +491,6 @@ DECL_EVENT( frost_strike_cast ) {
     #endif
     lprintf( ( "frost strike hit" ) );
     //obliteration implementation
-    //TODO: does this interfere with RPPM?
     #if(TALENT_OBLITERATION)
         if(UP(obliteration_expire))
         {
@@ -525,8 +523,8 @@ DECL_EVENT( obliterate_cast ) {
     k32u dice;
 #if defined (trinket_reapers_harvest)
 { //TODO find scale
-    float dF = trinket_reapers_harvest * d;
-    float dFOH = trinket_reapers_harvest * dOH;
+    float dF = trinket_reapers_harvest * d / 10000;
+    float dFOH = trinket_reapers_harvest * dOH / 10000;
 }
 #endif
     //kiling machine implementation
@@ -735,51 +733,7 @@ DECL_SPELL( remorseless_winter) {
 DECL_EVENT( remorseless_winter_cast) {
     remorseless_winter_stack = 0;
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 0.0f ) ), routnum_remorseless_winter_tick, 0);
-    /**
-        Comment by Aean:
-        what you did is right, but not optimal. the event triggering map for your implement, when there is multiple targets:
-
-             tick@1-tick@1-tick@1-...
-            /      \      \      \
-        cast        expire expire expire
-            \
-             tick@2-tick@2-tick@2-...
-                   \      \      \
-                    expire expire expire
-
-        lines means the former event will enqueue the later event.
-        could you combine multiple tick events for multiple targets, so there would be significantly less events enqueued?
-
-        cast---tick---tick---tick---...
-                   \      \      \
-                    expire expire expire
-
-        or even better, to avoid hanging expire events?
-
-        cast---tick---tick---tick---tick---tick---expire
-
-        less events means faster simulation, and lower probability to overfill the event queue, which will cause UB or crashes.
-
-        UPD: sorry, I mistakenly thought remorseless_winter_expire is the expiration for the debuff(should be the buff) when write these comments.
-        that would be a better example if the debuff expire event is necessary. what you've done is actually this:
-
-                 tick@1-tick@1-tick@1-...
-                /
-            cast
-           /    \
-     (spell)     tick@2-tick@2-tick@2-...
-           \
-            ------------------------------------expire
-
-        but the optimal implement should be
-
-        cast---tick---tick---tick---tick---tick-expire
-
-        thus there is only 1 event kept in the queue at any time, and only 1 event processed per second, no matter the number of targets.
-        even you can combine expire routine into tick routine, since the buff always expires at the same time of the last tick, so the expire routine hook may be cut off.
-
-        cast---tick---tick---tick---tick---tick(expire is processed in the last tick event)
-    **/
+    
     lprintf( ( "remorseless winter starts" ) );
 }
 DECL_EVENT ( remorseless_winter_cd) {
@@ -964,7 +918,7 @@ DECL_EVENT ( frostscythe_cast) {
                 lprintf( ( "killing machine buff consumed by frostscythe, but not consumed due to t18" ) );
             }
         #endif
-        dice = round_table_dice(rti, i, ATYPE_YELLOW_MELEE, 1.0f);//TODO: melee or spell
+        dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 1.0f);//TODO: melee or spell          
         for ( int i = 0; i < num_enemies; i++ ) {
             deal_damage(rti, i, d, DTYPE_FROST, dice, 1.0f, 0);
             eq_enqueue(rti, killing_machine_expire, routnum_killing_machine_expire,0);
@@ -1129,7 +1083,7 @@ DECL_EVENT ( t18frozen_wake_expire )
 }
 #endif
 //razorice
-DECL_EVENT(routnum_razorice_expire)
+DECL_EVENT( razorice_expire )
 {
     if(razorice_expire(target_id)==rti->timestamp)
     {
@@ -1195,6 +1149,9 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
     HOOK_EVENT( t18obliteration_expire );
     HOOK_EVENT( t18frozen_wake_cast );
     HOOK_EVENT( t18frozen_wake_expire );
+#endif
+#if(razorice_mh || razorice_oh)
+    HOOK_EVENT( razorice_expire );
 #endif
     default:
         lprintf( ( "wild spec routine entry %d, last defined routnum %d", e.routine, START_OF_WILD_ROUTNUM - 1 ) );
