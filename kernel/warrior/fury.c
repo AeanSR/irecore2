@@ -186,6 +186,10 @@ float spec_haste_coefficient( rtinfo_t* rti ){
     return coeff;
 }
 
+float spec_haste_increament( rtinfo_t* rti ) {
+    return 0.0f;
+}
+
 k32u round_table_dice2( rtinfo_t* rti, k32u target_id, k32u attacktype, float extra_crit_rate ) {
     float c = uni_rng( rti );
     float cr = rti->player.stat.crit - 0.03f + extra_crit_rate;

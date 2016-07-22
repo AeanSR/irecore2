@@ -169,6 +169,10 @@ float spec_haste_coefficient( rtinfo_t* rti ) {
     return coeff;
 }
 
+float spec_haste_increament( rtinfo_t* rti ) {
+    return 0.0f;
+}
+
 k32u round_table_dice2( rtinfo_t* rti, k32u target_id, k32u attacktype, float extra_crit_rate ) {
     float c = uni_rng( rti );
     float cr = rti->player.stat.crit - 0.03f + extra_crit_rate;
@@ -335,7 +339,7 @@ DECL_EVENT( avenging_wrath_cd ) {
         lprintf( ( "avenging_wrath cd" ) );
     }
 }
-DECL_SPELL( avenging_wrath ) {
+DECL_SPELL( __icintl__avenging_wrath ) {
     if ( avenging_wrath_cd > rti->timestamp ) return 0;
     avenging_wrath_cd = TIME_OFFSET( FROM_SECONDS( 120 ) );
     eq_enqueue( rti, avenging_wrath_cd, routnum_avenging_wrath_cd, 0 );
@@ -343,7 +347,8 @@ DECL_SPELL( avenging_wrath ) {
     lprintf( ( "cast avenging_wrath" ) );
     return 1;
 }
-SPELL_ALIAS( crusade, avenging_wrath )
+SPELL_ALIAS( avenging_wrath, __icintl__avenging_wrath, !TALENT_CRUSADE )
+SPELL_ALIAS( crusade,        __icintl__avenging_wrath,  TALENT_CRUSADE )
 
 // === blade of justice =======================================================
 DECL_EVENT( blade_of_justice_cd ) {
@@ -381,7 +386,7 @@ DECL_EVENT( blade_of_wrath_tick ) {
     }
 }
 #endif
-DECL_SPELL( blade_of_justice ) {
+DECL_SPELL( __icintl__blade_of_justice ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( blade_of_justice_cd > rti->timestamp ) return 0;
 #if (TALENT_DIVINE_HAMMER)
@@ -399,8 +404,9 @@ DECL_SPELL( blade_of_justice ) {
     lprintf( ( "cast blade_of_justice" ) );
     return 1;
 }
-SPELL_ALIAS( blade_of_wrath, blade_of_justice )
-SPELL_ALIAS( divine_hammer, blade_of_justice )
+SPELL_ALIAS( blade_of_justice, __icintl__blade_of_justice, !TALENT_BLADE_OF_WRATH && !TALENT_DIVINE_HAMMER )
+SPELL_ALIAS( blade_of_wrath,   __icintl__blade_of_justice, TALENT_BLADE_OF_WRATH )
+SPELL_ALIAS( divine_hammer,    __icintl__blade_of_justice, TALENT_DIVINE_HAMMER )
 
 // === judgment ===============================================================
 DECL_EVENT( judgment_cast ) {
@@ -490,7 +496,7 @@ DECL_EVENT( crusader_strike_cast ) {
 #endif
     lprintf( ( "crusader_strike hit" ) );
 }
-DECL_SPELL( crusader_strike ) {
+DECL_SPELL( __icintl__crusader_strike ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( crusader_strike_charge == 0 ) return 0;
     crusader_strike_charge--;
@@ -503,7 +509,8 @@ DECL_SPELL( crusader_strike ) {
     lprintf( ( "cast crusader_strike" ) );
     return 1;
 }
-SPELL_ALIAS( zeal, crusader_strike )
+SPELL_ALIAS( crusader_strike, __icintl__crusader_strike, !TALENT_ZEAL )
+SPELL_ALIAS( zeal,            __icintl__crusader_strike,  TALENT_ZEAL )
 
 // === divine storm ===========================================================
 DECL_EVENT( divine_storm_cast ) {

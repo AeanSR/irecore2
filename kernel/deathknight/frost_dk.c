@@ -540,15 +540,15 @@ DECL_EVENT( obliterate_cast ) {
         deal_damage(rti, target_id, dFOH, DTYPE_FROST, dice, 0,0);
 }
 #endif
-        time_t tempSave = killing_machine_expire; 
+        time_t tempSave = killing_machine_expire;
         killing_machine_expire = rti->timestamp;
-#if defined(t18_4pc)
+#if (t18_4pc)
         if(.65 > uni_rng(rti))
         {
             killing_machine_expire = tempSave;
             lprintf( ( "killing machine buff consumed by obliterate, but not consumed due to t18" ) );
         }
-#endif  
+#endif
         eq_enqueue(rti, killing_machine_expire, routnum_killing_machine_expire,0);
         lprintf( ( "killing machine buff consumed by obliterate, 100 percent crit chance" ) );
         //murderous efficiency implementation
@@ -852,6 +852,10 @@ DECL_EVENT ( empower_rune_weapon_cast) {
     rune_reactive_all(rti);
     power_gain(rti,25);
 }
+#else
+DECL_SPELL( empower_rune_weapon ) {
+    return 0;
+}
 #endif
 
 // === icy talons =============================================================
@@ -898,7 +902,7 @@ DECL_EVENT ( horn_of_winter_cast) {
 #endif
 // === hungering rune weapon ==================================================
 #if(TALENT_HUNGERING_RUNE_WEAPON)
-DECL_SPELL( empower_rune_weapon ) {
+DECL_SPELL( hungering_rune_weapon ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( hungering_rune_weapon_cd > rti->timestamp ) return 0;
     hungering_rune_weapon_cd = TIME_OFFSET( FROM_SECONDS( 180.0f) );//TODO: check cd
@@ -928,8 +932,11 @@ DECL_EVENT ( hungering_rune_weapon_tick )
 DECL_EVENT ( hungering_rune_weapon_expire ) {
     lprintf( ( "hungering rune weapon expired" ) );
 }
+#else
+DECL_SPELL( hungering_rune_weapon ) {
+    return 0;
+}
 #endif
-SPELL_ALIAS( hungering_rune_weapon, empower_rune_weapon )
 
 // === frostscythe ============================================================
 //TODO: is this only mainhand?
@@ -950,14 +957,14 @@ DECL_EVENT ( frostscythe_cast) {
         lprintf( ( "killing machine buff consumed by frostscythe" ) );
         time_t tempSave = killing_machine_expire;
         killing_machine_expire = rti->timestamp;
-        #if defined(t18_4pc)
+        #if (t18_4pc)
             if(.65 > uni_rng(rti))
             {
                 killing_machine_expire = tempSave;
                 lprintf( ( "killing machine buff consumed by frostscythe, but not consumed due to t18" ) );
             }
         #endif
-        dice = round_table_dice(rti, i, ATYPE_YELLOW_MELEE, 1.0f);//TODO: melee or spell          
+        dice = round_table_dice(rti, i, ATYPE_YELLOW_MELEE, 1.0f);//TODO: melee or spell
         for ( int i = 0; i < num_enemies; i++ ) {
             deal_damage(rti, i, d, DTYPE_FROST, dice, 1.0f, 0);
             eq_enqueue(rti, killing_machine_expire, routnum_killing_machine_expire,0);
@@ -1057,6 +1064,7 @@ DECL_EVENT( breath_of_sindragosa_tick){
     }
 }
 DECL_EVENT( breath_of_sindragosa_expire){
+    breath_of_sindragosa_duration = 0;
     lprintf( ( "breath of sindragosa expired, dealth damage %d times", breath_of_sindragosa_duration ) );
 }
 #endif

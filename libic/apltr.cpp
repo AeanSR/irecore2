@@ -261,6 +261,9 @@ namespace apltr {
         {"divine_hammer", 0},
         {"zeal", 4},
         {"howling_blast", 0},
+        {"remorseless_winter", 0},
+        {"frostscythe", 0},
+        {"breath_of_sindragosa", 0},
         {0,0},
     };
     IC_LOCAL const char* talent_list[] = {
@@ -313,6 +316,7 @@ namespace apltr {
         "frenzy",
         "inner_rage",
         "focused_rage",
+        "deadly_calm",
         "trauma",
         "titanic_might",
         "carnage",
@@ -460,6 +464,7 @@ namespace apltr {
         { "spell_targets.judgment", "(TALENT_GREATER_JUDGMENT?min(num_enemies,4):1)", 0 },
         { "spell_targets.zeal", "min(num_enemies,zeal_stack)", 0 },
 
+        { "time", "TO_SECONDS(rti->timestamp)", 0 },
         { "enemies", "num_enemies", 0 },
         { "active_enemies", "num_enemies", 0 },
         { "desired_targets", "num_enemies", 0 },
@@ -473,6 +478,9 @@ namespace apltr {
         { "holy_power", "rti->player.power", 0 },
         { "holy_power.max", "power_max", 0 },
         { "holy_power.deficit", "(power_max-rti->player.power)", 0 },
+        { "runic_power", "rti->player.power", 0 },
+        { "runic_power.max", "power_max", 0 },
+        { "runic_power.deficit", "(power_max-rti->player.power)", 0 },
         { "gcd", "TO_SECONDS(REMAIN(rti->player.gcd))", 0 },
         { "set_bonus.tier18_4pc", "t18_4pc", 0 },
         { "set_bonus.tier18_2pc", "t18_2pc", 0 },
@@ -495,6 +503,8 @@ namespace apltr {
         { "dot.rend.up", "UP(rend_expire(rti->player.target))", 0 },
         { "dot.rend.remains", "TO_SECONDS(REMAIN(rend_expire(rti->player.target)))", 0 },
         { "dot.rend.duration", "15", 0 },
+        { "dot.breath_of_sindragosa.ticking", "breath_of_sindragosa_duration", 0 },
+        { "dot.frost_fever.ticking", "UP(frost_fever_expire(rti->player.target))", 0 },
 
         // temporary.
         { "buff.shattered_defenses.down", "1", 0 },
@@ -503,6 +513,8 @@ namespace apltr {
     };
     IC_LOCAL item_context_dependent_t var_cd_list[] = {
         { "mortal_strike", "charges", "mortal_strike_charge", 0 },
+        { "zeal", "charges", "zeal_charge", 0 },
+        { "crusader_strike", "charges", "crusader_strike_charge", 0 },
         { "rend", "remains", "TO_SECONDS(REMAIN(rend_expire(rti->player.target)))", 0 },
         { "rend", "duration", "15", 0 },
         { 0 }
@@ -1393,7 +1405,7 @@ IC_LOCAL int kv_pair( std::string& key, int& vpos ) {
         if (get().value == "=") {
             tvpos = pos++;
             if (tvpos >= working->size() || working->at( tvpos ).value == "/" || working->at( tvpos ).value == ",") return 0;
-            if (tkey == "name" || tkey == "if" || tkey == "cycle_targets" || tkey == "sync") {
+            if (tkey == "name" || tkey == "if" || tkey == "target_if" || tkey == "slot" || tkey == "cycle_targets" || tkey == "sync") {
 
             } else {
                 if (!t.suppress) {
@@ -1434,7 +1446,7 @@ IC_LOCAL rule_t* rule_item() {
                     t.suppress = 1;
                 }
                 processed_name = 1;
-            } else if (key == "if") {
+            } else if (key == "if" || key == "target_if") {
                 if (processed_if) {
                     token_t& t = working->at( vpos - 2 );
                     if (!t.suppress) eprintf( t, 0, "condition duplicated, overwritten" );
@@ -1462,6 +1474,22 @@ IC_LOCAL rule_t* rule_item() {
                     if (!t.suppress) eprintf( t, 0, "sync ability not supported, ignored" );
                     t.suppress = 1;
                 }
+            } else if (key == "slot") {
+                if (processed_name) {
+                    token_t& t = working->at( vpos - 2 );
+                    if (!t.suppress) eprintf( t, 0, "name duplicated, overwritten" );
+                    t.suppress = 1;
+                }
+                if ( working->at( vpos ).value == "finger1" || working->at( vpos ).value == "finger2" ) {
+                    node->action = lookup_act( "thorasus_the_stone_heart_of_draenor", node->rt );
+                    processing_action = working->at( vpos ).value;
+                }
+                if (node->action < 0) {
+                    token_t& t = working->at( vpos );
+                    if (!t.suppress) eprintf( t, 0, "unsupported slot '%s', ignored", t.value.c_str() );
+                    t.suppress = 1;
+                }
+                processed_name = 1;
             }
             unmark();
             mark();
@@ -1495,7 +1523,7 @@ IC_LOCAL rule_t* rule_item() {
                     t.suppress = 1;
                 }
                 processed_name = 1;
-            } else if (key == "if") {
+            } else if (key == "if" || key == "target_if") {
                 if (processed_if) {
                     token_t& t = working->at( vpos - 2 );
                     if (!t.suppress) eprintf( t, 0, "condition duplicated, overwritten" );
@@ -1549,7 +1577,7 @@ IC_LOCAL rule_t* rule_item() {
                 token_t& t = working->at( vpos - 2 );
                 if (!t.suppress) eprintf( t, 0, "unsupported key 'name', ignored" );
                 t.suppress = 1;
-            } else if (key == "if") {
+            } else if (key == "if" || key == "target_if") {
                 if (processed_if) {
                     token_t& t = working->at( vpos - 2 );
                     if (!t.suppress) eprintf( t, 0, "condition duplicated, overwritten" );

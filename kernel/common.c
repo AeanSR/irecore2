@@ -542,7 +542,7 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
 #define HOOK_EVENT( name ) case routnum_##name: event_##name( rti, e.target_id ); break;
 #define DECL_SPELL( name ) int spell_##name ( rtinfo_t* rti )
 #define SPELL( name ) safemacro(if(spell_##name ( rti )) return;)
-#define SPELL_ALIAS( alias, origin ) int spell_##alias ( rtinfo_t* rti ) { return spell_##origin ( rti ); }
+#define SPELL_ALIAS( alias, origin, condition ) int spell_##alias ( rtinfo_t* rti ) { if (condition) return spell_##origin ( rti ); else return 0; }
 enum {
     START_OF_COMMON_ROUTNUM = 0,
     routnum_gcd_expire,
