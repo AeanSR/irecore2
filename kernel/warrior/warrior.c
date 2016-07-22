@@ -70,42 +70,42 @@ struct class_state_t {
         time_t expire;
         time_t cd;
     } battle_cry;
-    #define battle_cry_expire (rti->player.class->battle_cry.expire)
-    #define battle_cry_cd     (rti->player.class->battle_cry.cd)
+#define battle_cry_expire (rti->player.class->battle_cry.expire)
+#define battle_cry_cd     (rti->player.class->battle_cry.cd)
     struct {
         time_t cd;
     } berserker_rage;
-    #define berserker_rage_cd (rti->player.class->berserker_rage.cd)
+#define berserker_rage_cd (rti->player.class->berserker_rage.cd)
     struct {
         time_t cd;
     } heroic_leap;
-    #define heroic_leap_cd (rti->player.class->heroic_leap.cd)
+#define heroic_leap_cd (rti->player.class->heroic_leap.cd)
 #if (TALENT_SHOCKWAVE)
     struct {
         time_t cd;
     } shockwave;
-    #define shockwave_cd (rti->player.class->shockwave.cd)
+#define shockwave_cd (rti->player.class->shockwave.cd)
 #else
-    #define shockwave_cd (0)
+#define shockwave_cd (0)
 #endif
 #if (TALENT_STORM_BOLT)
     struct {
         time_t cd;
     } storm_bolt;
-    #define storm_bolt_cd (rti->player.class->storm_bolt.cd)
+#define storm_bolt_cd (rti->player.class->storm_bolt.cd)
 #else
-    #define storm_bolt_cd (0)
+#define storm_bolt_cd (0)
 #endif
 #if (TALENT_AVATAR)
     struct {
         time_t expire;
         time_t cd;
     } avatar;
-    #define avatar_expire (rti->player.class->avatar.expire)
-    #define avatar_cd     (rti->player.class->avatar.cd)
+#define avatar_expire (rti->player.class->avatar.expire)
+#define avatar_cd     (rti->player.class->avatar.cd)
 #else
-    #define avatar_expire (0)
-    #define avatar_cd     (0)
+#define avatar_expire (0)
+#define avatar_cd     (0)
 #endif
 #if (TALENT_BLADESTORM)
     struct {
@@ -113,11 +113,11 @@ struct class_state_t {
         time_t expire;
         time_t tick_interval;
     } bladestorm;
-    #define bladestorm_expire (rti->player.class->bladestorm.expire)
-    #define bladestorm_cd     (rti->player.class->bladestorm.cd)
+#define bladestorm_expire (rti->player.class->bladestorm.expire)
+#define bladestorm_cd     (rti->player.class->bladestorm.cd)
 #else
-    #define bladestorm_expire (0)
-    #define bladestorm_cd     (0)
+#define bladestorm_expire (0)
+#define bladestorm_cd     (0)
 #endif
 };
 struct class_debuff_t {
@@ -216,7 +216,7 @@ DECL_EVENT( heroic_leap_cast ) {
 DECL_SPELL( heroic_leap ) {
     if ( heroic_leap_cd > rti->timestamp ) return 0;
     eq_enqueue( rti, rti->timestamp, routnum_heroic_leap_cast, 0 );
-    heroic_leap_cd = TIME_OFFSET( FROM_SECONDS( (TALENT_BOUNDING_STRIDE) ? 30 : 45 ) );
+    heroic_leap_cd = TIME_OFFSET( FROM_SECONDS( ( TALENT_BOUNDING_STRIDE ) ? 30 : 45 ) );
     eq_enqueue( rti, heroic_leap_cd, routnum_heroic_leap_cd, 0 );
     return 1;
 }
@@ -343,33 +343,33 @@ void class_routine_entries( rtinfo_t* rti, _event_t e ) {
         spec_routine_entries( rti, e );
     }
     else switch( e.routine ) {
-        HOOK_EVENT( battle_cry_start );
-        HOOK_EVENT( battle_cry_expire );
-        HOOK_EVENT( battle_cry_cd );
-        HOOK_EVENT( berserker_rage_cd );
-        HOOK_EVENT( heroic_leap_cast );
-        HOOK_EVENT( heroic_leap_cd );
+            HOOK_EVENT( battle_cry_start );
+            HOOK_EVENT( battle_cry_expire );
+            HOOK_EVENT( battle_cry_cd );
+            HOOK_EVENT( berserker_rage_cd );
+            HOOK_EVENT( heroic_leap_cast );
+            HOOK_EVENT( heroic_leap_cd );
 #if (TALENT_SHOCKWAVE)
-        HOOK_EVENT( shockwave_cd );
-        HOOK_EVENT( shockwave_cast );
+            HOOK_EVENT( shockwave_cd );
+            HOOK_EVENT( shockwave_cast );
 #endif
 #if (TALENT_STORM_BOLT)
-        HOOK_EVENT( storm_bolt_cd );
-        HOOK_EVENT( storm_bolt_cast );
+            HOOK_EVENT( storm_bolt_cd );
+            HOOK_EVENT( storm_bolt_cast );
 #endif
 #if (TALENT_AVATAR)
-        HOOK_EVENT( avatar_start );
-        HOOK_EVENT( avatar_expire );
-        HOOK_EVENT( avatar_cd );
+            HOOK_EVENT( avatar_start );
+            HOOK_EVENT( avatar_expire );
+            HOOK_EVENT( avatar_cd );
 #endif
 #if (TALENT_BLADESTORM)
-        HOOK_EVENT( bladestorm_tick );
-        HOOK_EVENT( bladestorm_cd );
+            HOOK_EVENT( bladestorm_tick );
+            HOOK_EVENT( bladestorm_cd );
 #endif
-    default:
-        lprintf( ( "wild class routine entry %d", e.routine ) );
-        assert( 0 );
-    }
+        default:
+            lprintf( ( "wild class routine entry %d", e.routine ) );
+            assert( 0 );
+        }
 }
 
 void spec_module_init( rtinfo_t* rti );

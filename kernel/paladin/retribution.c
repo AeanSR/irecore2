@@ -145,7 +145,7 @@ struct spec_debuff_t {
 
 };
 
-float spec_str_coefficient( rtinfo_t* rti ){
+float spec_str_coefficient( rtinfo_t* rti ) {
     return 1.0f;
 }
 
@@ -542,10 +542,10 @@ DECL_SPELL( divine_storm ) {
     } else
 #endif
 #if (TALENT_THE_FIRES_OF_JUSTICE)
-    if ( UP( the_fires_of_justice_expire ) ) {
-        the_fires_of_justice_expire = rti->timestamp;
-        eq_enqueue( rti, rti->timestamp, routnum_the_fires_of_justice_expire, 0 );
-    }
+        if ( UP( the_fires_of_justice_expire ) ) {
+            the_fires_of_justice_expire = rti->timestamp;
+            eq_enqueue( rti, rti->timestamp, routnum_the_fires_of_justice_expire, 0 );
+        }
 #endif
     ;
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
@@ -582,10 +582,10 @@ DECL_SPELL( templars_verdict ) {
     } else
 #endif
 #if (TALENT_THE_FIRES_OF_JUSTICE)
-    if ( UP( the_fires_of_justice_expire ) ) {
-        the_fires_of_justice_expire = rti->timestamp;
-        eq_enqueue( rti, rti->timestamp, routnum_the_fires_of_justice_expire, 0 );
-    }
+        if ( UP( the_fires_of_justice_expire ) ) {
+            the_fires_of_justice_expire = rti->timestamp;
+            eq_enqueue( rti, rti->timestamp, routnum_the_fires_of_justice_expire, 0 );
+        }
 #endif
     ;
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
@@ -635,10 +635,10 @@ DECL_SPELL( execution_sentence ) {
     } else
 #endif
 #if (TALENT_THE_FIRES_OF_JUSTICE)
-    if ( UP( the_fires_of_justice_expire ) ) {
-        the_fires_of_justice_expire = rti->timestamp;
-        eq_enqueue( rti, rti->timestamp, routnum_the_fires_of_justice_expire, 0 );
-    }
+        if ( UP( the_fires_of_justice_expire ) ) {
+            the_fires_of_justice_expire = rti->timestamp;
+            eq_enqueue( rti, rti->timestamp, routnum_the_fires_of_justice_expire, 0 );
+        }
 #endif
     ;
     execution_sentence_cd = TIME_OFFSET( FROM_SECONDS( 20.0f / ( 1.0f + rti->player.stat.haste ) ) );
@@ -721,7 +721,7 @@ DECL_EVENT( zeal_expire ) {
 }
 DECL_EVENT( zeal_trigger ) {
     zeal_expire = TIME_OFFSET( FROM_SECONDS( 12 ) );
-    zeal_stack = min( (k32u)zeal_stack + 1, (k32u)3 );
+    zeal_stack = min( ( k32u )zeal_stack + 1, ( k32u )3 );
     eq_enqueue( rti, zeal_expire, routnum_zeal_expire, 0 );
     lprintf( ( "zeal stack %d", zeal_stack ) );
 }
@@ -774,10 +774,10 @@ DECL_SPELL( justicars_vengeance ) {
     } else
 #endif
 #if (TALENT_THE_FIRES_OF_JUSTICE)
-    if ( UP( the_fires_of_justice_expire ) ) {
-        the_fires_of_justice_expire = rti->timestamp;
-        eq_enqueue( rti, rti->timestamp, routnum_the_fires_of_justice_expire, 0 );
-    }
+        if ( UP( the_fires_of_justice_expire ) ) {
+            the_fires_of_justice_expire = rti->timestamp;
+            eq_enqueue( rti, rti->timestamp, routnum_the_fires_of_justice_expire, 0 );
+        }
 #endif
     ;
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
@@ -815,9 +815,9 @@ DECL_EVENT( libram_of_vindication_expire ) {
 }
 DECL_EVENT( libram_of_vindication_trigger ) {
     libram_of_vindication_expire = TIME_OFFSET( FROM_SECONDS( 10 ) );
-    if (target_id == rti->player.spec->libram_of_vindication.target) {
-        libram_of_vindication_stack = min( (k32u)libram_of_vindication_stack + 1, (k32u)3 );
-    }else{
+    if ( target_id == rti->player.spec->libram_of_vindication.target ) {
+        libram_of_vindication_stack = min( ( k32u )libram_of_vindication_stack + 1, ( k32u )3 );
+    } else {
         libram_of_vindication_stack = 1;
         rti->player.spec->libram_of_vindication.target = target_id;
     }

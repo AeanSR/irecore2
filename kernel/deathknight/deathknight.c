@@ -47,9 +47,9 @@ struct class_state_t {
         k32u ready;
         float charge_progress[3];
     } rune;
-    #define rune_max     (6)
-    #define rune_ready   (rti->player.class->rune.ready)
-    #define rune_cd(seq) TIME_OFFSET(rti->player.class->rune.charge_progress[seq] * FROM_SECONDS(10) / rune_charge_rate(rti))
+#define rune_max     (6)
+#define rune_ready   (rti->player.class->rune.ready)
+#define rune_cd(seq) TIME_OFFSET(rti->player.class->rune.charge_progress[seq] * FROM_SECONDS(10) / rune_charge_rate(rti))
 };
 struct class_debuff_t {
 
@@ -59,7 +59,7 @@ void rune_reactive( rtinfo_t* rti ) {
     if ( rune_ready == rune_max ) {
         return;
     } else if ( rune_ready >= rune_max - 3 ) {
-        k32u rune_on_cd = min( (k32u)(rune_max - rune_ready), (k32u)3 );
+        k32u rune_on_cd = min( ( k32u )( rune_max - rune_ready ), ( k32u )3 );
         rti->player.class->rune.charge_progress[rune_on_cd - 1] = 0.0f;
         rune_ready ++;
     } else {
@@ -76,13 +76,13 @@ kbool rune_check( rtinfo_t* rti, k32u count ) {
     if ( rune_ready >= count ) return 1;
     return 0;
 }
-void spec_rune_consume(rtinfo_t* rti, k32u amount);
+void spec_rune_consume( rtinfo_t* rti, k32u amount );
 void rune_consume( rtinfo_t* rti, k32u count ) {
-    spec_rune_consume(rti,count);
+    spec_rune_consume( rti, count );
     assert( rune_ready >= count );
-    k32u rune_on_cd = min( (k32u)(rune_max - rune_ready), (k32u)3 );
+    k32u rune_on_cd = min( ( k32u )( rune_max - rune_ready ), ( k32u )3 );
     rune_ready -= count;
-    power_gain(rti, count * 10.0f);
+    power_gain( rti, count * 10.0f );
     if ( rune_on_cd < 3 ) {
         for ( int i = 0; i < count && i < 3 - rune_on_cd; i++ ) {
             rti->player.class->rune.charge_progress[i + rune_on_cd] = 1.0f;
@@ -97,8 +97,8 @@ float rune_charge_rate( rtinfo_t* rti ) {
 }
 void on_time_elapsed( rtinfo_t* rti, time_t last_time ) {
     time_t elapsed = rti->timestamp - last_time;
-    float rune_progress = rune_charge_rate( rti ) * (float)elapsed / (float)FROM_SECONDS( 10 );
-    k32u rune_on_cd = min( (k32u)(rune_max - rune_ready), (k32u)3 );
+    float rune_progress = rune_charge_rate( rti ) * ( float )elapsed / ( float )FROM_SECONDS( 10 );
+    k32u rune_on_cd = min( ( k32u )( rune_max - rune_ready ), ( k32u )3 );
     k32u rune_locked = rune_max - rune_ready - rune_on_cd;
     k32u rune_actived = 0;
     for ( int i = 0; i < rune_on_cd; i++ ) {
@@ -115,7 +115,7 @@ void on_time_elapsed( rtinfo_t* rti, time_t last_time ) {
     rune_ready += rune_actived;
 }
 time_t check_point( rtinfo_t* rti ) {
-    return rune_cd(0);
+    return rune_cd( 0 );
 }
 
 /* Event list. */
@@ -132,10 +132,10 @@ void class_routine_entries( rtinfo_t* rti, _event_t e ) {
     }
     else switch( e.routine ) {
 
-    default:
-        lprintf( ( "wild class routine entry %d", e.routine ) );
-        assert( 0 );
-    }
+        default:
+            lprintf( ( "wild class routine entry %d", e.routine ) );
+            assert( 0 );
+        }
 }
 
 void spec_module_init( rtinfo_t* rti );

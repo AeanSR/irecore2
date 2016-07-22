@@ -77,10 +77,10 @@ void class_routine_entries( rtinfo_t* rti, _event_t e ) {
         spec_routine_entries( rti, e );
     }
     else switch( e.routine ) {
-    default:
-        lprintf( ( "wild class routine entry %d", e.routine ) );
-        assert( 0 );
-    }
+        default:
+            lprintf( ( "wild class routine entry %d", e.routine ) );
+            assert( 0 );
+        }
 }
 
 void spec_module_init( rtinfo_t* rti );

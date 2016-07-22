@@ -619,7 +619,7 @@ DECL_EVENT( rend_tick ) {
 }
 DECL_EVENT( rend_cast ) {
     if ( UP( rend_expire( target_id ) ) ) {
-        rend_expire( target_id ) = TIME_OFFSET( min( (k32u)( FROM_SECONDS( 15 ) + TIME_DISTANT( rend_expire( target_id ) ) ), (k32u)FROM_SECONDS( 19.5 ) ) );
+        rend_expire( target_id ) = TIME_OFFSET( min( ( k32u )( FROM_SECONDS( 15 ) + TIME_DISTANT( rend_expire( target_id ) ) ), ( k32u )FROM_SECONDS( 19.5 ) ) );
         lprintf( ( "rend_expire extends to %f sec", TO_SECONDS( TIME_DISTANT( rend_expire( target_id ) ) ) ) );
     } else {
         rend_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 15 ) );

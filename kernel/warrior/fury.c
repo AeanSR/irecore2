@@ -14,105 +14,105 @@
 */
 
 /* spec state infos. */
-struct spec_state_t{
+struct spec_state_t {
     struct {
         time_t cd;
     } bloodthirst;
-    #define bloodthirst_cd (rti->player.spec->bloodthirst.cd)
+#define bloodthirst_cd (rti->player.spec->bloodthirst.cd)
     struct {
         time_t expire;
     } enrage;
-    #define enrage_expire (rti->player.spec->enrage.expire)
+#define enrage_expire (rti->player.spec->enrage.expire)
     struct {
         time_t cd;
     } rampage;
-    #define rampage_cd (rti->player.spec->rampage.cd)
+#define rampage_cd (rti->player.spec->rampage.cd)
     struct {
         time_t expire;
         k32u stack;
     } taste_for_blood;
-    #define taste_for_blood_expire (rti->player.spec->taste_for_blood.expire)
-    #define taste_for_blood_stack  (rti->player.spec->taste_for_blood.stack)
+#define taste_for_blood_expire (rti->player.spec->taste_for_blood.expire)
+#define taste_for_blood_stack  (rti->player.spec->taste_for_blood.stack)
     struct {
         time_t expire;
     } meat_cleaver;
-    #define meat_cleaver_expire (rti->player.spec->meat_cleaver.expire)
+#define meat_cleaver_expire (rti->player.spec->meat_cleaver.expire)
 #if (TALENT_WRECKING_BALL)
     struct {
         time_t expire;
         RPPM_t proc;
     } wrecking_ball;
-    #define wrecking_ball_expire (rti->player.spec->wrecking_ball.expire)
+#define wrecking_ball_expire (rti->player.spec->wrecking_ball.expire)
 #else
-    #define wrecking_ball_expire (0)
+#define wrecking_ball_expire (0)
 #endif
 #if (TALENT_MASSACRE)
     struct {
         time_t expire;
     } massacre;
-    #define massacre_expire (rti->player.spec->massacre.expire)
+#define massacre_expire (rti->player.spec->massacre.expire)
 #else
-    #define massacre_expire (0)
+#define massacre_expire (0)
 #endif
 #if (TALENT_FROTHING_BERSERKER)
     struct {
         time_t expire;
     } frothing_berserker;
-    #define frothing_berserker_expire (rti->player.spec->frothing_berserker.expire)
+#define frothing_berserker_expire (rti->player.spec->frothing_berserker.expire)
 #else
-    #define frothing_berserker_expire (0)
+#define frothing_berserker_expire (0)
 #endif
 #if (TALENT_BLOODBATH)
     struct {
         time_t expire;
         time_t cd;
     } bloodbath;
-    #define bloodbath_expire (rti->player.spec->bloodbath.expire)
-    #define bloodbath_cd     (rti->player.spec->bloodbath.cd)
+#define bloodbath_expire (rti->player.spec->bloodbath.expire)
+#define bloodbath_cd     (rti->player.spec->bloodbath.cd)
 #else
-    #define bloodbath_expire (0)
-    #define bloodbath_cd     (0)
+#define bloodbath_expire (0)
+#define bloodbath_cd     (0)
 #endif
 #if (TALENT_FRENZY)
     struct {
         time_t expire;
         k32u stack;
     } frenzy;
-    #define frenzy_expire (rti->player.spec->frenzy.expire)
-    #define frenzy_stack  (rti->player.spec->frenzy.stack)
+#define frenzy_expire (rti->player.spec->frenzy.expire)
+#define frenzy_stack  (rti->player.spec->frenzy.stack)
 #else
-    #define frenzy_expire (0)
-    #define frenzy_stack  (0)
+#define frenzy_expire (0)
+#define frenzy_stack  (0)
 #endif
 #if (TALENT_INNER_RAGE)
     struct {
         time_t cd;
     } raging_blow;
-    #define raging_blow_cd (rti->player.spec->raging_blow.cd)
+#define raging_blow_cd (rti->player.spec->raging_blow.cd)
 #else
-    #define raging_blow_cd (0)
+#define raging_blow_cd (0)
 #endif
 #if (TALENT_DRAGON_ROAR)
     struct {
         time_t cd;
         time_t expire;
     } dragon_roar;
-    #define dragon_roar_cd     (rti->player.spec->dragon_roar.cd)
-    #define dragon_roar_expire (rti->player.spec->dragon_roar.expire)
+#define dragon_roar_cd     (rti->player.spec->dragon_roar.cd)
+#define dragon_roar_expire (rti->player.spec->dragon_roar.expire)
 #else
-    #define dragon_roar_cd     (0)
-    #define dragon_roar_expire (0)
+#define dragon_roar_cd     (0)
+#define dragon_roar_expire (0)
 #endif
 #if (t17_4pc)
     struct {
         time_t expire;
         k32u stack;
     } t17p4;
-    #define rampage_expire (rti->player.spec->t17p4.expire)
-    #define rampage_stack  (rti->player.spec->t17p4.stack)
+#define rampage_expire (rti->player.spec->t17p4.expire)
+#define rampage_stack  (rti->player.spec->t17p4.stack)
 #else
-    #define rampage_expire (0)
-    #define rampage_stack  (0)
+#define rampage_expire (0)
+#define rampage_stack  (0)
 #endif
 #if defined(trinket_worldbreakers_resolve)
     struct {
@@ -120,14 +120,14 @@ struct spec_state_t{
         k32u   stack;
         k32u   target;
     } worldbreakers_resolve;
-    #define worldbreakers_resolve_expire (rti->player.spec->worldbreakers_resolve.expire)
-    #define worldbreakers_resolve_stack  (rti->player.spec->worldbreakers_resolve.stack)
+#define worldbreakers_resolve_expire (rti->player.spec->worldbreakers_resolve.expire)
+#define worldbreakers_resolve_stack  (rti->player.spec->worldbreakers_resolve.stack)
 #else
-    #define worldbreakers_resolve_expire (0)
-    #define worldbreakers_resolve_stack  (0)
+#define worldbreakers_resolve_expire (0)
+#define worldbreakers_resolve_stack  (0)
 #endif
 };
-struct spec_debuff_t{
+struct spec_debuff_t {
 #if (TALENT_BLOODBATH)
     struct {
         time_t dot_start;
@@ -159,25 +159,25 @@ float spec_power_consume( rtinfo_t* rti, float cost ) {
     return cost;
 }
 
-float spec_str_coefficient( rtinfo_t* rti ){
+float spec_str_coefficient( rtinfo_t* rti ) {
     return 1.0f;
 }
 
-float spec_mastery_coefficient( rtinfo_t* rti ){
+float spec_mastery_coefficient( rtinfo_t* rti ) {
     return 1.4f;
 }
 
-float spec_mastery_increament( rtinfo_t* rti ){
+float spec_mastery_increament( rtinfo_t* rti ) {
     return 0.0f;
 }
 
-float spec_crit_increament( rtinfo_t* rti ){
+float spec_crit_increament( rtinfo_t* rti ) {
     float crit = 0.0f;
     if ( UP( rampage_expire ) ) crit += 0.06f * rampage_stack;
     return crit;
 }
 
-float spec_haste_coefficient( rtinfo_t* rti ){
+float spec_haste_coefficient( rtinfo_t* rti ) {
     float coeff = 1.0f;
     coeff *= 1.0f + frenzy_stack * 0.04f;
 #if defined(trinket_worldbreakers_resolve)
@@ -193,14 +193,14 @@ float spec_haste_increament( rtinfo_t* rti ) {
 k32u round_table_dice2( rtinfo_t* rti, k32u target_id, k32u attacktype, float extra_crit_rate ) {
     float c = uni_rng( rti );
     float cr = rti->player.stat.crit - 0.03f + extra_crit_rate;
-    if (ATYPE_WHITE_MELEE == attacktype){
+    if ( ATYPE_WHITE_MELEE == attacktype ) {
         cr += 0.19f;
         if ( c < 0.19f ) return DICE_MISS;
     }
-    if (ATYPE_YELLOW_MELEE == attacktype){
+    if ( ATYPE_YELLOW_MELEE == attacktype ) {
         if ( UP( battle_cry_expire ) ) cr += 1.0f;
     }
-    if ( c < cr ){
+    if ( c < cr ) {
         return DICE_CRIT;
     }
     return DICE_HIT;
@@ -216,26 +216,26 @@ void trigger_dots( rtinfo_t* rti, float dmg, k32u target_id );
 
 float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u dice, float extra_crit_bonus, kbool ignore_armor ) {
     if ( DICE_MISS == dice ) return .0f;
-    if ( DTYPE_DIRECT == dmgtype ){
+    if ( DTYPE_DIRECT == dmgtype ) {
         lprintf( ( "damage %.0f", dmg ) );
         rti->damage_collected += dmg;
         return dmg;
     }
     float cdb = ( 1.0f + extra_crit_bonus ) * 2.0f;
-                                                                    dmg *= 1.0f + rti->player.stat.vers;
-        if ( UP( enrage_expire ) )                                  dmg *= 1.0f + rti->player.stat.mastery;
-        if ( UP( avatar_expire ) )                                  dmg *= 1.2f;
-        if ( UP( dragon_roar_expire ) )                             dmg *= 1.2f;
-        if ( UP( frothing_berserker_expire ) )                      dmg *= 1.1f;
-        if ( UP( thorasus_the_stone_heart_of_draenor_expire ) )     dmg *= 1.0f + legendary_ring * 0.0001f;
-        if ( ENEMY_IS_DEMONIC && UP(gronntooth_war_horn_expire ) )  dmg *= 1.1f;
+    dmg *= 1.0f + rti->player.stat.vers;
+    if ( UP( enrage_expire ) )                                  dmg *= 1.0f + rti->player.stat.mastery;
+    if ( UP( avatar_expire ) )                                  dmg *= 1.2f;
+    if ( UP( dragon_roar_expire ) )                             dmg *= 1.2f;
+    if ( UP( frothing_berserker_expire ) )                      dmg *= 1.1f;
+    if ( UP( thorasus_the_stone_heart_of_draenor_expire ) )     dmg *= 1.0f + legendary_ring * 0.0001f;
+    if ( ENEMY_IS_DEMONIC && UP( gronntooth_war_horn_expire ) )  dmg *= 1.1f;
     //  if ( SOME_ARTIFACT_TRAITS && UP( battle_cry_expire ) )      cdb *= 1.0f + 0.1f * SOME_ARTIFACT_TRAITS;
-        if ( RACE == RACE_DWARF || RACE == RACE_TAUREN )            cdb *= 1.02f;
-    if ( DTYPE_PHYSICAL == dmgtype ){
+    if ( RACE == RACE_DWARF || RACE == RACE_TAUREN )            cdb *= 1.02f;
+    if ( DTYPE_PHYSICAL == dmgtype ) {
         if ( !ignore_armor )                                        dmg *= 0.594043f; // 0.680228f @110lvl
     }
-        if ( DICE_CRIT   == dice )                                  dmg *= cdb;
-    if ( DICE_CRIT   == dice ){
+    if ( DICE_CRIT   == dice )                                  dmg *= cdb;
+    if ( DICE_CRIT   == dice ) {
         lprintf( ( "damage *%.0f*", dmg ) );
     } else {
         lprintf( ( "damage %.0f", dmg ) );
@@ -261,7 +261,7 @@ float ap_dmg( rtinfo_t* rti, float ap_multiplier ) {
 }
 
 /* event list. */
-enum{
+enum {
     END_OF_CLASS_ROUTNUM = START_OF_SPEC_ROUTNUM - 1,
     routnum_auto_attack_mh,
     routnum_auto_attack_oh,
@@ -394,7 +394,7 @@ DECL_EVENT( rampage_refresh ) {
 
 // === berserker rage =========================================================
 void spec_berserker_rage_cast( rtinfo_t* rti ) {
-    if (TALENT_OUTBURST)
+    if ( TALENT_OUTBURST )
         eq_enqueue( rti, rti->timestamp, routnum_enrage_trigger, 0 );
 }
 
@@ -418,7 +418,7 @@ DECL_EVENT( bloodthirst_cast ) {
     }
     power_gain( rti, 10.0f );
     lprintf( ( "bloodthirst hit" ) );
-    if ( UP( meat_cleaver_expire ) ){
+    if ( UP( meat_cleaver_expire ) ) {
         k32u c = 0;
         for( int i = 0; c < 4 && i < num_enemies; i++ ) {
             if ( i == target_id ) continue;
@@ -499,7 +499,7 @@ DECL_EVENT( furious_slash_cast ) {
 #endif
 #if (t18_4pc)
     if ( DICE_CRIT == dice ) {
-        time_t reduction = min( (k32u)battle_cry_cd, (k32u)FROM_SECONDS( 10 ) );
+        time_t reduction = min( ( k32u )battle_cry_cd, ( k32u )FROM_SECONDS( 10 ) );
         battle_cry_cd -= reduction;
         eq_enqueue( rti, battle_cry_cd, routnum_battle_cry_cd, 0 );
     }
@@ -515,7 +515,7 @@ DECL_EVENT( taste_for_blood_expire ) {
 DECL_EVENT( taste_for_blood_trigger ) {
     taste_for_blood_expire = TIME_OFFSET( FROM_SECONDS( 8 ) );
     eq_enqueue( rti, taste_for_blood_expire, routnum_taste_for_blood_expire, 0 );
-    taste_for_blood_stack = min( 6, (int)taste_for_blood_stack + 1 );
+    taste_for_blood_stack = min( 6, ( int )taste_for_blood_stack + 1 );
     lprintf( ( "taste_for_blood stack %d", taste_for_blood_stack ) );
 }
 DECL_SPELL( furious_slash ) {
@@ -643,15 +643,15 @@ DECL_SPELL( rampage ) {
     if ( MH_TYPE != WEAPON_2H ) return 0;
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( UP( rampage_cd ) ) return 0;
-    if ( !UP( massacre_expire ) ){
-        if ( !power_check( rti, (TALENT_CARNAGE) ? 70.0f : 85.0f ) ) return 0;
-        power_consume( rti, (TALENT_CARNAGE) ? 70.0f : 85.0f );
+    if ( !UP( massacre_expire ) ) {
+        if ( !power_check( rti, ( TALENT_CARNAGE ) ? 70.0f : 85.0f ) ) return 0;
+        power_consume( rti, ( TALENT_CARNAGE ) ? 70.0f : 85.0f );
     }
     gcd_start( rti, FROM_SECONDS( 2.0f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_rampage_cast_1, rti->player.target );
     rampage_cd = TIME_OFFSET( FROM_SECONDS( 1.5f ) );
     eq_enqueue( rti, rampage_cd, routnum_rampage_cd, 0 );
-    if ( UP( meat_cleaver_expire ) ){
+    if ( UP( meat_cleaver_expire ) ) {
         k32u c = 0;
         for( int i = 0; c < 4 && i < num_enemies; i++ ) {
             if ( i == rti->player.target ) continue;
@@ -677,7 +677,7 @@ DECL_EVENT( whirlwind_cast ) {
         multiplier *= 3.0f;
     }
 #endif
-    for( int i = 0; i < num_enemies; i++ ){
+    for( int i = 0; i < num_enemies; i++ ) {
         float d = weapon_dmg( rti, 0.48f, 1, 0 ) * multiplier;
         k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
         float final_dmg = deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
@@ -832,7 +832,7 @@ DECL_EVENT( frenzy_expire ) {
 DECL_EVENT( frenzy_trigger ) {
     frenzy_expire = TIME_OFFSET( FROM_SECONDS( 10 ) );
     eq_enqueue( rti, frenzy_expire, routnum_frenzy_expire, 0 );
-    frenzy_stack = min( 3, (int)frenzy_stack + 1 );
+    frenzy_stack = min( 3, ( int )frenzy_stack + 1 );
     lprintf( ( "frenzy stack %d", frenzy_stack ) );
 }
 #endif
@@ -993,7 +993,7 @@ void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_
 #endif
     }
 #if defined(trinket_worldbreakers_resolve)
-    if ( ATYPE_WHITE_MELEE == attacktype ){
+    if ( ATYPE_WHITE_MELEE == attacktype ) {
         eq_enqueue( rti, rti->timestamp, routnum_worldbreakers_resolve_trigger, target_id );
     }
 #endif
