@@ -537,13 +537,13 @@ DECL_EVENT( meat_cleaver_trigger ) {
 
 // === raging blow ============================================================
 DECL_EVENT( raging_blow_cast ) {
-    float d = weapon_dmg( rti, 1.60f * ( TALENT_INNER_RAGE ? 2.0f : 1.0f ), 1, 0 );
+    float d = weapon_dmg( rti, 1.53f * ( TALENT_INNER_RAGE ? 2.0f : 1.0f ), 1, 0 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     if ( t17_2pc && DICE_CRIT == dice && uni_rng( rti ) < 0.2 ) {
         eq_enqueue( rti, rti->timestamp, routnum_enrage_trigger, target_id );
     }
-    d = weapon_dmg( rti, 1.60f * ( TALENT_INNER_RAGE ? 2.0f : 1.0f ), 1, 1 );
+    d = weapon_dmg( rti, 1.53f * ( TALENT_INNER_RAGE ? 2.0f : 1.0f ), 1, 1 );
     dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     final_dmg += deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     trigger_dots( rti, final_dmg, target_id );
@@ -640,8 +640,8 @@ DECL_SPELL( rampage ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( UP( rampage_cd ) ) return 0;
     if ( !UP( massacre_expire ) ){
-        if ( !power_check( rti, (TALENT_CARNAGE) ? 65.0f : 85.0f ) ) return 0;
-        power_consume( rti, (TALENT_CARNAGE) ? 65.0f : 85.0f );
+        if ( !power_check( rti, (TALENT_CARNAGE) ? 70.0f : 85.0f ) ) return 0;
+        power_consume( rti, (TALENT_CARNAGE) ? 70.0f : 85.0f );
     }
     gcd_start( rti, FROM_SECONDS( 2.0f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_rampage_cast_1, rti->player.target );

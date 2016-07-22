@@ -88,7 +88,7 @@ public:
     static int printf( const char* format, ... );
     static int printq( QString text );
     static std::string dbg_dump();
-    int import_player( std::string& realm, std::string& name, std::string& region, int active, int silence = 0 );
+    int import_player( std::string& realm, std::string& name, std::string& region, int silence = 0 );
     void run_scripts();
 
     public slots:

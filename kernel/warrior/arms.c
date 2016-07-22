@@ -344,11 +344,11 @@ DECL_EVENT( colossus_smash_expire ) {
 }
 DECL_EVENT( colossus_smash_trigger ) {
     colossus_smash_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 8.0f + ( TALENT_TITANIC_MIGHT ? 16.0f : 0.0f ) ) );
-    rti->enemy[target_id].spec->colossus_smash.increament = 1.0f + ( 0.15f + rti->player.stat.mastery ) * ( TALENT_TITANIC_MIGHT ? 0.7f : 1.0f );
+    rti->enemy[target_id].spec->colossus_smash.increament = 1.0f + ( 0.15f + rti->player.stat.mastery ) * ( TALENT_TITANIC_MIGHT ? 0.8f : 1.0f );
     lprintf( ( "colossus_smash start @tar%d", target_id ) );
 }
 DECL_EVENT( colossus_smash_cast ) {
-    float d = weapon_dmg( rti, 2.25f * ( 1.0f + rti->player.stat.mastery ), 1, 0 );
+    float d = weapon_dmg( rti, 2.02f * ( 1.0f + rti->player.stat.mastery ), 1, 0 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     eq_enqueue( rti, rti->timestamp, routnum_colossus_smash_trigger, target_id );
@@ -379,7 +379,7 @@ DECL_EVENT( execute_cast ) {
     if ( TALENT_DEADLY_CALM && UP( battle_cry_expire ) ) r = 30.0f;
     float multiplier = 1.0f + r / 10.0f;
     power_consume( rti, r );
-    float d = weapon_dmg( rti, 1.75f, 1, 0 ) * multiplier;
+    float d = weapon_dmg( rti, 1.62f, 1, 0 ) * multiplier;
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     trigger_opportunity_strikes( rti, target_id );
@@ -387,7 +387,7 @@ DECL_EVENT( execute_cast ) {
     if ( TALENT_SWEEPING_STRIKES ) {
         for ( int i = 0; i < num_enemies; i++ ) {
             if ( i == target_id ) continue;
-            d = weapon_dmg( rti, 1.75f, 1, 0 ) * multiplier;
+            d = weapon_dmg( rti, 1.62f, 1, 0 ) * multiplier;
             dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
             deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
             lprintf( ( "execute sweepstrike" ) );
@@ -445,7 +445,7 @@ DECL_EVENT( mortal_strike_cast ) {
 #if (TALENT_FOCUSED_RAGE)
     focused_rage_stack = 0;
 #endif
-    float d = weapon_dmg( rti, 3.5f, 1, 0 ) * multiplier;
+    float d = weapon_dmg( rti, 3.27f, 1, 0 ) * multiplier;
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     trigger_opportunity_strikes( rti, target_id );
@@ -453,7 +453,7 @@ DECL_EVENT( mortal_strike_cast ) {
     if ( TALENT_SWEEPING_STRIKES ) {
         for ( int i = 0; i < num_enemies; i++ ) {
             if ( i == target_id ) continue;
-            d = weapon_dmg( rti, 3.5f, 1, 0 ) * multiplier;
+            d = weapon_dmg( rti, 3.27f, 1, 0 ) * multiplier;
             dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
             deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
             trigger_opportunity_strikes( rti, i );
@@ -468,7 +468,7 @@ DECL_SPELL( mortal_strike ) {
     if ( !power_check( rti, 20.0f ) ) return 0;
     power_consume( rti, 20.0f );
     if ( TALENT_IN_FOR_THE_KILL && enemy_health_percent( rti ) <= 20.0f ) {
-        power_gain( rti, 40.0f );
+        power_gain( rti, 20.0f );
     }
     mortal_strike_charge --;
     if ( !UP( mortal_strike_cd ) ) {
@@ -483,7 +483,7 @@ DECL_SPELL( mortal_strike ) {
 
 // === slam ===================================================================
 DECL_EVENT( slam_cast ) {
-    float d = weapon_dmg( rti, 1.8f, 1, 0 );
+    float d = weapon_dmg( rti, 1.7f, 1, 0 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     trigger_opportunity_strikes( rti, target_id );
@@ -529,13 +529,13 @@ DECL_EVENT( whirlwind_cast ) {
     }
     for( int i = 0; i < num_enemies; i++ ) {
         float final_dmg = 0.0f;
-        float d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier * ( TALENT_FERVOR_OF_BATTLE && i == target_id ? 1.5f : 1.0f );
+        float d = weapon_dmg( rti, 0.72f, 1, 0 ) * multiplier * ( TALENT_FERVOR_OF_BATTLE && i == target_id ? 1.5f : 1.0f );
         k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
         final_dmg += deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
-        d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier * ( TALENT_FERVOR_OF_BATTLE && i == target_id ? 1.5f : 1.0f );
+        d = weapon_dmg( rti, 0.72f, 1, 0 ) * multiplier * ( TALENT_FERVOR_OF_BATTLE && i == target_id ? 1.5f : 1.0f );
         dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
         final_dmg += deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
-        d = weapon_dmg( rti, 0.80f, 1, 0 ) * multiplier * ( TALENT_FERVOR_OF_BATTLE && i == target_id ? 1.5f : 1.0f );
+        d = weapon_dmg( rti, 0.72f, 1, 0 ) * multiplier * ( TALENT_FERVOR_OF_BATTLE && i == target_id ? 1.5f : 1.0f );
         dice = round_table_dice2( rti, i, ATYPE_YELLOW_MELEE, 0 ); // dice without procs.
         final_dmg += deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
         lprintf( ( "whirlwind hit @tar%d", i ) );
@@ -600,7 +600,7 @@ DECL_EVENT( rend_tick ) {
         return; // last tick canceled if extended.
     }
     if ( rend_expire( target_id ) < rti->timestamp ) return; // last tick evaluates as equal.
-    float d = ap_dmg( rti, 1.2f );
+    float d = ap_dmg( rti, 1.08f );
     d *= mult;
     if ( d <= 0.0f ) return;
     k32u dice = round_table_dice2( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
@@ -615,7 +615,7 @@ DECL_EVENT( rend_tick ) {
 }
 DECL_EVENT( rend_cast ) {
     if ( UP( rend_expire( target_id ) ) ) {
-        rend_expire( target_id ) = TIME_OFFSET( min( (k32u)( FROM_SECONDS( 15 ) + TIME_DISTANT( rend_expire( target_id ) ) ), (k32u)FROM_SECONDS( 20 ) ) );
+        rend_expire( target_id ) = TIME_OFFSET( min( (k32u)( FROM_SECONDS( 15 ) + TIME_DISTANT( rend_expire( target_id ) ) ), (k32u)FROM_SECONDS( 19.5 ) ) );
         lprintf( ( "rend_expire extends to %f sec", TO_SECONDS( TIME_DISTANT( rend_expire( target_id ) ) ) ) );
     } else {
         rend_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 15 ) );

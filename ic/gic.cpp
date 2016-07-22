@@ -134,10 +134,6 @@ gic::gic( QWidget *parent )
     ui.comboRegion->addItem( "tw" );
     ui.comboRegion->addItem( "kr" );
 
-    ui.comboImportActive->addItem( QApplication::translate( "gicClass", "Active Spec" ) );
-    ui.comboImportActive->addItem( QApplication::translate( "gicClass", "Inactive Spec" ) );
-    ui.comboImportActive->setCurrentIndex( 0 );
-
     std::vector<QString> spec_name;
     spec_name.resize( 4 );
     spec_name[SPEC_ARMS_WARRIOR] = QApplication::translate( "gicClass", "Arms Warrior" );
@@ -795,7 +791,7 @@ void gic::on_btnImport_clicked() {
     region = ui.comboRegion->currentText().toStdString();
     realm = ui.txtRealm->text().toStdString();
     name = ui.txtCharacter->text().toStdString();
-    import_player( realm, name, region, ui.comboImportActive->currentIndex() == 0 );
+    import_player( realm, name, region );
     ui.btnImport->setDisabled( false );
 }
 

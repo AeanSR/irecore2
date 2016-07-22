@@ -557,15 +557,6 @@ int dbc_reader( HANDLE storage, const char* dbc_name, std::vector<std::pair<UINT
         printf( "failed to open dbc %s, error %d\n", dbc_name, GetLastError() );
         return 0;
     }
-    {
-        DWORD size = CascGetFileSize( file, 0 );
-        char* buf = ( char* ) malloc( size );
-        CascReadFile( file, buf, size, &read );
-        FILE* f = fopen( dbc_name, "wb" );
-        fwrite( buf, 1, read, f );
-        fclose( f );
-        CascSetFilePointer( file, 0, 0, FILE_BEGIN );
-    }
     if (!CascReadFile( file, &magic, sizeof( magic ), &read )) {
         printf( "failed to read dbc magic %s\n", dbc_name );
         return 0;

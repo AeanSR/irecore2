@@ -15,7 +15,7 @@
 #include <QNetworkAccessManager>
 #include <QUrl>
 
-#define API_KEY "nyv354w3rnf3jf95ryn5ddmyar933pzw"
+#define API_KEY "gaeetg9j79g8btukp6mzwzda37t9zffc"
 
 class getjson {
 
@@ -117,8 +117,8 @@ QString qsprint( int v );
 //      49 -> mastery
 //      59 -> multistrike
 //      40 -> versatility
-int gic::import_player( std::string& realm, std::string& name, std::string& region, int active, int silence ) {
-    PRINTB( "func call: %s, %s, %s, %d.", realm.c_str(), name.c_str(), region.c_str(), active );
+int gic::import_player( std::string& realm, std::string& name, std::string& region, int silence ) {
+    PRINTB( "func call: %s, %s, %s.", realm.c_str(), name.c_str(), region.c_str() );
     getjson bn;
     QString url;
     int talent;
@@ -172,7 +172,7 @@ int gic::import_player( std::string& realm, std::string& name, std::string& regi
     rapidjson::Value& jtalentlist = j["talents"];
     talent = -1;
     for (int i = 0; i < jtalentlist.Size(); i++) {
-        if (( jtalentlist[i]["selected"].GetBool() == !!active )) {
+        if (( jtalentlist[i]["selected"].GetBool() )) {
             if (class_id == 1 && 0 == std::string( "Z" ).compare( jtalentlist[i]["calcSpec"].GetString() )) {
                 spec = SPEC_FURY_WARRIOR;
             } else if (class_id == 1 && 0 == std::string( "a" ).compare( jtalentlist[i]["calcSpec"].GetString() )) {
