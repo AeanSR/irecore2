@@ -331,7 +331,7 @@ DECL_EVENT( auto_attack_mh ) {
     float d = weapon_dmg( rti, 1.0f, 0, 0 );
     k32u diceMH = round_table_dice( rti, rti->player.target, ATYPE_WHITE_MELEE, 0 );
     deal_damage( rti, rti->player.target, d, DTYPE_PHYSICAL, diceMH, 0, 0 );
-    if ( diceHM == DICE_MISS ) {
+    if ( diceMH == DICE_MISS ) {
         /* Miss */
         lprintf( ( "mh miss" ) );
     } else {
@@ -911,7 +911,7 @@ DECL_EVENT ( frostscythe_cast) {
                 lprintf( ( "killing machine buff consumed by frostscythe, but not consumed due to t18" ) );
             }
         #endif
-        dice = round_table_dice(rti, i, ATYPE_YELLOW_MELEE, 1.0f);//TODO: melee or spell          
+        dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 1.0f);//TODO: melee or spell          
         for ( int i = 0; i < num_enemies; i++ ) {
             deal_damage(rti, i, d, DTYPE_FROST, dice, 1.0f, 0);
             eq_enqueue(rti, killing_machine_expire, routnum_killing_machine_expire,0);
