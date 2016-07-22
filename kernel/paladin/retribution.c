@@ -750,7 +750,7 @@ DECL_EVENT( divine_hammer_tick ) {
 DECL_EVENT( justicars_vengeance_cast ) {
     float multiplier = 1.0f;
     if ( UP( judgment_expire( target_id ) ) ) multiplier *= 1.0f + 0.5f * rti->player.stat.mastery;
-    float d = ap_dmg( rti, 8.0f, 1, 0 ) * multiplier;
+    float d = ap_dmg( rti, 8.0f ) * multiplier;
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );  // TODO: does justicars vengeance triggers as yellow melee or spell? or both?
     deal_damage( rti, target_id, d, DTYPE_HOLY, dice, 0, 0 );
     lprintf( ( "justicars_vengeance hit" ) );

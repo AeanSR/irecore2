@@ -92,7 +92,7 @@ struct spec_state_t{
 #else
     #define glacial_advance_cd (0)
 #endif
-//==================================================================================    
+//==================================================================================
     struct{
         time_t expire;
         RPPM_t proc;
@@ -114,8 +114,8 @@ struct spec_state_t{
     }t18frozen_wake;
     #define t18frozen_wake_expire (rti->player.spec->t18frozen_wake.expire)
 #else
-    #define t18obliteration_expire (0);
-    #define t18frozen_wake_expire (0);
+    #define t18obliteration_expire (0)
+    #define t18frozen_wake_expire (0)
 #endif
 //==================================================================================
 };
@@ -373,19 +373,19 @@ DECL_EVENT( auto_attack_mh ) {
     #if(razorice_mh)
     {
         float dF = weapon_dmg( rti, 0.1f, 0, 0 );
-        deal_damage( rti, rti->player.target, dF, DTYPE_FROST, diceMH, 0, 0 );
-        if(UP(razorice_expire(1)))
+        deal_damage( rti, target_id, dF, DTYPE_FROST, diceMH, 0, 0 );
+        if(UP(razorice_expire(target_id)))
         {
-            if(razorice_stack(1) < 5)
+            if(razorice_stack(target_id) < 5)
             {
-                razorice_stack(1) += 1;
+                razorice_stack(target_id) += 1;
             }
             else
             {
-                razorice_stack(1) = 1;
+                razorice_stack(target_id) = 1;
             }
-            razorice_expire(1) = TIME_OFFSET(FROM_SECONDS(20.0f));
-            eq_enqueue( rti , razorice_expire(1), routnum_razorice_expire, rti->player.target);
+            razorice_expire(target_id) = TIME_OFFSET(FROM_SECONDS(20.0f));
+            eq_enqueue( rti , razorice_expire(target_id), routnum_razorice_expire, rti->player.target);
         }
 
     }
@@ -441,18 +441,18 @@ DECL_EVENT( auto_attack_oh ) {
     {
         float dF = weapon_dmg( rti, 0.1f, 0, 1 );
         deal_damage( rti, rti->player.target, dF, DTYPE_FROST, diceOH, 0, 0 );
-        if(UP(razorice_expire(1)))
+        if(UP(razorice_expire(target_id)))
         {
-            if(razorice_stack(1) < 5)
+            if(razorice_stack(target_id) < 5)
             {
-                razorice_stack(1) += 1;
+                razorice_stack(target_id) += 1;
             }
             else
             {
-                razorice_stack(1) = 1;
+                razorice_stack(target_id) = 1;
             }
-            razorice_expire(1) = TIME_OFFSET(FROM_SECONDS(20.0f));
-            eq_enqueue( rti , razorice_expire(1), routnum_razorice_expire, rti->pillaryer.target);
+            razorice_expire(target_id) = TIME_OFFSET(FROM_SECONDS(20.0f));
+            eq_enqueue( rti , razorice_expire(target_id), routnum_razorice_expire, rti->player.target);
         }
 
     }
@@ -502,10 +502,12 @@ DECL_EVENT( frost_strike_cast ) {
     #if(TALENT_ICY_TALONS)
         eq_enqueue(rti,rti->timestamp, routnum_icy_talons_trigger, 0);
     #endif
-    if(t18_2pc&&dice == DICE_CRIT)
+    #if(t18_2pc)
+    if(dice == DICE_CRIT)
     {
         eq_enqueue(rti, rti->timestamp, routnum_t18frozen_wake_cast,0);
     }
+    #endif
 }
 DECL_SPELL( frost_strike ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
@@ -589,10 +591,12 @@ DECL_EVENT( obliterate_cast ) {
         lprintf( ( "rime triggered" ) );
     }
     lprintf( ( "obliterate hit" ) );
-        if(t18_2pc&&dice == DICE_CRIT)
+    #if(t18_2pc)
+    if(dice == DICE_CRIT)
     {
         eq_enqueue(rti, rti->timestamp, routnum_t18obliteration_cast,0);
     }
+    #endif
 }
 DECL_SPELL( obliterate ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
@@ -623,7 +627,7 @@ DECL_EVENT( howling_blast_cast ) {
     float dMain = ap_dmg(rti, 0.50f);
     //freezing fog implementation
     #if(TALENT_FREEZING_FOG)
-        dMain * 1.3f;
+        dMain *= 1.3f;
     #endif
     if(UP(rime_expire))
     {
@@ -733,7 +737,7 @@ DECL_SPELL( remorseless_winter) {
 DECL_EVENT( remorseless_winter_cast) {
     remorseless_winter_stack = 0;
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 0.0f ) ), routnum_remorseless_winter_tick, 0);
-    
+
     lprintf( ( "remorseless winter starts" ) );
 }
 DECL_EVENT ( remorseless_winter_cd) {
@@ -853,6 +857,10 @@ DECL_EVENT ( horn_of_winter_cast) {
     rune_reactive(rti);
     //TODO: check if this is correct in terms of game mechanics and code
 }
+#else
+DECL_SPELL( horn_of_winter ) {
+    return 0;
+}
 #endif
 // === hungering rune weapon ==================================================
 #if(TALENT_HUNGERING_RUNE_WEAPON)
@@ -918,7 +926,7 @@ DECL_EVENT ( frostscythe_cast) {
                 lprintf( ( "killing machine buff consumed by frostscythe, but not consumed due to t18" ) );
             }
         #endif
-        dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 1.0f);//TODO: melee or spell          
+        dice = round_table_dice(rti, target_id, ATYPE_YELLOW_MELEE, 1.0f);//TODO: melee or spell
         for ( int i = 0; i < num_enemies; i++ ) {
             deal_damage(rti, i, d, DTYPE_FROST, dice, 1.0f, 0);
             eq_enqueue(rti, killing_machine_expire, routnum_killing_machine_expire,0);
@@ -951,6 +959,10 @@ DECL_EVENT ( frostscythe_cast) {
         }
     #endif
 }
+#else
+DECL_SPELL( frostscythe ) {
+    return 0;
+}
 #endif
 // === obliteration ===========================================================
 #if (TALENT_OBLITERATION)
@@ -975,6 +987,10 @@ DECL_EVENT ( obliteration_cd) {
     if ( obliteration_cd == rti->timestamp ) {
         lprintf( ( "obliteration cd" ) );
     }
+}
+#else
+DECL_SPELL( obliteration){
+    return 0;
 }
 #endif
 // === breath of sindragosa ===================================================
@@ -1021,6 +1037,10 @@ DECL_EVENT( breath_of_sindragosa_expire){
     breath_of_sindragosa_duration = 0;
     lprintf( ( "breath of sindragosa expired, dealth damage %d times", breath_of_sindragosa_duration ) );
 }
+#else
+DECL_SPELL( breath_of_sindragosa) {
+    return 0;
+}
 #endif
 // === galacial advance =======================================================
 #if(TALENT_GLACIAL_ADVANCE)
@@ -1033,7 +1053,7 @@ DECL_SPELL( glacial_advance ) {
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1);
     eq_enqueue( rti, rti->timestamp, routnum_glacial_advance_cast, 0);
     lprintf( ( "glacial advance casted" ) );
-    return 1;`
+    return 1;
 }
 DECL_EVENT ( glacial_advance_cd) {
     if ( glacial_advance_cd == rti->timestamp ) {
@@ -1049,6 +1069,10 @@ DECL_EVENT ( glacial_advance_cast) {
             deal_damage(rti, i, d, DTYPE_PHYSICAL, dice, 0.0f,0); // Comment by Aean: why deal twice?
             lprintf( ( "glacial_advance hit @tar %d", i ) );
     }
+}
+#else
+DECL_SPELL( glacial_advance ) {
+    return 0;
 }
 #endif
 //tire 18 two piece bonus
@@ -1111,8 +1135,10 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
     HOOK_EVENT( pillar_of_frost_cd );
     HOOK_EVENT( pillar_of_frost_cast );
     HOOK_EVENT( pillar_of_frost_expire );
+#if !(TALENT_HUNGERING_RUNE_WEAPON)
     HOOK_EVENT( empower_rune_weapon_cd );
     HOOK_EVENT( empower_rune_weapon_cast );
+#endif
 #if(TALENT_ICY_TALONS)
     HOOK_EVENT( icy_talons_expire );
     HOOK_EVENT( icy_talons_trigger );

@@ -40,8 +40,12 @@
 #define thunderlord_oh 0
 #define bleedinghollow_mh 0
 #define bleedinghollow_oh 0
-#define shatteredhand_mh 1
-#define shatteredhand_oh 1
+#define shatteredhand_mh 0
+#define shatteredhand_oh 0
+#define razorice_mh 1
+#define razorice_oh 1
+#define fallen_crusader_mh 0
+#define fallen_crusader_oh 0
 //#define trinket_vial_of_convulsive_shadows 2033
 //#define trinket_forgemasters_insignia 181
 //#define trinket_horn_of_screaming_spirits 2652
@@ -64,13 +68,13 @@
 //#define trinket_libram_of_vindication 314
 #define ENEMY_IS_DEMONIC 1
 
-#define TALENT_TIER1 1
-#define TALENT_TIER2 1
-#define TALENT_TIER3 1
-#define TALENT_TIER4 1
-#define TALENT_TIER5 1
-#define TALENT_TIER6 1
-#define TALENT_TIER7 1
+#define TALENT_TIER1 2
+#define TALENT_TIER2 2
+#define TALENT_TIER3 2
+#define TALENT_TIER4 2
+#define TALENT_TIER5 2
+#define TALENT_TIER6 2
+#define TALENT_TIER7 2
 
 #include "kernel.c"
 #include "common.c"
@@ -93,8 +97,53 @@
 #include "entry.c"
 
 void scan_apl( rtinfo_t* rti ) {
-//SPELL(pillar_of_frost);
+if(((power_max-rti->player.power)>20.000000f))SPELL(arcane_torrent);
+if((!TALENT_BREATH_OF_SINDRAGOSA||breath_of_sindragosa_duration))SPELL(blood_fury);
+SPELL(berserking);
+SPELL(thorasus_the_stone_heart_of_draenor);
+if(((TO_SECONDS(REMAIN(pillar_of_frost_cd))<5.000000f)&&(TO_SECONDS(REMAIN(thorasus_the_stone_heart_of_draenor_cd))<10.000000f)))SPELL(potion);
+SPELL(pillar_of_frost);
+SPELL(obliteration);
+if((rti->player.power>=80.000000f))SPELL(breath_of_sindragosa);
+if(breath_of_sindragosa_duration){
+{
+SPELL(glacial_advance);
+if((UP(killing_machine_expire)||(num_enemies>=4.000000f)))SPELL(frostscythe);
+if(UP(killing_machine_expire))SPELL(obliterate);
+if((num_enemies>=2.000000f))SPELL(remorseless_winter);
 SPELL(obliterate);
+if(TALENT_FROZEN_PULSE)SPELL(frostscythe);
+if(TALENT_FROZEN_PULSE)SPELL(howling_blast);
+}
+if(!UP(frost_fever_expire(rti->player.target)))SPELL(howling_blast);
+SPELL(horn_of_winter);
+SPELL(empower_rune_weapon);
+SPELL(hungering_rune_weapon);
+if(UP(rime_expire))SPELL(howling_blast);
+return;
+}
+{
+if(!UP(frost_fever_expire(rti->player.target)))SPELL(howling_blast);
+if(UP(rime_expire))SPELL(howling_blast);
+if((rti->player.power>=80.000000f))SPELL(frost_strike);
+{
+SPELL(glacial_advance);
+if((UP(killing_machine_expire)||(num_enemies>=4.000000f)))SPELL(frostscythe);
+if(UP(killing_machine_expire))SPELL(obliterate);
+if((num_enemies>=2.000000f))SPELL(remorseless_winter);
+SPELL(obliterate);
+if(TALENT_FROZEN_PULSE)SPELL(frostscythe);
+if(TALENT_FROZEN_PULSE)SPELL(howling_blast);
+}
+if((TALENT_BREATH_OF_SINDRAGOSA&&(TO_SECONDS(REMAIN(breath_of_sindragosa_cd))>15.000000f)))SPELL(frost_strike);
+if(!TALENT_BREATH_OF_SINDRAGOSA)SPELL(frost_strike);
+if((TALENT_BREATH_OF_SINDRAGOSA&&(TO_SECONDS(REMAIN(breath_of_sindragosa_cd))>15.000000f)))SPELL(horn_of_winter);
+if((TALENT_BREATH_OF_SINDRAGOSA&&(TO_SECONDS(REMAIN(breath_of_sindragosa_cd))>15.000000f)))SPELL(empower_rune_weapon);
+if((TALENT_BREATH_OF_SINDRAGOSA&&(TO_SECONDS(REMAIN(breath_of_sindragosa_cd))>15.000000f)))SPELL(hungering_rune_weapon);
+if(!TALENT_BREATH_OF_SINDRAGOSA)SPELL(horn_of_winter);
+if(!TALENT_BREATH_OF_SINDRAGOSA)SPELL(empower_rune_weapon);
+if(!TALENT_BREATH_OF_SINDRAGOSA)SPELL(hungering_rune_weapon);
+}
 }
 
 int main(){
