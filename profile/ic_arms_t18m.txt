@@ -27,52 +27,6 @@ trinket1_ilvl=740
 trinket2=worldbreakers_resolve
 trinket2_ilvl=745
 
-# SimC do not use legendary ring. Add it.
-actions=SPELL(thorasus_the_stone_heart_of_draenor);
-
-# Translated from "Warrior_Arms_T18M.simc" by apltr.
-actions+=if((((enemy_health_percent(rti)<20.000000f)&&UP(battle_cry_expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<25.000000f)))SPELL(potion);
-actions+=if((colossus_smash_cd==TIME_OFFSET(FROM_SECONDS(45))))SPELL(battle_cry);
-actions+=if(((TO_SECONDS(REMAIN(colossus_smash_expire(rti->player.target)))>=5.000000f)||(UP(colossus_smash_expire(rti->player.target))&&(TO_SECONDS(REMAIN(colossus_smash_cd))==0.000000f))))SPELL(battle_cry);
-actions+=if((colossus_smash_cd==TIME_OFFSET(FROM_SECONDS(45))))SPELL(avatar);
-actions+=if(((TO_SECONDS(REMAIN(colossus_smash_expire(rti->player.target)))>=5.000000f)||(UP(colossus_smash_expire(rti->player.target))&&(TO_SECONDS(REMAIN(colossus_smash_cd))==0.000000f))))SPELL(avatar);
-actions+=if(UP(battle_cry_expire))SPELL(blood_fury);
-actions+=if(UP(battle_cry_expire))SPELL(berserking);
-actions+=if((rti->player.power<(power_max-40.000000f)))SPELL(arcane_torrent);
-actions+=if(1)SPELL(heroic_leap);
-actions+=if((TO_SECONDS(REMAIN(rend_expire(rti->player.target)))<TO_SECONDS(REMAIN(rti->player.gcd))))SPELL(rend);
-actions+=if((TALENT_DEADLY_CALM&&UP(battle_cry_expire)))SPELL(hamstring);
-actions+=if(!UP(colossus_smash_expire(rti->player.target)))SPELL(colossus_smash);
-actions+=SPELL(ravager);
-actions+=SPELL(overpower);
-actions+=if((enemy_health_percent(rti)>=20.000000f)){
-actions+=SPELL(mortal_strike);
-actions+=if((1&&1))SPELL(colossus_smash);
-actions+=if((((focused_rage_stack<3.000000f)||TALENT_DEADLY_CALM)&&UP(battle_cry_expire)))SPELL(focused_rage);
-actions+=if((((((TALENT_FERVOR_OF_BATTLE&&(UP(colossus_smash_expire(rti->player.target))||((power_max-rti->player.power)<50.000000f)))&&!TALENT_FOCUSED_RAGE)||TALENT_DEADLY_CALM)&&UP(battle_cry_expire))||UP(cleave_expire)))SPELL(whirlwind);
-actions+=if(((((!TALENT_FERVOR_OF_BATTLE&&(UP(colossus_smash_expire(rti->player.target))||((power_max-rti->player.power)<40.000000f)))&&!TALENT_FOCUSED_RAGE)||TALENT_DEADLY_CALM)&&UP(battle_cry_expire)))SPELL(slam);
-actions+=if((TO_SECONDS(REMAIN(rend_expire(rti->player.target)))<=(15*0.300000f)))SPELL(rend);
-actions+=SPELL(heroic_leap);
-actions+=if((TALENT_FERVOR_OF_BATTLE&&((!TALENT_FOCUSED_RAGE||(rti->player.power>100.000000f))||(focused_rage_stack==3.000000f))))SPELL(whirlwind);
-actions+=if((!TALENT_FERVOR_OF_BATTLE&&((!TALENT_FOCUSED_RAGE||(rti->player.power>100.000000f))||(focused_rage_stack==3.000000f))))SPELL(slam);
-actions+=SPELL(execute);
-actions+=SPELL(shockwave);
-actions+=SPELL(storm_bolt);
-actions+=return;
-actions+=}
-actions+=if((enemy_health_percent(rti)<20.000000f)){
-actions+=if((0.000000f&&(focused_rage_stack==3.000000f)))SPELL(mortal_strike);
-actions+=if((UP(colossus_smash_expire(rti->player.target))&&(((0.000000f||(rti->player.power>100.000000f))||TALENT_DEADLY_CALM)&&UP(battle_cry_expire))))SPELL(execute);
-actions+=if((TALENT_IN_FOR_THE_KILL&&1))SPELL(mortal_strike);
-actions+=if((1&&1))SPELL(colossus_smash);
-actions+=SPELL(mortal_strike);
-actions+=if((UP(colossus_smash_expire(rti->player.target))||(rti->player.power>=100.000000f)))SPELL(execute);
-actions+=if((TALENT_DEADLY_CALM&&UP(battle_cry_expire)))SPELL(focused_rage);
-actions+=if((TO_SECONDS(REMAIN(rend_expire(rti->player.target)))<=(15*0.300000f)))SPELL(rend);
-actions+=SPELL(heroic_leap);
-actions+=SPELL(shockwave);
-actions+=SPELL(storm_bolt);
-actions+=return;
-actions+=}
+default_actions=1
 
 rng_engine=lcg32

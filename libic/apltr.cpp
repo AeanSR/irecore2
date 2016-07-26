@@ -1230,7 +1230,7 @@ IC_LOCAL cond_node_t* variable() {
     }
     return 0;
 }
-IC_LOCAL cond_node_t* logical_expression();
+IC_LOCAL cond_node_t* logical_OR_expression();
 IC_LOCAL cond_node_t* primary_expression() {
     cond_node_t* child;
     mark();
@@ -1243,7 +1243,7 @@ IC_LOCAL cond_node_t* primary_expression() {
     }
     btm();
     if (get().value == "(")
-        if (0 != ( child = logical_expression() ))
+        if (0 != ( child = logical_OR_expression() ))
             if (get().value == ")") {
                 return unmark(), child;
             }
@@ -1367,7 +1367,7 @@ IC_LOCAL cond_node_t* relational_expression() {
     return lhs;
 }
 
-IC_LOCAL cond_node_t* logical_expression() {
+IC_LOCAL cond_node_t* logical_AND_expression() {
     cond_node_t* lhs = 0;
     cond_node_t* rhs = 0;
     std::string op;
@@ -1376,7 +1376,7 @@ IC_LOCAL cond_node_t* logical_expression() {
         mark();
         if (lhs) {
             auto node = new cond_node_t;
-            node->op = ( op == "&" ? AND : OR );
+            node->op = AND;
             node->lvalue = lhs;
             node->rvalue = rhs;
             lhs = node;
@@ -1384,7 +1384,36 @@ IC_LOCAL cond_node_t* logical_expression() {
             lhs = rhs;
         }
         op = get().value;
-        if (op == "&" || op == "|") {
+        if (op == "&") {
+            unmark();
+        } else {
+            btm();
+            unmark();
+            break;
+        }
+    }
+    if (!lhs) lhs = rhs;
+    return lhs;
+}
+
+IC_LOCAL cond_node_t* logical_OR_expression() {
+    cond_node_t* lhs = 0;
+    cond_node_t* rhs = 0;
+    std::string op;
+    while (1) {
+        if (!( rhs = logical_AND_expression() )) return 0;
+        mark();
+        if (lhs) {
+            auto node = new cond_node_t;
+            node->op =  OR;
+            node->lvalue = lhs;
+            node->rvalue = rhs;
+            lhs = node;
+        } else {
+            lhs = rhs;
+        }
+        op = get().value;
+        if (op == "|") {
             unmark();
         } else {
             btm();
@@ -1453,7 +1482,7 @@ IC_LOCAL rule_t* rule_item() {
                     t.suppress = 1;
                 }
                 pos = vpos;
-                node->cond = logical_expression();
+                node->cond = logical_OR_expression();
                 if (!node->cond) {
                     token_t& t = working->at( vpos );
                     if (!t.suppress) eprintf( t, 1, "cannot build condition tree from here" );
@@ -1530,7 +1559,7 @@ IC_LOCAL rule_t* rule_item() {
                     t.suppress = 1;
                 }
                 pos = vpos;
-                node->cond = logical_expression();
+                node->cond = logical_OR_expression();
                 if (!node->cond) {
                     token_t& t = working->at( vpos );
                     if (!t.suppress) eprintf( t, 1, "cannot build condition tree from here" );
@@ -1584,7 +1613,7 @@ IC_LOCAL rule_t* rule_item() {
                     t.suppress = 1;
                 }
                 pos = vpos;
-                node->cond = logical_expression();
+                node->cond = logical_OR_expression();
                 if (!node->cond) {
                     token_t& t = working->at( vpos );
                     if (!t.suppress) eprintf( t, 1, "cannot build condition tree from here" );

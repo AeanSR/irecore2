@@ -561,9 +561,9 @@ SPELL(overpower);
 if((enemy_health_percent(rti)>=20.000000f)){
 SPELL(mortal_strike);
 if((1&&1))SPELL(colossus_smash);
-if((((focused_rage_stack<3.000000f)||TALENT_DEADLY_CALM)&&UP(battle_cry_expire)))SPELL(focused_rage);
-if((((((TALENT_FERVOR_OF_BATTLE&&(UP(colossus_smash_expire(rti->player.target))||((power_max-rti->player.power)<50.000000f)))&&!TALENT_FOCUSED_RAGE)||TALENT_DEADLY_CALM)&&UP(battle_cry_expire))||UP(cleave_expire)))SPELL(whirlwind);
-if(((((!TALENT_FERVOR_OF_BATTLE&&(UP(colossus_smash_expire(rti->player.target))||((power_max-rti->player.power)<40.000000f)))&&!TALENT_FOCUSED_RAGE)||TALENT_DEADLY_CALM)&&UP(battle_cry_expire)))SPELL(slam);
+if(((focused_rage_stack<3.000000f)||(TALENT_DEADLY_CALM&&UP(battle_cry_expire))))SPELL(focused_rage);
+if(((((TALENT_FERVOR_OF_BATTLE&&(UP(colossus_smash_expire(rti->player.target))||((power_max-rti->player.power)<50.000000f)))&&!TALENT_FOCUSED_RAGE)||(TALENT_DEADLY_CALM&&UP(battle_cry_expire)))||UP(cleave_expire)))SPELL(whirlwind);
+if((((!TALENT_FERVOR_OF_BATTLE&&(UP(colossus_smash_expire(rti->player.target))||((power_max-rti->player.power)<40.000000f)))&&!TALENT_FOCUSED_RAGE)||(TALENT_DEADLY_CALM&&UP(battle_cry_expire))))SPELL(slam);
 if((TO_SECONDS(REMAIN(rend_expire(rti->player.target)))<=(15*0.300000f)))SPELL(rend);
 SPELL(heroic_leap);
 if((TALENT_FERVOR_OF_BATTLE&&((!TALENT_FOCUSED_RAGE||(rti->player.power>100.000000f))||(focused_rage_stack==3.000000f))))SPELL(whirlwind);
@@ -575,7 +575,7 @@ return;
 }
 if((enemy_health_percent(rti)<20.000000f)){
 if((0.000000f&&(focused_rage_stack==3.000000f)))SPELL(mortal_strike);
-if((UP(colossus_smash_expire(rti->player.target))&&(((0.000000f||(rti->player.power>100.000000f))||TALENT_DEADLY_CALM)&&UP(battle_cry_expire))))SPELL(execute);
+if((UP(colossus_smash_expire(rti->player.target))&&((0.000000f||(rti->player.power>100.000000f))||(TALENT_DEADLY_CALM&&UP(battle_cry_expire)))))SPELL(execute);
 if((TALENT_IN_FOR_THE_KILL&&1))SPELL(mortal_strike);
 if((1&&1))SPELL(colossus_smash);
 SPELL(mortal_strike);
@@ -589,24 +589,19 @@ return;
 })RAWAPL";
     }
     if (config().spec == SPEC_FURY_WARRIOR) {
-        apl += R"RAWAPL(if((0.000000f>5.000000f)){
-SPELL(heroic_leap);
-0;
-return;
-}
-if((((0.000000f>25.000000f)&&(0>45.000000f))||!0))SPELL(heroic_leap);
+        apl += R"RAWAPL(if((((0.000000f>25.000000f)&&(0>45.000000f))||!0))SPELL(heroic_leap);
 if((((num_enemies>1.000000f)||!0)&&(((TALENT_BLADESTORM&&(TO_SECONDS(REMAIN(bladestorm_cd))==0.000000f))||UP(battle_cry_expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<25.000000f))))SPELL(thorasus_the_stone_heart_of_draenor);
 if((((enemy_health_percent(rti)<20.000000f)&&UP(battle_cry_expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<=30.000000f)))SPELL(potion);
 if(((((65535<90.000000f)&&(0>2.000000f))&&(num_enemies==1.000000f))||(65535<5.000000f))){
 if(((rti->player.power==100.000000f)||UP(massacre_expire)))SPELL(rampage);
 if(((TALENT_OUTBURST&&(TO_SECONDS(REMAIN(dragon_roar_cd))==0.000000f))&&!UP(enrage_expire)))SPELL(berserker_rage);
-if((((!TALENT_BLOODBATH&&((TO_SECONDS(REMAIN(battle_cry_cd))<1.000000f)||(TO_SECONDS(REMAIN(battle_cry_cd))>10.000000f)))||TALENT_BLOODBATH)&&(TO_SECONDS(REMAIN(bloodbath_cd))==0.000000f)))SPELL(dragon_roar);
+if(((!TALENT_BLOODBATH&&((TO_SECONDS(REMAIN(battle_cry_cd))<1.000000f)||(TO_SECONDS(REMAIN(battle_cry_cd))>10.000000f)))||(TALENT_BLOODBATH&&(TO_SECONDS(REMAIN(bloodbath_cd))==0.000000f))))SPELL(dragon_roar);
 if(UP(dragon_roar_expire))SPELL(avatar);
 if(UP(dragon_roar_expire))SPELL(bloodbath);
 if(UP(dragon_roar_expire))SPELL(battle_cry);
 if(!UP(enrage_expire))SPELL(rampage);
 if((TALENT_FRENZY&&(!UP(frenzy_expire)||(TO_SECONDS(REMAIN(frenzy_expire))<=3.000000f))))SPELL(furious_slash);
-if((((((UP(enrage_expire)&&(!TALENT_MASSACRE&&!TALENT_INNER_RAGE))||TALENT_MASSACRE)&&!UP(enrage_expire))||UP(enrage_expire))&&(TALENT_MASSACRE&&!TALENT_INNER_RAGE)))SPELL(execute);
+if((((UP(enrage_expire)&&(!TALENT_MASSACRE&&!TALENT_INNER_RAGE))||(TALENT_MASSACRE&&!UP(enrage_expire)))||(UP(enrage_expire)&&(TALENT_MASSACRE&&!TALENT_INNER_RAGE))))SPELL(execute);
 if(!TALENT_INNER_RAGE)SPELL(bloodthirst);
 if((!TALENT_INNER_RAGE&&UP(wrecking_ball_expire)))SPELL(whirlwind);
 if(UP(enrage_expire))SPELL(raging_blow);
@@ -625,7 +620,7 @@ if(UP(battle_cry_expire))SPELL(berserking);
 if((rti->player.power<(power_max-40.000000f)))SPELL(arcane_torrent);
 if(((num_enemies==2.000000f)||(num_enemies==3.000000f))){
 if(!UP(meat_cleaver_expire))SPELL(whirlwind);
-if(((!UP(enrage_expire)||((rti->player.power==100.000000f)&&1.000000f))||UP(massacre_expire)))SPELL(rampage);
+if(((!UP(enrage_expire)||((rti->player.power==100.000000f)&&0.000000f))||UP(massacre_expire)))SPELL(rampage);
 if(!UP(enrage_expire))SPELL(bloodthirst);
 if((TALENT_INNER_RAGE&&(num_enemies==2.000000f)))SPELL(raging_blow);
 if((num_enemies>2.000000f))SPELL(whirlwind);
@@ -645,13 +640,13 @@ SPELL(bloodthirst);
 {
 if(((rti->player.power==100.000000f)||UP(massacre_expire)))SPELL(rampage);
 if(((TALENT_OUTBURST&&(TO_SECONDS(REMAIN(dragon_roar_cd))==0.000000f))&&!UP(enrage_expire)))SPELL(berserker_rage);
-if((((!TALENT_BLOODBATH&&((TO_SECONDS(REMAIN(battle_cry_cd))<1.000000f)||(TO_SECONDS(REMAIN(battle_cry_cd))>10.000000f)))||TALENT_BLOODBATH)&&(TO_SECONDS(REMAIN(bloodbath_cd))==0.000000f)))SPELL(dragon_roar);
+if(((!TALENT_BLOODBATH&&((TO_SECONDS(REMAIN(battle_cry_cd))<1.000000f)||(TO_SECONDS(REMAIN(battle_cry_cd))>10.000000f)))||(TALENT_BLOODBATH&&(TO_SECONDS(REMAIN(bloodbath_cd))==0.000000f))))SPELL(dragon_roar);
 if(UP(dragon_roar_expire))SPELL(avatar);
 if(UP(dragon_roar_expire))SPELL(bloodbath);
 if(UP(dragon_roar_expire))SPELL(battle_cry);
 if(!UP(enrage_expire))SPELL(rampage);
 if((TALENT_FRENZY&&(!UP(frenzy_expire)||(TO_SECONDS(REMAIN(frenzy_expire))<=3.000000f))))SPELL(furious_slash);
-if((((((UP(enrage_expire)&&(!TALENT_MASSACRE&&!TALENT_INNER_RAGE))||TALENT_MASSACRE)&&!UP(enrage_expire))||UP(enrage_expire))&&(TALENT_MASSACRE&&!TALENT_INNER_RAGE)))SPELL(execute);
+if((((UP(enrage_expire)&&(!TALENT_MASSACRE&&!TALENT_INNER_RAGE))||(TALENT_MASSACRE&&!UP(enrage_expire)))||(UP(enrage_expire)&&(TALENT_MASSACRE&&!TALENT_INNER_RAGE))))SPELL(execute);
 if(!TALENT_INNER_RAGE)SPELL(bloodthirst);
 if((!TALENT_INNER_RAGE&&UP(wrecking_ball_expire)))SPELL(whirlwind);
 if(UP(enrage_expire))SPELL(raging_blow);
@@ -661,8 +656,7 @@ if(!UP(enrage_expire))SPELL(bloodthirst);
 SPELL(raging_blow);
 SPELL(bloodthirst);
 SPELL(furious_slash);
-}
-)RAWAPL";
+})RAWAPL";
     }
     if (config().spec == SPEC_RET_PALADIN) {
         apl += R"RAWAPL(if(((UP(bloodlust_expire)||UP(avenging_wrath_expire))||(TO_SECONDS(TIME_DISTANT(rti->expected_combat_length))<=40.000000f)))SPELL(potion);
@@ -694,8 +688,8 @@ if((((UP(judgment_expire(rti->player.target))&&(rti->player.power>=5.000000f))&&
 if(((UP(judgment_expire(rti->player.target))&&(rti->player.power>=5.000000f))&&(!TALENT_CRUSADE||(TO_SECONDS(REMAIN(crusade_cd))>(TO_SECONDS(REMAIN(rti->player.gcd))*2.000000f)))))SPELL(templars_verdict);
 if(((((num_enemies<=3.000000f)&&(TO_SECONDS(REMAIN(judgment_cd))<(TO_SECONDS(REMAIN(rti->player.gcd))*4.500000f)))&&(0.000000f<(TO_SECONDS(REMAIN(rti->player.gcd))*2.000000f)))&&0.000000f))SPELL(execution_sentence);
 if((((((rti->player.power>=3.000000f)&&UP(divine_purpose_expire))&&(0.000000f<(TO_SECONDS(REMAIN(rti->player.gcd))*2.000000f)))&&0.000000f)&&!0.000000f))SPELL(justicars_vengeance);
-if((((((((rti->player.power>=3.000000f)&&(num_enemies>=2.000000f))&&(0.000000f<(TO_SECONDS(REMAIN(rti->player.gcd))*2.000000f)))&&0.000000f)||(num_enemies>=2.000000f))&&0.000000f)&&(0.000000f<TO_SECONDS(REMAIN(rti->player.gcd)))))SPELL(divine_storm);
-if((((((rti->player.power>=3.000000f)&&(0.000000f<(TO_SECONDS(REMAIN(rti->player.gcd))*2.000000f)))&&0.000000f)||0.000000f)&&(0.000000f<TO_SECONDS(REMAIN(rti->player.gcd)))))SPELL(templars_verdict);
+if((((((rti->player.power>=3.000000f)&&(num_enemies>=2.000000f))&&(0.000000f<(TO_SECONDS(REMAIN(rti->player.gcd))*2.000000f)))&&0.000000f)||(((num_enemies>=2.000000f)&&0.000000f)&&(0.000000f<TO_SECONDS(REMAIN(rti->player.gcd))))))SPELL(divine_storm);
+if(((((rti->player.power>=3.000000f)&&(0.000000f<(TO_SECONDS(REMAIN(rti->player.gcd))*2.000000f)))&&0.000000f)||(0.000000f&&(0.000000f<TO_SECONDS(REMAIN(rti->player.gcd))))))SPELL(templars_verdict);
 if(((zeal_charge==2.000000f)&&(rti->player.power<=4.000000f)))SPELL(zeal);
 if(((crusader_strike_charge==2.000000f)&&!TALENT_THE_FIRES_OF_JUSTICE))SPELL(crusader_strike);
 if((rti->player.power<=3.000000f))SPELL(blade_of_justice);
@@ -718,8 +712,7 @@ if((rti->player.power<=4.000000f))SPELL(crusader_strike);
 if(((((num_enemies<=3.000000f)&&((TO_SECONDS(REMAIN(judgment_cd))<(TO_SECONDS(REMAIN(rti->player.gcd))*4.500000f))||(TO_SECONDS(REMAIN(judgment_expire(rti->player.target)))>(TO_SECONDS(REMAIN(rti->player.gcd))*4.670000f))))&&(rti->player.power>=3.000000f))&&(!TALENT_CRUSADE||(TO_SECONDS(REMAIN(crusade_cd))>(TO_SECONDS(REMAIN(rti->player.gcd))*4.000000f)))))SPELL(execution_sentence);
 if(((UP(judgment_expire(rti->player.target))&&(num_enemies>=2.000000f))&&(!TALENT_CRUSADE||(TO_SECONDS(REMAIN(crusade_cd))>(TO_SECONDS(REMAIN(rti->player.gcd))*4.000000f)))))SPELL(divine_storm);
 if(((UP(judgment_expire(rti->player.target))&&(rti->player.power>=3.000000f))&&(!TALENT_CRUSADE||(TO_SECONDS(REMAIN(crusade_cd))>(TO_SECONDS(REMAIN(rti->player.gcd))*4.000000f)))))SPELL(templars_verdict);
-}
-)RAWAPL";
+})RAWAPL";
     }
     if (config().spec == SPEC_FROST_DEATHKNIGHT) {
         apl += R"RAWAPL(if(((power_max-rti->player.power)>20.000000f))SPELL(arcane_torrent);
@@ -768,8 +761,7 @@ if((TALENT_BREATH_OF_SINDRAGOSA&&(TO_SECONDS(REMAIN(breath_of_sindragosa_cd))>15
 if(!TALENT_BREATH_OF_SINDRAGOSA)SPELL(horn_of_winter);
 if(!TALENT_BREATH_OF_SINDRAGOSA)SPELL(empower_rune_weapon);
 if(!TALENT_BREATH_OF_SINDRAGOSA)SPELL(hungering_rune_weapon);
-}
-)RAWAPL";
+})RAWAPL";
     }
     return apl.c_str();
 }
