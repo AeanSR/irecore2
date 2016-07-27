@@ -1024,13 +1024,17 @@ DECL_EVENT( breath_of_sindragosa_tick ) {
     }
     breath_of_sindragosa_duration++;
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1.0f ) ), routnum_breath_of_sindragosa_tick, target_id );
-    float d = ap_dmg( rti, 1.4f ); //TODO: potential constant damage
+    float d = ap_dmg( rti, 1.5f ); //TODO: potential constant damage
     k32u dice = round_table_dice( rti, target_id, ATYPE_SPELL, 0 );
     deal_damage( rti, target_id, d, DTYPE_FROST, dice, 0, 0 );
     for ( int i = 1; i < num_enemies; i++ ) {
-        d = d / num_enemies; //TODO: check if correct
+
         dice = round_table_dice( rti, i, ATYPE_SPELL, 0 );
         deal_damage( rti, i, d, DTYPE_FROST, dice, 0, 0 );
+        if (i = 1)
+        {
+            d = d/3.0f;
+        }
     }
 }
 DECL_EVENT( breath_of_sindragosa_expire ) {
