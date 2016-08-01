@@ -647,7 +647,7 @@ DECL_SPELL( rampage ) {
         if ( !power_check( rti, ( TALENT_CARNAGE ) ? 70.0f : 85.0f ) ) return 0;
         power_consume( rti, ( TALENT_CARNAGE ) ? 70.0f : 85.0f );
     }
-    gcd_start( rti, FROM_SECONDS( 2.0f ), 1 );
+    gcd_start( rti, FROM_SECONDS( min( 1.5f, 2.0f / ( 1.0f + rti->player.stat.haste ) ) ), 0 );
     eq_enqueue( rti, rti->timestamp, routnum_rampage_cast_1, rti->player.target );
     rampage_cd = TIME_OFFSET( FROM_SECONDS( 1.5f ) );
     eq_enqueue( rti, rampage_cd, routnum_rampage_cd, 0 );
