@@ -13,6 +13,26 @@
     If not, see <http://opensource.org/licenses/mit-license.php>.
 */
 
+/* artifact traits */
+#define ATRAIT_ODYNS_FURY           (ARTIFACT_TRAITS[0])
+#define ATRAIT_BATTLE_SCARS         (ARTIFACT_TRAITS[1])
+#define ATRAIT_BLOODCRAZE           (ARTIFACT_TRAITS[2])
+#define ATRAIT_DEATHDEALER          (ARTIFACT_TRAITS[3])
+#define ATRAIT_FOCUS_IN_CHAOS       (ARTIFACT_TRAITS[4])
+#define ATRAIT_HELYAS_WRATH         (ARTIFACT_TRAITS[5])
+#define ATRAIT_JUGGERNAUT           (ARTIFACT_TRAITS[6])
+#define ATRAIT_ODYNS_CHAMPION       (ARTIFACT_TRAITS[7])
+#define ATRAIT_RAGE_OF_THE_VALARJAR (ARTIFACT_TRAITS[8])
+#define ATRAIT_RAGING_BERSERKER     (ARTIFACT_TRAITS[9])
+#define ATRAIT_SENSE_DEATH          (ARTIFACT_TRAITS[10])
+#define ATRAIT_THIRST_FOR_BATTLE    (ARTIFACT_TRAITS[11])
+#define ATRAIT_TITANIC_POWER        (ARTIFACT_TRAITS[12])
+#define ATRAIT_UNCONTROLLED_RAGE    (ARTIFACT_TRAITS[13])
+#define ATRAIT_UNRIVALED_STRENGTH   (ARTIFACT_TRAITS[14])
+#define ATRAIT_UNSTOPPABLE          (ARTIFACT_TRAITS[15])
+#define ATRAIT_WILD_SLASHES         (ARTIFACT_TRAITS[16])
+#define ATRAIT_WRATH_AND_FURY       (ARTIFACT_TRAITS[17])
+
 /* spec state infos. */
 struct spec_state_t {
     struct {
@@ -227,7 +247,6 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
     if ( UP( avatar_expire ) )                                  dmg *= 1.2f;
     if ( UP( dragon_roar_expire ) )                             dmg *= 1.2f;
     if ( UP( frothing_berserker_expire ) )                      dmg *= 1.1f;
-    if ( UP( thorasus_the_stone_heart_of_draenor_expire ) )     dmg *= 1.0f + legendary_ring * 0.0001f;
     if ( ENEMY_IS_DEMONIC && UP( gronntooth_war_horn_expire ) )  dmg *= 1.1f;
     //  if ( SOME_ARTIFACT_TRAITS && UP( battle_cry_expire ) )      cdb *= 1.0f + 0.1f * SOME_ARTIFACT_TRAITS;
     if ( RACE == RACE_DWARF || RACE == RACE_TAUREN )            cdb *= 1.02f;
@@ -460,13 +479,14 @@ DECL_EVENT( enrage_trigger ) {
 // === execute ================================================================
 DECL_EVENT( execute_cast ) {
     float d = weapon_dmg( rti, 4.65f, 1, 0 );
-    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
+    const float deathdealer_lut[] = { 0.00f, 0.03f, 0.06f, 0.10f, 0.13f, 0.16f, 0.20f };
+    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, deathdealer_lut[ATRAIT_DEATHDEALER] );
     float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
 #if (TALENT_MASSACRE)
     kbool have_crit = ( DICE_CRIT == dice );
 #endif
     d = weapon_dmg( rti, 4.65f, 1, 1 );
-    dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
+    dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, deathdealer_lut[ATRAIT_DEATHDEALER] );
     final_dmg += deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     trigger_dots( rti, final_dmg, target_id );
 #if (TALENT_MASSACRE)
