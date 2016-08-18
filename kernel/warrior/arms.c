@@ -97,12 +97,7 @@ struct spec_debuff_t {
 /* check point to trace cooldown */
 time_t spec_check_point( rtinfo_t* rti ) {
     time_t cp = rti->expected_combat_length;
-    if ( UP( cleave_cd ) )          cp = min( cp, cleave_cd );
     if ( UP( colossus_smash_cd ) )  cp = min( cp, colossus_smash_cd );
-    if ( UP( hamstring_cd ) )       cp = min( cp, hamstring_cd );
-    if ( UP( mortal_strike_cd ) )   cp = min( cp, mortal_strike_cd );
-    if ( UP( focused_rage_cd ) )    cp = min( cp, focused_rage_cd );
-    if ( UP( ravager_cd ) )         cp = min( cp, ravager_cd );
     return cp;
 }
 
@@ -162,7 +157,6 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
     dmg *= 1.0f + rti->player.stat.vers;
     if ( UP( colossus_smash_expire( target_id ) ) )             dmg *= rti->enemy[target_id].spec->colossus_smash.increament;
     if ( UP( avatar_expire ) )                                  dmg *= 1.2f;
-    if ( UP( thorasus_the_stone_heart_of_draenor_expire ) )     dmg *= 1.0f + legendary_ring * 0.0001f;
     if ( ENEMY_IS_DEMONIC && UP( gronntooth_war_horn_expire ) ) dmg *= 1.1f;
     if ( RACE == RACE_DWARF || RACE == RACE_TAUREN )            cdb *= 1.02f;
     if ( DTYPE_PHYSICAL == dmgtype ) {
@@ -229,7 +223,6 @@ enum {
     routnum_cleave_expire,
     routnum_cleave_cd,
     routnum_cleave_cast,
-    routnum_colossus_smash_cd,
     routnum_colossus_smash_expire,
     routnum_colossus_smash_trigger,
     routnum_colossus_smash_cast,
@@ -347,11 +340,6 @@ DECL_SPELL( cleave ) {
 }
 
 // === colossus smash =========================================================
-DECL_EVENT( colossus_smash_cd ) {
-    if ( colossus_smash_cd == rti->timestamp ) {
-        lprintf( ( "colossus_smash cd" ) );
-    }
-}
 DECL_EVENT( colossus_smash_expire ) {
     if ( colossus_smash_expire( target_id ) == rti->timestamp ) {
         rti->enemy[target_id].spec->colossus_smash.increament = 1.0f;
@@ -375,7 +363,6 @@ DECL_SPELL( colossus_smash ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( colossus_smash_cd > rti->timestamp ) return 0;
     colossus_smash_cd = TIME_OFFSET( FROM_SECONDS( 45 ) );
-    eq_enqueue( rti, colossus_smash_cd, routnum_colossus_smash_cd, 0 );
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_colossus_smash_cast, rti->player.target );
     lprintf( ( "cast colossus_smash" ) );
@@ -528,7 +515,6 @@ DECL_EVENT( tactician_trigger ) {
     if ( mortal_strike_charge == mortal_strike_maxcharge ) mortal_strike_cd = rti->timestamp;
     if ( UP( colossus_smash_cd ) ) {
         colossus_smash_cd = rti->timestamp;
-        eq_enqueue( rti, rti->timestamp, routnum_colossus_smash_cd, 0 );
     }
 }
 void trigger_tactician( rtinfo_t* rti ) {
@@ -802,7 +788,6 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
         HOOK_EVENT( cleave_expire );
         HOOK_EVENT( cleave_cd );
         HOOK_EVENT( cleave_cast );
-        HOOK_EVENT( colossus_smash_cd );
         HOOK_EVENT( colossus_smash_expire );
         HOOK_EVENT( colossus_smash_trigger );
         HOOK_EVENT( colossus_smash_cast );
