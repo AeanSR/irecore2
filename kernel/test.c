@@ -3,7 +3,7 @@
 */
 
 #define CLASS CLASS_WARRIOR
-#define SPEC SPEC_ARMS
+#define SPEC SPEC_FURY
 #define STRICT_GCD 1
 #define SYNC_MELEE 1
 #define RNG_MWC64X
@@ -12,7 +12,7 @@
 #define initial_health_percentage 100.0f
 #define death_pct 0.0f
 #define iterations 1
-#define power_max 5.0f
+#define power_max 100.0f
 #define num_enemies 1
 #define PLATE_SPECIALIZATION 1
 #define BUFF_POTION 1
