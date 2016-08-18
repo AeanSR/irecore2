@@ -94,6 +94,18 @@ struct spec_debuff_t {
 #endif
 };
 
+/* check point to trace cooldown */
+time_t spec_check_point( rtinfo_t* rti ) {
+    time_t cp = rti->expected_combat_length;
+    if ( UP( cleave_cd ) )          cp = min( cp, cleave_cd );
+    if ( UP( colossus_smash_cd ) )  cp = min( cp, colossus_smash_cd );
+    if ( UP( hamstring_cd ) )       cp = min( cp, hamstring_cd );
+    if ( UP( mortal_strike_cd ) )   cp = min( cp, mortal_strike_cd );
+    if ( UP( focused_rage_cd ) )    cp = min( cp, focused_rage_cd );
+    if ( UP( ravager_cd ) )         cp = min( cp, ravager_cd );
+    return cp;
+}
+
 float spec_str_coefficient( rtinfo_t* rti ) {
     return 1.0f;
 }
@@ -776,6 +788,13 @@ DECL_SPELL( ravager ) {
 }
 #endif
 
+void trigger_offensive_abilities( rtinfo_t* rti ) {
+
+}
+
+void trigger_dots( rtinfo_t* rti, float dmg, k32u target_id ) {
+
+}
 
 void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
     switch( e.routine ) {

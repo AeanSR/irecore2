@@ -123,14 +123,25 @@ struct class_state_t {
 struct class_debuff_t {
 };
 
+void trigger_offensive_abilities( rtinfo_t* rti );
+void trigger_dots( rtinfo_t* rti, float dmg, k32u target_id );
+
 void on_time_elapsed( rtinfo_t* rti, time_t last_time ) {
 
 }
+
+/* check point to trace cooldown */
+time_t spec_check_point( rtinfo_t* rti );
 time_t check_point( rtinfo_t* rti ) {
-#if (TALENT_ANGER_MANAGEMENT) // when battle cry cd varies a lot, use check point instead of events to track.
-    return battle_cry_cd;
-#endif
-    return 0;
+    time_t cp = spec_check_point( rti );
+    if ( UP( battle_cry_cd ) )     cp = min( cp, battle_cry_cd );
+    if ( UP( berserker_rage_cd ) ) cp = min( cp, berserker_rage_cd );
+    if ( UP( heroic_leap_cd ) )    cp = min( cp, heroic_leap_cd );
+    if ( UP( shockwave_cd ) )      cp = min( cp, shockwave_cd );
+    if ( UP( storm_bolt_cd ) )     cp = min( cp, storm_bolt_cd );
+    if ( UP( avatar_cd ) )         cp = min( cp, avatar_cd );
+    if ( UP( bladestorm_cd ) )     cp = min( cp, bladestorm_cd );
+    return cp;
 }
 
 /* Event list. */
@@ -138,36 +149,25 @@ enum {
     END_OF_COMMON_ROUTNUM = START_OF_CLASS_ROUTNUM - 1,
     routnum_battle_cry_start,
     routnum_battle_cry_expire,
-    routnum_battle_cry_cd,
-    routnum_berserker_rage_cd,
+    routnum_berserker_rage_cast,
     routnum_heroic_leap_cast,
-    routnum_heroic_leap_cd,
 #if (TALENT_SHOCKWAVE)
-    routnum_shockwave_cd,
     routnum_shockwave_cast,
 #endif
 #if (TALENT_STORM_BOLT)
-    routnum_storm_bolt_cd,
     routnum_storm_bolt_cast,
 #endif
 #if (TALENT_AVATAR)
     routnum_avatar_start,
     routnum_avatar_expire,
-    routnum_avatar_cd,
 #endif
 #if (TALENT_BLADESTORM)
     routnum_bladestorm_tick,
-    routnum_bladestorm_cd,
 #endif
     START_OF_SPEC_ROUTNUM,
 };
 
 // === battle cry =============================================================
-DECL_EVENT( battle_cry_cd ) {
-    if ( battle_cry_cd == rti->timestamp ) {
-        lprintf( ( "battle_cry cd" ) );
-    }
-}
 DECL_EVENT( battle_cry_expire ) {
     lprintf( ( "battle_cry expire" ) );
 }
@@ -183,33 +183,30 @@ DECL_SPELL( battle_cry ) {
     eq_enqueue( rti, battle_cry_expire, routnum_battle_cry_expire, 0 );
     battle_cry_cd = TIME_OFFSET( FROM_SECONDS( 60 ) ); // TODO: some traits would decrease cd?
     spec_spell_battle_cry( rti ); // this may modify cd!
-    if ( !TALENT_ANGER_MANAGEMENT ) eq_enqueue( rti, battle_cry_cd, routnum_battle_cry_cd, 0 ); // when battle cry cd varies a lot, use check point instead of events to track.
     return 1;
 }
 
 // === berserker rage =========================================================
-DECL_EVENT( berserker_rage_cd ) {
-    lprintf( ( "berserker_rage cd" ) );
-}
 void spec_berserker_rage_cast( rtinfo_t* rti );
+DECL_EVENT( berserker_rage_cast ) {
+    spec_berserker_rage_cast( rti );
+    lprintf( ( "berserker_rage" ) );
+}
 DECL_SPELL( berserker_rage ) {
     if ( berserker_rage_cd > rti->timestamp ) return 0;
-    spec_berserker_rage_cast( rti );
+    eq_enqueue( rti, rti->timestamp, routnum_berserker_rage_cast, 0 );
     berserker_rage_cd = TIME_OFFSET( FROM_SECONDS( 60 ) );
-    eq_enqueue( rti, berserker_rage_cd, routnum_berserker_rage_cd, 0 );
     lprintf( ( "cast berserker_rage" ) );
     return 1;
 }
 
 // === heroic leap ============================================================
-DECL_EVENT( heroic_leap_cd ) {
-    lprintf( ( "heroic_leap cd" ) );
-}
 DECL_EVENT( heroic_leap_cast ) {
     float d = ap_dmg( rti, 0.624f );
     for ( int i = 0; i < num_enemies; i++ ) {
         k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
-        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        float final_dmg = deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        trigger_dots( rti, final_dmg, i );
         lprintf( ( "heroic_leap hit" ) );
     }
 }
@@ -217,20 +214,18 @@ DECL_SPELL( heroic_leap ) {
     if ( heroic_leap_cd > rti->timestamp ) return 0;
     eq_enqueue( rti, rti->timestamp, routnum_heroic_leap_cast, 0 );
     heroic_leap_cd = TIME_OFFSET( FROM_SECONDS( ( TALENT_BOUNDING_STRIDE ) ? 30 : 45 ) );
-    eq_enqueue( rti, heroic_leap_cd, routnum_heroic_leap_cd, 0 );
+    trigger_offensive_abilities( rti );
     return 1;
 }
 
 // === shockwave ==============================================================
 #if (TALENT_SHOCKWAVE)
-DECL_EVENT( shockwave_cd ) {
-    lprintf( ( "shockwave cd" ) );
-}
 DECL_EVENT( shockwave_cast ) {
     float d = ap_dmg( rti, 0.475f );
     for ( int i = 0; i < num_enemies; i++ ) {
         k32u dice = round_table_dice( rti, i, ATYPE_YELLOW_MELEE, 0 );
-        deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        float final_dmg = deal_damage( rti, i, d, DTYPE_PHYSICAL, dice, 0, 0 );
+        trigger_dots( rti, final_dmg, i );
         lprintf( ( "shockwave hit" ) );
     }
 }
@@ -240,7 +235,7 @@ DECL_SPELL( shockwave ) {
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_shockwave_cast, 0 );
     shockwave_cd = TIME_OFFSET( FROM_SECONDS( ( num_enemies >= 3 ) ? 20 : 40 ) );
-    eq_enqueue( rti, shockwave_cd, routnum_shockwave_cd, 0 );
+    trigger_offensive_abilities( rti );
     return 1;
 }
 #else
@@ -251,13 +246,11 @@ DECL_SPELL( shockwave ) {
 
 // === storm bolt =============================================================
 #if (TALENT_STORM_BOLT)
-DECL_EVENT( storm_bolt_cd ) {
-    lprintf( ( "storm_bolt cd" ) );
-}
 DECL_EVENT( storm_bolt_cast ) {
     float d = ap_dmg( rti, 1.0f );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
-    deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
+    trigger_dots( rti, final_dmg, target_id );
     lprintf( ( "storm_bolt hit" ) );
 }
 DECL_SPELL( storm_bolt ) {
@@ -266,7 +259,7 @@ DECL_SPELL( storm_bolt ) {
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_storm_bolt_cast, rti->player.target );
     storm_bolt_cd = TIME_OFFSET( FROM_SECONDS( 30 ) );
-    eq_enqueue( rti, storm_bolt_cd, routnum_storm_bolt_cd, 0 );
+    trigger_offensive_abilities( rti );
     return 1;
 }
 #else
@@ -277,9 +270,6 @@ DECL_SPELL( storm_bolt ) {
 
 // === avatar =================================================================
 #if (TALENT_AVATAR)
-DECL_EVENT( avatar_cd ) {
-    lprintf( ( "avatar cd" ) );
-}
 DECL_EVENT( avatar_expire ) {
     lprintf( ( "avatar expire" ) );
 }
@@ -292,7 +282,7 @@ DECL_SPELL( avatar ) {
     eq_enqueue( rti, avatar_expire, routnum_avatar_expire, 0 );
     eq_enqueue( rti, rti->timestamp, routnum_avatar_start, 0 );
     avatar_cd = TIME_OFFSET( FROM_SECONDS( 90 ) );
-    eq_enqueue( rti, avatar_cd, routnum_avatar_cd, 0 );
+    trigger_offensive_abilities( rti );
     return 1;
 }
 #else
@@ -303,11 +293,6 @@ DECL_SPELL( avatar ) {
 
 // === bladestorm =============================================================
 #if (TALENT_BLADESTORM)
-DECL_EVENT( bladestorm_cd ) {
-    if ( bladestorm_cd == rti->timestamp ) {
-        lprintf( ( "bladestorm ready" ) );
-    }
-}
 void spec_bladestorm_tick( rtinfo_t* rti );
 DECL_EVENT( bladestorm_tick ) {
     spec_bladestorm_tick( rti );
@@ -325,8 +310,8 @@ DECL_SPELL( bladestorm ) {
     rti->player.class->bladestorm.tick_interval = FROM_SECONDS( 1.0f / ( 1.0f + rti->player.stat.haste ) );
     bladestorm_expire = TIME_OFFSET( 6 * rti->player.class->bladestorm.tick_interval );
     rti->player.busy = 1; /* keep player busy during bladestorm to avoid actions. */
-    eq_enqueue( rti, bladestorm_cd, routnum_bladestorm_cd, 0 );
     eq_enqueue( rti, rti->timestamp, routnum_bladestorm_tick, 0 );
+    trigger_offensive_abilities( rti );
     lprintf( ( "cast bladestorm" ) );
     return 1;
 }
@@ -345,26 +330,20 @@ void class_routine_entries( rtinfo_t* rti, _event_t e ) {
     else switch( e.routine ) {
             HOOK_EVENT( battle_cry_start );
             HOOK_EVENT( battle_cry_expire );
-            HOOK_EVENT( battle_cry_cd );
-            HOOK_EVENT( berserker_rage_cd );
+            HOOK_EVENT( berserker_rage_cast );
             HOOK_EVENT( heroic_leap_cast );
-            HOOK_EVENT( heroic_leap_cd );
 #if (TALENT_SHOCKWAVE)
-            HOOK_EVENT( shockwave_cd );
             HOOK_EVENT( shockwave_cast );
 #endif
 #if (TALENT_STORM_BOLT)
-            HOOK_EVENT( storm_bolt_cd );
             HOOK_EVENT( storm_bolt_cast );
 #endif
 #if (TALENT_AVATAR)
             HOOK_EVENT( avatar_start );
             HOOK_EVENT( avatar_expire );
-            HOOK_EVENT( avatar_cd );
 #endif
 #if (TALENT_BLADESTORM)
             HOOK_EVENT( bladestorm_tick );
-            HOOK_EVENT( bladestorm_cd );
 #endif
         default:
             lprintf( ( "wild class routine entry %d", e.routine ) );

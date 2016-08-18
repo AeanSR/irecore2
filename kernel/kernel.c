@@ -22,7 +22,7 @@
 #endif /* _DEBUG */
 #endif /* !defined(__OPENCL_VERSION__) */
 
-/* Codes enclosed in 'hostonly' will be discarded at OpenCL devices, and vice versa. */
+/* Codes enclosed in 'hostonly' will be discarded at OpenCL devices, and those in 'deviceonly' will be discarded at host compile. */
 #if defined(__OPENCL_VERSION__)
 #define hostonly(code)
 #define deviceonly(code) code
@@ -180,6 +180,7 @@ typedef k32u time_t;
 #define TIME_DISTANT( time ) ((time_t)max((k32s)(time) - (k32s)(rti->timestamp), 0))
 #define UP( time_to_check ) ((time_to_check) > rti->timestamp )
 #define REMAIN( time_to_check ) ((time_t)max(((k32s)(time_to_check) - (k32s)rti->timestamp), 0))
+#define AHEAD( base, length ) ((time_t)(base - min((k32u)(base), (k32u)(length))))
 
 /* Event queue. */
 #define EQ_SIZE_EXP (num_enemies < 15 ? 7 : 8)

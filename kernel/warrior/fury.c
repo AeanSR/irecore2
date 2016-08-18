@@ -14,24 +14,24 @@
 */
 
 /* artifact traits */
-#define ATRAIT_ODYNS_FURY           (ARTIFACT_TRAITS[0])
-#define ATRAIT_BATTLE_SCARS         (ARTIFACT_TRAITS[1])
-#define ATRAIT_BLOODCRAZE           (ARTIFACT_TRAITS[2])
-#define ATRAIT_DEATHDEALER          (ARTIFACT_TRAITS[3])
-#define ATRAIT_FOCUS_IN_CHAOS       (ARTIFACT_TRAITS[4])
-#define ATRAIT_HELYAS_WRATH         (ARTIFACT_TRAITS[5])
-#define ATRAIT_JUGGERNAUT           (ARTIFACT_TRAITS[6])
-#define ATRAIT_ODYNS_CHAMPION       (ARTIFACT_TRAITS[7])
-#define ATRAIT_RAGE_OF_THE_VALARJAR (ARTIFACT_TRAITS[8])
-#define ATRAIT_RAGING_BERSERKER     (ARTIFACT_TRAITS[9])
-#define ATRAIT_SENSE_DEATH          (ARTIFACT_TRAITS[10])
-#define ATRAIT_THIRST_FOR_BATTLE    (ARTIFACT_TRAITS[11])
-#define ATRAIT_TITANIC_POWER        (ARTIFACT_TRAITS[12])
-#define ATRAIT_UNCONTROLLED_RAGE    (ARTIFACT_TRAITS[13])
-#define ATRAIT_UNRIVALED_STRENGTH   (ARTIFACT_TRAITS[14])
-#define ATRAIT_UNSTOPPABLE          (ARTIFACT_TRAITS[15])
-#define ATRAIT_WILD_SLASHES         (ARTIFACT_TRAITS[16])
-#define ATRAIT_WRATH_AND_FURY       (ARTIFACT_TRAITS[17])
+#define ATRAIT_ODYNS_FURY           (ARTIFACT_TRAITS_0)
+#define ATRAIT_BATTLE_SCARS         (ARTIFACT_TRAITS_1)
+#define ATRAIT_BLOODCRAZE           (ARTIFACT_TRAITS_2)
+#define ATRAIT_DEATHDEALER          (ARTIFACT_TRAITS_3)
+#define ATRAIT_FOCUS_IN_CHAOS       (ARTIFACT_TRAITS_4)
+#define ATRAIT_HELYAS_WRATH         (ARTIFACT_TRAITS_5)
+#define ATRAIT_JUGGERNAUT           (ARTIFACT_TRAITS_6)
+#define ATRAIT_ODYNS_CHAMPION       (ARTIFACT_TRAITS_7)
+#define ATRAIT_RAGE_OF_THE_VALARJAR (ARTIFACT_TRAITS_8)
+#define ATRAIT_RAGING_BERSERKER     (ARTIFACT_TRAITS_9)
+#define ATRAIT_SENSE_DEATH          (ARTIFACT_TRAITS_10)
+#define ATRAIT_THIRST_FOR_BATTLE    (ARTIFACT_TRAITS_11)
+#define ATRAIT_TITANIC_POWER        (ARTIFACT_TRAITS_12)
+#define ATRAIT_UNCONTROLLED_RAGE    (ARTIFACT_TRAITS_13)
+#define ATRAIT_UNRIVALED_STRENGTH   (ARTIFACT_TRAITS_14)
+#define ATRAIT_UNSTOPPABLE          (ARTIFACT_TRAITS_15)
+#define ATRAIT_WILD_SLASHES         (ARTIFACT_TRAITS_16)
+#define ATRAIT_WRATH_AND_FURY       (ARTIFACT_TRAITS_17)
 
 /* spec state infos. */
 struct spec_state_t {
@@ -123,28 +123,24 @@ struct spec_state_t {
 #define dragon_roar_cd     (0)
 #define dragon_roar_expire (0)
 #endif
-#if (t17_4pc)
+#if (ATRAIT_JUGGERNAUT)
     struct {
         time_t expire;
         k32u stack;
-    } t17p4;
-#define rampage_expire (rti->player.spec->t17p4.expire)
-#define rampage_stack  (rti->player.spec->t17p4.stack)
+    } juggernaut;
+#define juggernaut_expire (rti->player.spec->juggernaut.expire)
+#define juggernaut_stack  (rti->player.spec->juggernaut.stack)
 #else
-#define rampage_expire (0)
-#define rampage_stack  (0)
+#define juggernaut_expire (0)
+#define juggernaut_stack  (0)
 #endif
-#if defined(trinket_worldbreakers_resolve)
+#if (ATRAIT_ODYNS_CHAMPION)
     struct {
         time_t expire;
-        k32u   stack;
-        k32u   target;
-    } worldbreakers_resolve;
-#define worldbreakers_resolve_expire (rti->player.spec->worldbreakers_resolve.expire)
-#define worldbreakers_resolve_stack  (rti->player.spec->worldbreakers_resolve.stack)
+    } odyns_champion;
+#define odyns_champion_expire (rti->player.spec->odyns_champion.expire)
 #else
-#define worldbreakers_resolve_expire (0)
-#define worldbreakers_resolve_stack  (0)
+#define odyns_champion_expire (0)
 #endif
 };
 struct spec_debuff_t {
@@ -156,6 +152,17 @@ struct spec_debuff_t {
     } bloodbath;
 #endif
 };
+
+/* check point to trace cooldown */
+time_t spec_check_point( rtinfo_t* rti ) {
+    time_t cp = rti->expected_combat_length;
+    if ( UP( bloodthirst_cd ) ) cp = min( cp, bloodthirst_cd );
+    if ( UP( rampage_cd ) )     cp = min( cp, rampage_cd );
+    if ( UP( bloodbath_cd ) )   cp = min( cp, bloodbath_cd );
+    if ( UP( raging_blow_cd ) ) cp = min( cp, raging_blow_cd );
+    if ( UP( dragon_roar_cd ) ) cp = min( cp, dragon_roar_cd );
+    return cp;
+}
 
 /* Reimplemented power gain. */
 #if (TALENT_FROTHING_BERSERKER)
@@ -193,16 +200,13 @@ float spec_mastery_increament( rtinfo_t* rti ) {
 
 float spec_crit_increament( rtinfo_t* rti ) {
     float crit = 0.0f;
-    if ( UP( rampage_expire ) ) crit += 0.06f * rampage_stack;
+    //if ( UP( rampage_expire ) ) crit += 0.06f * rampage_stack;
     return crit;
 }
 
 float spec_haste_coefficient( rtinfo_t* rti ) {
     float coeff = 1.0f;
     coeff *= 1.0f + frenzy_stack * 0.04f;
-#if defined(trinket_worldbreakers_resolve)
-    coeff *= 1.0f + ( trinket_worldbreakers_resolve * worldbreakers_resolve_stack ) * 0.0001f;
-#endif
     return coeff;
 }
 
@@ -214,7 +218,7 @@ k32u round_table_dice2( rtinfo_t* rti, k32u target_id, k32u attacktype, float ex
     float c = uni_rng( rti );
     float cr = rti->player.stat.crit - 0.03f + extra_crit_rate;
     if ( ATYPE_WHITE_MELEE == attacktype ) {
-        cr += 0.19f;
+        cr += ( ATRAIT_FOCUS_IN_CHAOS && UP( enrage_expire ) ) ? 0.0f : 0.19f;
         if ( c < 0.19f ) return DICE_MISS;
     }
     if ( ATYPE_YELLOW_MELEE == attacktype ) {
@@ -232,8 +236,6 @@ k32u round_table_dice( rtinfo_t* rti, k32u target_id, k32u attacktype, float ext
     return dice;
 }
 
-void trigger_dots( rtinfo_t* rti, float dmg, k32u target_id );
-
 float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u dice, float extra_crit_bonus, kbool ignore_armor ) {
     if ( DICE_MISS == dice ) return .0f;
     if ( DTYPE_DIRECT == dmgtype ) {
@@ -247,7 +249,7 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
     if ( UP( avatar_expire ) )                                  dmg *= 1.2f;
     if ( UP( dragon_roar_expire ) )                             dmg *= 1.2f;
     if ( UP( frothing_berserker_expire ) )                      dmg *= 1.1f;
-    if ( ENEMY_IS_DEMONIC && UP( gronntooth_war_horn_expire ) )  dmg *= 1.1f;
+    if ( ENEMY_IS_DEMONIC && UP( gronntooth_war_horn_expire ) ) dmg *= 1.1f;
     //  if ( SOME_ARTIFACT_TRAITS && UP( battle_cry_expire ) )      cdb *= 1.0f + 0.1f * SOME_ARTIFACT_TRAITS;
     if ( RACE == RACE_DWARF || RACE == RACE_TAUREN )            cdb *= 1.02f;
     if ( DTYPE_PHYSICAL == dmgtype ) {
@@ -268,14 +270,12 @@ float weapon_dmg( rtinfo_t* rti, float weapon_multiplier, kbool normalized, kboo
     dmg += uni_rng( rti ) * ( weapon[offhand].high - weapon[offhand].low );
     dmg += ( normalized ? normalized_weapon_speed[weapon[offhand].type] : weapon[offhand].speed ) * rti->player.stat.ap / 3.5f;
     dmg *= weapon_multiplier;
-    // if ( weapon[offhand].type == WEAPON_1H ) dmg *= 1.3f;
-    if ( offhand ) dmg *= /*( ( OH_TYPE == WEAPON_1H ) ? 1.2f : 1.0f ) **/ 0.5f;
+    if ( offhand ) dmg *= 0.5f;
     return dmg;
 }
 
 float ap_dmg( rtinfo_t* rti, float ap_multiplier ) {
     float dmg = ap_multiplier * rti->player.stat.ap;
-    // if ( MH_TYPE == WEAPON_1H ) dmg *= 1.3f;
     return dmg;
 }
 
@@ -284,7 +284,6 @@ enum {
     END_OF_CLASS_ROUTNUM = START_OF_SPEC_ROUTNUM - 1,
     routnum_auto_attack_mh,
     routnum_auto_attack_oh,
-    routnum_bloodthirst_cd,
     routnum_bloodthirst_cast,
     routnum_enrage_trigger,
     routnum_enrage_expire,
@@ -295,7 +294,6 @@ enum {
     routnum_meat_cleaver_expire,
     routnum_meat_cleaver_trigger,
     routnum_raging_blow_cast,
-    routnum_rampage_cd,
     routnum_rampage_cast_1,
     routnum_rampage_cast_2,
     routnum_rampage_cast_3,
@@ -316,28 +314,23 @@ enum {
 #if (TALENT_BLOODBATH)
     routnum_bloodbath_start,
     routnum_bloodbath_expire,
-    routnum_bloodbath_cd,
     routnum_bloodbath_tick,
 #endif
 #if (TALENT_FRENZY)
     routnum_frenzy_trigger,
     routnum_frenzy_expire,
 #endif
-#if (TALENT_INNER_RAGE)
-    routnum_raging_blow_cd,
-#endif
 #if (TALENT_DRAGON_ROAR)
     routnum_dragon_roar_cast,
     routnum_dragon_roar_expire,
-    routnum_dragon_roar_cd,
 #endif
-#if (t17_4pc)
-    routnum_rampage_expire,
-    routnum_rampage_refresh,
+#if (ATRAIT_JUGGERNAUT)
+    routnum_juggernaut_trigger,
+    routnum_juggernaut_expire,
 #endif
-#if defined(trinket_worldbreakers_resolve)
-    routnum_worldbreakers_resolve_expire,
-    routnum_worldbreakers_resolve_trigger,
+#if (ATRAIT_ODYNS_CHAMPION)
+    routnum_odyns_champion_trigger,
+    routnum_odyns_champion_expire,
 #endif
     START_OF_WILD_ROUTNUM,
 };
@@ -359,9 +352,6 @@ DECL_EVENT( auto_attack_mh ) {
 
     float aspeed = 1.0f + rti->player.stat.haste;
     if ( UP( enrage_expire ) ) aspeed *= 2.0f;
-#if (t17_4pc)
-    aspeed *= 1.0f + 0.06f * rampage_stack;
-#endif
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( weapon[0].speed / aspeed ) ), routnum_auto_attack_mh, rti->player.target );
 }
 
@@ -380,36 +370,13 @@ DECL_EVENT( auto_attack_oh ) {
 
     float aspeed = 1.0f + rti->player.stat.haste;
     if ( UP( enrage_expire ) ) aspeed *= 2.0f;
-#if (t17_4pc)
-    aspeed *= 1.0f + 0.06f * rampage_stack;
-#endif
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( weapon[1].speed / aspeed ) ), routnum_auto_attack_oh, rti->player.target );
 }
 
 // === battle cry =============================================================
 void spec_spell_battle_cry( rtinfo_t* rti ) {
-#if (t17_4pc)
-    eq_enqueue( rti, rti->timestamp, routnum_rampage_refresh, 0 );
-#endif
+    battle_cry_cd -= ATRAIT_HELYAS_WRATH ? FROM_SECONDS( 10 ) : 0;
 }
-#if (t17_4pc)
-DECL_EVENT( rampage_expire ) {
-    lprintf( ( "rampage(t17p4) expire" ) );
-    rampage_stack = 0;
-    refresh_crit( rti );
-}
-
-DECL_EVENT( rampage_refresh ) {
-    if ( rampage_stack == 0 ) {
-        rampage_expire = TIME_OFFSET( FROM_SECONDS( 9 ) );
-        eq_enqueue( rti, rampage_expire, routnum_rampage_expire, target_id );
-    }
-    rampage_stack++;
-    refresh_crit( rti );
-    if ( rampage_stack < 5 )
-        eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1 ) ), routnum_rampage_refresh, target_id );
-}
-#endif
 
 // === berserker rage =========================================================
 void spec_berserker_rage_cast( rtinfo_t* rti ) {
@@ -418,9 +385,6 @@ void spec_berserker_rage_cast( rtinfo_t* rti ) {
 }
 
 // === bloodthirst ============================================================
-DECL_EVENT( bloodthirst_cd ) {
-    lprintf( ( "bloodthirst cd" ) );
-}
 DECL_EVENT( bloodthirst_cast ) {
     float d = weapon_dmg( rti, 2.25f, 1, 0 );
     float cr = 0.15f * taste_for_blood_stack;
@@ -457,9 +421,9 @@ DECL_SPELL( bloodthirst ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     if ( bloodthirst_cd > rti->timestamp ) return 0;
     bloodthirst_cd = TIME_OFFSET( FROM_SECONDS( 4.5f / ( 1.0f + rti->player.stat.haste ) ) );
-    eq_enqueue( rti, bloodthirst_cd, routnum_bloodthirst_cd, 0 );
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_bloodthirst_cast, rti->player.target );
+    trigger_offensive_abilities( rti );
     lprintf( ( "cast bloodthirst" ) );
     return 1;
 }
@@ -478,14 +442,15 @@ DECL_EVENT( enrage_trigger ) {
 
 // === execute ================================================================
 DECL_EVENT( execute_cast ) {
-    float d = weapon_dmg( rti, 4.65f, 1, 0 );
+    float multiplier = 1.0f + 0.05f * juggernaut_stack;
+    float d = weapon_dmg( rti, 4.65f, 1, 0 ) * multiplier;
     const float deathdealer_lut[] = { 0.00f, 0.03f, 0.06f, 0.10f, 0.13f, 0.16f, 0.20f };
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, deathdealer_lut[ATRAIT_DEATHDEALER] );
     float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
 #if (TALENT_MASSACRE)
     kbool have_crit = ( DICE_CRIT == dice );
 #endif
-    d = weapon_dmg( rti, 4.65f, 1, 1 );
+    d = weapon_dmg( rti, 4.65f, 1, 1 ) * multiplier;
     dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, deathdealer_lut[ATRAIT_DEATHDEALER] );
     final_dmg += deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     trigger_dots( rti, final_dmg, target_id );
@@ -493,6 +458,9 @@ DECL_EVENT( execute_cast ) {
     have_crit = have_crit || ( DICE_CRIT == dice );
     if ( have_crit )
         eq_enqueue( rti, rti->timestamp, routnum_massacre_trigger, 0 );
+#endif
+#if (ATRAIT_JUGGERNAUT)
+    eq_enqueue( rti, rti->timestamp, routnum_juggernaut_trigger, 0 );
 #endif
     lprintf( ( "execute hit" ) );
 }
@@ -503,6 +471,7 @@ DECL_SPELL( execute ) {
     power_consume( rti, 25.0f );
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_execute_cast, rti->player.target );
+    trigger_offensive_abilities( rti );
     lprintf( ( "cast execute" ) );
     return 1;
 }
@@ -510,19 +479,12 @@ DECL_SPELL( execute ) {
 // === furious slash ==========================================================
 DECL_EVENT( furious_slash_cast ) {
     float d = weapon_dmg( rti, 2.8f, 1, 1 );
-    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, ( t18_2pc ? 0.05f : 0.0f ) );
-    float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, ( t18_2pc ? 0.12f : 0.0f ) , 0 );
+    k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
+    float final_dmg = deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
     trigger_dots( rti, final_dmg, target_id );
     eq_enqueue( rti, rti->timestamp, routnum_taste_for_blood_trigger, 0 );
 #if (TALENT_FRENZY)
     eq_enqueue( rti, rti->timestamp, routnum_frenzy_trigger, 0 );
-#endif
-#if (t18_4pc)
-    if ( DICE_CRIT == dice ) {
-        time_t reduction = min( ( k32u )battle_cry_cd, ( k32u )FROM_SECONDS( 10 ) );
-        battle_cry_cd -= reduction;
-        eq_enqueue( rti, battle_cry_cd, routnum_battle_cry_cd, 0 );
-    }
 #endif
     lprintf( ( "furious_slash hit" ) );
 }
@@ -543,6 +505,7 @@ DECL_SPELL( furious_slash ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_furious_slash_cast, rti->player.target );
+    trigger_offensive_abilities( rti );
     lprintf( ( "cast furious_slash" ) );
     return 1;
 }
@@ -577,11 +540,6 @@ DECL_EVENT( raging_blow_cast ) {
     power_gain( rti, 5.0f );
     lprintf( ( "raging_blow hit" ) );
 }
-#if (TALENT_INNER_RAGE)
-DECL_EVENT( raging_blow_cd ) {
-    lprintf( ( "raging_blow cd" ) );
-}
-#endif
 DECL_SPELL( raging_blow ) {
     if ( MH_TYPE != WEAPON_2H ) return 0;
     if ( rti->player.gcd > rti->timestamp ) return 0;
@@ -594,16 +552,13 @@ DECL_SPELL( raging_blow ) {
     eq_enqueue( rti, rti->timestamp, routnum_raging_blow_cast, rti->player.target );
 #if (TALENT_INNER_RAGE)
     raging_blow_cd = TIME_OFFSET( FROM_SECONDS( 4.5f / ( 1.0f + rti->player.stat.haste ) ) );
-    eq_enqueue( rti, raging_blow_cd, routnum_raging_blow_cd, 0 );
 #endif
+    trigger_offensive_abilities( rti );
     lprintf( ( "cast raging_blow" ) );
     return 1;
 }
 
 // === rampage ================================================================
-DECL_EVENT( rampage_cd ) {
-    lprintf( ( "rampage cd" ) );
-}
 DECL_EVENT( rampage_cast_1 ) {
     k32u multihit_signal = 0;
     if ( target_id >= num_enemies ) {
@@ -616,6 +571,11 @@ DECL_EVENT( rampage_cast_1 ) {
     trigger_dots( rti, final_dmg, target_id );
     eq_enqueue( rti, rti->timestamp, routnum_enrage_trigger, 0 );
     eq_enqueue( rti, TIME_OFFSET( FROM_MILLISECONDS( 200 ) ), routnum_rampage_cast_2, target_id + multihit_signal );
+#if (ATRAIT_ODYNS_CHAMPION)
+    if ( uni_rng( rti ) < 0.1f ) {
+        eq_enqueue( rti, rti->timestamp, routnum_odyns_champion_trigger, 0 );
+    }
+#endif
     lprintf( ( "rampage 1st hit" ) );
 }
 DECL_EVENT( rampage_cast_2 ) {
@@ -670,7 +630,6 @@ DECL_SPELL( rampage ) {
     gcd_start( rti, FROM_SECONDS( min( 1.5f, 2.0f / ( 1.0f + rti->player.stat.haste ) ) ), 0 );
     eq_enqueue( rti, rti->timestamp, routnum_rampage_cast_1, rti->player.target );
     rampage_cd = TIME_OFFSET( FROM_SECONDS( 1.5f ) );
-    eq_enqueue( rti, rampage_cd, routnum_rampage_cd, 0 );
     if ( UP( meat_cleaver_expire ) ) {
         k32u c = 0;
         for( int i = 0; c < 4 && i < num_enemies; i++ ) {
@@ -683,6 +642,7 @@ DECL_SPELL( rampage ) {
         meat_cleaver_expire = rti->timestamp;
         eq_enqueue( rti, rti->timestamp, routnum_meat_cleaver_expire, 0 );
     }
+    trigger_offensive_abilities( rti );
     lprintf( ( "cast rampage" ) );
     return 1;
 }
@@ -725,6 +685,7 @@ DECL_SPELL( whirlwind ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_whirlwind_cast, rti->player.target );
+    trigger_offensive_abilities( rti );
     lprintf( ( "cast whirlwind" ) );
     return 1;
 }
@@ -817,9 +778,6 @@ void trigger_bloodbath( rtinfo_t* rti, float dmg, k32u target_id ) {
         lprintf( ( "bloodbath @tar%d extends", target_id ) );
     }
 }
-DECL_EVENT( bloodbath_cd ) {
-    lprintf( ( "bloodbath cd" ) );
-}
 DECL_EVENT( bloodbath_expire ) {
     lprintf( ( "bloodbath expire" ) );
 }
@@ -832,7 +790,6 @@ DECL_SPELL( bloodbath ) {
     eq_enqueue( rti, bloodbath_expire, routnum_bloodbath_expire, 0 );
     eq_enqueue( rti, rti->timestamp, routnum_bloodbath_start, 0 );
     bloodbath_cd = TIME_OFFSET( FROM_SECONDS( 30 ) );
-    eq_enqueue( rti, bloodbath_cd, routnum_bloodbath_cd, 0 );
     return 1;
 }
 #else
@@ -859,11 +816,6 @@ DECL_EVENT( frenzy_trigger ) {
 
 // === dragon roar ============================================================
 #if (TALENT_DRAGON_ROAR)
-DECL_EVENT( dragon_roar_cd ) {
-    if ( dragon_roar_cd == rti->timestamp ) {
-        lprintf( ( "dragon_roar cd" ) );
-    }
-}
 DECL_EVENT( dragon_roar_cast ) {
     for ( int i = 0; i < num_enemies; i++ ) {
         float d = ap_dmg( rti, 1.50f );
@@ -886,8 +838,8 @@ DECL_SPELL( dragon_roar ) {
     gcd_start( rti, FROM_SECONDS( 1.5f ), 1 );
     eq_enqueue( rti, rti->timestamp, routnum_dragon_roar_cast, 0 );
     dragon_roar_cd = TIME_OFFSET( FROM_SECONDS( 25 ) );
-    eq_enqueue( rti, dragon_roar_cd, routnum_dragon_roar_cd, 0 );
     lprintf( ( "cast dragon_roar" ) );
+    trigger_offensive_abilities( rti );
     return 1;
 }
 #else
@@ -896,38 +848,70 @@ DECL_SPELL( dragon_roar ) {
 }
 #endif
 
-// === spec trinket ===========================================================
-#if defined(trinket_worldbreakers_resolve)
-DECL_EVENT( worldbreakers_resolve_expire ) {
-    if ( rti->timestamp == worldbreakers_resolve_expire ) {
-        lprintf( ( "worldbreakers_resolve expire" ) );
-        worldbreakers_resolve_stack = 0;
-        refresh_haste( rti );
+// === juggernaut =============================================================
+#if (ATRAIT_JUGGERNAUT)
+DECL_EVENT( juggernaut_expire ) {
+    if ( juggernaut_expire == rti->timestamp ) {
+        juggernaut_stack = 0;
+        lprintf( ( "juggernaut expire" ) );
     }
 }
-DECL_EVENT( worldbreakers_resolve_trigger ) {
-    worldbreakers_resolve_stack++;
-    if ( !WBR_NEVER_EXPIRE ) {
-        worldbreakers_resolve_expire = TIME_OFFSET( FROM_SECONDS( 6 ) );
-        eq_enqueue( rti, worldbreakers_resolve_expire, routnum_worldbreakers_resolve_expire, 0 );
-        if( rti->player.spec->worldbreakers_resolve.target != target_id ) { /* Target switched. */
-            worldbreakers_resolve_stack = 1;
-        }
-        rti->player.spec->worldbreakers_resolve.target = target_id;
-    }
-    if ( worldbreakers_resolve_stack > 10 ) {
-        worldbreakers_resolve_stack = 10;
-    }
-    else {
-        lprintf( ( "worldbreakers_resolve stack %d", worldbreakers_resolve_stack ) );
-        refresh_haste( rti );
-    }
+DECL_EVENT( juggernaut_trigger ) {
+    juggernaut_expire = TIME_OFFSET( FROM_SECONDS( 6 ) );
+    eq_enqueue( rti, juggernaut_expire, routnum_juggernaut_expire, 0 );
+    juggernaut_stack = min( 99, ( int )juggernaut_stack + 1 );
+    lprintf( ( "juggernaut stack %d", juggernaut_stack ) );
 }
 #endif
 
-void trigger_dots( rtinfo_t* rti, float dmg, k32u target_id ) {
-    if ( dmg <= 0.0f ) return;
+// === odyns champion =========================================================
+#if (ATRAIT_ODYNS_CHAMPION)
+DECL_EVENT( odyns_champion_expire ) {
+    if ( odyns_champion_expire == rti->timestamp ) {
+        lprintf( ( "odyns_champion expire" ) );
+    }
+}
+DECL_EVENT( odyns_champion_trigger ) {
+    odyns_champion_expire = TIME_OFFSET( FROM_SECONDS( 6 ) );
+    eq_enqueue( rti, odyns_champion_expire, routnum_odyns_champion_expire, 0 );
+    lprintf( ( "odyns_champion trigger" ) );
+}
+#endif
+
+void trigger_offensive_abilities( rtinfo_t* rti ) {
+    if ( UP( odyns_champion_expire ) ) {
+        battle_cry_cd     = AHEAD( battle_cry_cd    , FROM_SECONDS( 2 ) );
+        berserker_rage_cd = AHEAD( berserker_rage_cd, FROM_SECONDS( 2 ) );
+        heroic_leap_cd    = AHEAD( heroic_leap_cd   , FROM_SECONDS( 2 ) );
+#if (TALENT_SHOCKWAVE)
+        shockwave_cd      = AHEAD( shockwave_cd     , FROM_SECONDS( 2 ) );
+#endif
+#if (TALENT_STORM_BOLT)
+        storm_bolt_cd     = AHEAD( storm_bolt_cd    , FROM_SECONDS( 2 ) );
+#endif
+#if (TALENT_AVATAR)
+        avatar_cd         = AHEAD( avatar_cd        , FROM_SECONDS( 2 ) );
+#endif
+#if (TALENT_BLADESTORM)
+        bladestorm_cd     = AHEAD( bladestorm_cd    , FROM_SECONDS( 2 ) );
+#endif
+        bloodthirst_cd    = AHEAD( bloodthirst_cd   , FROM_SECONDS( 2 ) );
+        rampage_cd        = AHEAD( rampage_cd       , FROM_SECONDS( 2 ) );
 #if (TALENT_BLOODBATH)
+        bloodbath_cd      = AHEAD( bloodbath_cd     , FROM_SECONDS( 2 ) );
+#endif
+#if (TALENT_INNER_RAGE)
+        raging_blow_cd    = AHEAD( raging_blow_cd   , FROM_SECONDS( 2 ) );
+#endif
+#if (TALENT_DRAGON_ROAR)
+        dragon_roar_cd    = AHEAD( dragon_roar_cd   , FROM_SECONDS( 2 ) );
+#endif
+    }
+}
+
+void trigger_dots( rtinfo_t* rti, float dmg, k32u target_id ) {
+#if (TALENT_BLOODBATH)
+    if ( dmg <= 0.0f ) return;
     if ( UP( bloodbath_expire ) ) trigger_bloodbath( rti, dmg, target_id );
 #endif
 }
@@ -936,7 +920,6 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
     switch( e.routine ) {
         HOOK_EVENT( auto_attack_mh );
         HOOK_EVENT( auto_attack_oh );
-        HOOK_EVENT( bloodthirst_cd );
         HOOK_EVENT( bloodthirst_cast );
         HOOK_EVENT( enrage_trigger );
         HOOK_EVENT( enrage_expire );
@@ -947,7 +930,6 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
         HOOK_EVENT( meat_cleaver_expire );
         HOOK_EVENT( meat_cleaver_trigger );
         HOOK_EVENT( raging_blow_cast );
-        HOOK_EVENT( rampage_cd );
         HOOK_EVENT( rampage_cast_1 );
         HOOK_EVENT( rampage_cast_2 );
         HOOK_EVENT( rampage_cast_3 );
@@ -968,28 +950,23 @@ void spec_routine_entries( rtinfo_t* rti, _event_t e ) {
 #if (TALENT_BLOODBATH)
         HOOK_EVENT( bloodbath_start );
         HOOK_EVENT( bloodbath_expire );
-        HOOK_EVENT( bloodbath_cd );
         HOOK_EVENT( bloodbath_tick );
 #endif
 #if (TALENT_FRENZY)
         HOOK_EVENT( frenzy_trigger );
         HOOK_EVENT( frenzy_expire );
 #endif
-#if (TALENT_INNER_RAGE)
-        HOOK_EVENT( raging_blow_cd );
-#endif
 #if (TALENT_DRAGON_ROAR)
         HOOK_EVENT( dragon_roar_cast );
         HOOK_EVENT( dragon_roar_expire );
-        HOOK_EVENT( dragon_roar_cd );
 #endif
-#if (t17_4pc)
-        HOOK_EVENT( rampage_expire );
-        HOOK_EVENT( rampage_refresh );
+#if (ATRAIT_JUGGERNAUT)
+        HOOK_EVENT( juggernaut_expire );
+        HOOK_EVENT( juggernaut_trigger );
 #endif
-#if defined(trinket_worldbreakers_resolve)
-        HOOK_EVENT( worldbreakers_resolve_trigger );
-        HOOK_EVENT( worldbreakers_resolve_expire );
+#if (ATRAIT_ODYNS_CHAMPION)
+        HOOK_EVENT( odyns_champion_expire );
+        HOOK_EVENT( odyns_champion_trigger );
 #endif
     default:
         lprintf( ( "wild spec routine entry %d, last defined routnum %d", e.routine, START_OF_WILD_ROUTNUM - 1 ) );
@@ -1012,9 +989,4 @@ void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_
         proc_RPPM( rti, &rti->player.spec->wrecking_ball.proc, 3.0f * ( 1.0f + rti->player.stat.haste ), routnum_wrecking_ball_trigger, target_id );
 #endif
     }
-#if defined(trinket_worldbreakers_resolve)
-    if ( ATYPE_WHITE_MELEE == attacktype ) {
-        eq_enqueue( rti, rti->timestamp, routnum_worldbreakers_resolve_trigger, target_id );
-    }
-#endif
 }
