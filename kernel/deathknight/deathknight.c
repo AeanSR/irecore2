@@ -50,6 +50,12 @@ struct class_state_t {
 #define rune_max     (6)
 #define rune_ready   (rti->player.class->rune.ready)
 #define rune_cd(seq) TIME_OFFSET(rti->player.class->rune.charge_progress[seq] * FROM_SECONDS(10) / rune_charge_rate(rti))
+    //fallen crusader
+    struct {
+        time_t expire;
+        RPPM_t proc;
+    }fallen_crusader;
+#define fallen_crusader_expire (rti->player.class->fallen_crusader.expire)
 };
 struct class_debuff_t {
 
@@ -117,21 +123,39 @@ void on_time_elapsed( rtinfo_t* rti, time_t last_time ) {
 time_t check_point( rtinfo_t* rti ) {
     return rune_cd( 0 );
 }
-
 /* Event list. */
 enum {
     END_OF_COMMON_ROUTNUM = START_OF_CLASS_ROUTNUM - 1,
+    routnum_fallen_crusader_proc,
+    routnum_fallen_crusader_expire,
     START_OF_SPEC_ROUTNUM,
 };
 
-
+//fallen crusader
+DECL_EVENT ( fallen_crusader_proc )
+{
+    refresh_str( rti );
+    refresh_ap( rti );
+    fallen_crusader_expire = TIME_OFFSET( FROM_SECONDS (15.0f) );
+    eq_enqueue( rti, fallen_crusader_expire, routnum_fallen_crusader_expire, 0);
+}
+DECL_EVENT ( fallen_crusader_expire )
+{
+    if (fallen_crusader_expire == rti->timestamp)
+    {
+        refresh_str( rti );
+        refresh_ap( rti );
+        lprintf( ( "fallen crusader buff end " ) );
+    }
+}
 void spec_routine_entries( rtinfo_t* rti, _event_t e );
 void class_routine_entries( rtinfo_t* rti, _event_t e ) {
     if( e.routine >= START_OF_SPEC_ROUTNUM ) {
         spec_routine_entries( rti, e );
     }
     else switch( e.routine ) {
-
+        HOOK_EVENT ( fallen_crusader_proc );
+        HOOK_EVENT ( fallen_crusader_expire );
         default:
             lprintf( ( "wild class routine entry %d", e.routine ) );
             assert( 0 );
@@ -142,12 +166,21 @@ void spec_module_init( rtinfo_t* rti );
 
 void class_module_init( rtinfo_t* rti ) {
     spec_module_init( rti );
-
     rune_ready = rune_max;
+    initialize_rppm( rti->player.class->fallen_crusader.proc );
 }
 
 void spec_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id );
 
 void class_special_procs( rtinfo_t* rti, k32u attacktype, k32u dice, k32u target_id ) {
     spec_special_procs( rti, attacktype, dice, target_id );
+    (if (fallen_crusader_mh || fallen_crusader_oh)
+    {
+        if (fallen_crusader_mh && fallen_crusader_oh)
+        {
+            proc_RPPM( rti, &rti->player.class->fallen_crusader.proc, 6 * (1.0f + rti->player.stat.haste ), routnum_fallen_crusader_proc, 0 );
+        }
+        else
+            proc_RPPM( rti, &rti->player.class->fallen_crusader.proc, 3 * (1.0f + rti->player.stat.haste ), routnum_fallen_crusader_proc, 0 );
+    }
 }
