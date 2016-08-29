@@ -131,12 +131,12 @@ struct maze_t {
 
 
 void QMazeWidget::paintEvent( QPaintEvent * ev ) {
-    const QColor cbg = QColor( 50, 50, 50 );
-    const QColor cwire = QColor( 255, 200, 0 );
+    const QColor cbg = QColor( 0, 49, 0 );
+    const QColor cwire = QColor( 203, 166, 59 );
     const QBrush bwire = cwire;
-    const QPen pwire = QPen(bwire, 6);
-    const QColor ctext = QColor( 255, 255, 255 );
-    const QBrush btext = ctext;
+    const QPen pwire = QPen(bwire, 8);
+    // const QColor ctext = QColor( 255, 255, 255 );
+    const QBrush btext = cwire;
     const QPen ptext = QPen(btext, 1);
     QPainter painter( this );
     QWidget::paintEvent( ev );
@@ -200,8 +200,8 @@ to fight against bugs and stalls
                 QPoint tr(x * 32 + 32, 32 * maze->y + 32 - y * 32 - 16);
                 QPoint tld(x * 32 + 0, 32 * maze->y + 32 - y * 32 - 0);
                 QPoint tru(x * 32 + 32, 32 * maze->y + 32 - y * 32 - 32);
-                QRect stair(x * 32 + 4, 32 * maze->y + 32 - y * 32 - 28, 24, 24);
-                QRect end(x * 32 + 8, 32 * maze->y + 32 - y * 32 - 24, 16, 16);
+                QRect stair(x * 32 + 6, 32 * maze->y + 6 - y * 32, 20, 20);
+                QRect end(x * 32 + 10, 32 * maze->y + 10 - y * 32, 12, 12);
                 if (x == 0 && y == 0 && maze->cz == 0) painter.drawLine(tc, tld);
                 if (x == maze->x - 1 && y == maze->y - 1 && maze->cz == maze->z - 1) painter.drawLine(tc, tru);
                 if (maze->nodes[x][y][maze->cz].con & U) painter.drawLine(tc, tu);

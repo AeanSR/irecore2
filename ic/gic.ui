@@ -3040,7 +3040,7 @@ Never stop. Several hours to days are needed for good results.</string>
              <bool>false</bool>
             </property>
             <property name="styleSheet">
-             <string notr="true">background-color: rgb(50, 50, 50);</string>
+             <string notr="true">background-color: rgb(0, 59, 0);</string>
             </property>
            </widget>
           </item>
