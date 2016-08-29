@@ -127,6 +127,7 @@ public:
     void add_plot( double x, double y1, double y2, double y3 );
     void finish_plot();
     void closeEvent( QCloseEvent * e );
+    void show_maze_tab();
 
 private:
     Ui::gicClass ui;

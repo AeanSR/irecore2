@@ -270,6 +270,9 @@ gic::gic( QWidget *parent )
     ui.tabPresetTask->setCurrentIndex( 0 );
     on_btnApplyPresetTask_clicked();
 
+    // you won't see this.
+    ui.tabWidget->removeTab(ui.tabWidget->indexOf(ui.tabMaze));
+
     // setup about tab.
     qulonglong startups = history.value( "statistics/startups", 0 ).toULongLong();
     history.setValue( "statistics/startups", ++startups );

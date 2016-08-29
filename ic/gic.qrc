@@ -1,5 +1,9 @@
 <RCC>
-  <qresource prefix="/gic">
-    <file>logo/splash.png</file>
-  </qresource>
+    <qresource prefix="/gic">
+        <file>logo/splash.png</file>
+        <file>logo/aean0.png</file>
+        <file>logo/aean1.png</file>
+        <file>logo/aean2.png</file>
+        <file>logo/aean3.png</file>
+    </qresource>
 </RCC>
