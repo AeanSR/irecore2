@@ -32,11 +32,12 @@ class QMazeWidget : public QWidget
     Q_OBJECT
     maze_t* maze;
     int game;
-    int lastscene;
+    int lastscene_r;
+    int lastscene_n;
     int timer;
     int direction;
 public:
-    QMazeWidget(QWidget *p) : maze(0), game(0), lastscene(0), direction(0) { QWidget::QWidget(p); setBackgroundRole(QPalette::Base); }
+    QMazeWidget(QWidget *p) : maze(0), game(0), lastscene_r(0), lastscene_n(0), direction(0) { QWidget::QWidget(p); setBackgroundRole(QPalette::Base); }
 protected:
     virtual void timerEvent(QTimerEvent *event);
     virtual void paintEvent(QPaintEvent *event);
