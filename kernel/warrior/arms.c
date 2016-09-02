@@ -418,7 +418,6 @@ DECL_EVENT( hamstring_cast ) {
     float d = weapon_dmg( rti, 0.05f, 1, 0 );
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 );
     deal_damage( rti, target_id, d, DTYPE_PHYSICAL, dice, 0, 0 );
-    trigger_opportunity_strikes( rti, target_id );
     lprintf( ( "hamstring hit" ) );
 }
 DECL_SPELL( hamstring ) {
