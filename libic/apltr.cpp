@@ -169,14 +169,9 @@ namespace apltr {
         "shockwave",
         "bladestorm",
         "bloodbath",
-        "thorasus_the_stone_heart_of_draenor",
         "arcane_torrent",
         "blood_fury",
         "berserking",
-        "vial_of_convulsive_shadows",
-        "scabbard_of_kyanos",
-        "bonemaws_big_toe",
-        "emberscale_talisman",
         "execute",
         "whirlwind",
         "cleave",
@@ -218,6 +213,7 @@ namespace apltr {
         "obliteration",
         "breath_of_sindragosa",
         "glacial_advance",
+        "odyns_fury",
         0,
     };
     IC_LOCAL item_t act_list[] =
@@ -226,12 +222,12 @@ namespace apltr {
         { "charge", "0" },
         { "wait", "return", 0 },
         { "heroic_charge", "SPELL(heroic_leap)", 0 }, /* I guess this is a typo. */
-        { "primal_gladiators_badge_of_victory", "SPELL(badge_of_victory)", 0 },
-        { "primal_combatants_badge_of_victory", "SPELL(badge_of_victory)", 0 },
-        { "wild_gladiators_badge_of_victory", "SPELL(badge_of_victory)", 0 },
-        { "wild_combatants_badge_of_victory", "SPELL(badge_of_victory)", 0 },
-        { "warmongering_gladiators_badge_of_victory", "SPELL(badge_of_victory)", 0 },
-        { "warmongering_combatants_badge_of_victory", "SPELL(badge_of_victory)", 0 },
+        //{ "primal_gladiators_badge_of_victory", "SPELL(badge_of_victory)", 0 },
+        //{ "primal_combatants_badge_of_victory", "SPELL(badge_of_victory)", 0 },
+        //{ "wild_gladiators_badge_of_victory", "SPELL(badge_of_victory)", 0 },
+        //{ "wild_combatants_badge_of_victory", "SPELL(badge_of_victory)", 0 },
+        //{ "warmongering_gladiators_badge_of_victory", "SPELL(badge_of_victory)", 0 },
+        //{ "warmongering_combatants_badge_of_victory", "SPELL(badge_of_victory)", 0 },
         { 0 }
     };
 }
@@ -360,6 +356,8 @@ namespace apltr {
         "libram_of_vindication",
         "remorseless_winter",
         "icy_talons",
+        "juggernaut",
+        "berserking_",
         0,
     };
     IC_LOCAL const char* expire_buff_list[] = {
@@ -397,6 +395,11 @@ namespace apltr {
         "rime",
         "potion",
         "bloodlust",
+        "juggernaut",
+        "odyns_champion",
+        "berserking_driver",
+        "berserking_",
+        "sense_death",
         0,
     };
     IC_LOCAL const char* cooldown_list[] = {
@@ -443,6 +446,7 @@ namespace apltr {
         "emberscale_talisman",
         "potion",
         "bloodlust",
+        "odyns_fury",
         0,
     };
     IC_LOCAL const char* stack_debuff_list[] = {
@@ -457,6 +461,7 @@ namespace apltr {
         "blade_of_wrath",
         "razorice",
         "frost_fever",
+        "odyns_fury",
         0,
     };
     IC_LOCAL item_t var_list[] =
