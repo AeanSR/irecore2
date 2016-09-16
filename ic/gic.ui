@@ -53,7 +53,7 @@
         <bool>true</bool>
        </property>
        <property name="currentIndex">
-        <number>7</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="tabCompute">
         <attribute name="title">
@@ -1797,6 +1797,11 @@ IreCore only simulates Tank-n-Spank combats. It's impossible to stop melee attac
           <column/>
          </widget>
         </widget>
+       </widget>
+       <widget class="QWidget" name="tabArtifact">
+        <attribute name="title">
+         <string>Artifact</string>
+        </attribute>
        </widget>
        <widget class="QWidget" name="tabPolicy">
         <attribute name="title">

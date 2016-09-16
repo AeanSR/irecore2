@@ -5,5 +5,9 @@
         <file>logo/aean1.png</file>
         <file>logo/aean2.png</file>
         <file>logo/aean3.png</file>
+        <file>artifact/arms.png</file>
+        <file>artifact/frost_dk.png</file>
+        <file>artifact/fury.png</file>
+        <file>artifact/retpal.png</file>
     </qresource>
 </RCC>
