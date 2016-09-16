@@ -2,7 +2,7 @@
 //  frost_dk.c
 //
 //
-//  Created by Tianjian Guo on 4/6/16.
+//  Created by Cothurn on 4/6/16.
 //
 //
 
@@ -133,6 +133,46 @@ struct spec_debuff_t {
 #define razorice_expire(target) (rti->enemy[target].spec->razorice.expire)
 #define razorice_stack(target) (rti->enemy[target].spec->razorice.stack)
 };
+void razorice_apply(k32u target_id, k32u MoO)
+{
+    if(!MoO)
+    {
+        float dF = weapon_dmg( rti, 0.1f, 0, 0 );
+        deal_damage( rti, target_id, dF, DTYPE_FROST, diceMH, 0, 0 );
+        if( UP( razorice_expire( target_id ) ) )
+        {
+            if( razorice_stack( target_id ) < 5 )
+            {
+                razorice_stack( target_id ) += 1;
+            }
+            else
+            {
+                razorice_stack( target_id ) = 1;
+            }
+            razorice_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 20.0f ) );
+            eq_enqueue( rti , razorice_expire( target_id ), routnum_razorice_expire, rti->player.target );
+        }
+    }
+    else
+    {
+        float dF = weapon_dmg( rti, 0.1f, 0, 1 );
+        deal_damage( rti, rti->player.target, dF, DTYPE_FROST, diceOH, 0, 0 );
+        if( UP( razorice_expire( target_id ) ) )
+        {
+            if( razorice_stack( target_id ) < 5 )
+            {
+                razorice_stack( target_id ) += 1;
+            }
+            else
+            {
+                razorice_stack( target_id ) = 1;
+            }
+            razorice_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 20.0f ) );
+            eq_enqueue( rti , razorice_expire( target_id ), routnum_razorice_expire, rti->player.target );
+        }
+    }
+}
+#define apply_razorice(target, MoO) razorice_apply(target, MoO)
 //Skills=======================================================================
 enum {
     END_OF_CLASS_ROUTNUM = START_OF_SPEC_ROUTNUM - 1,
@@ -200,6 +240,25 @@ enum {
 #endif
     START_OF_WILD_ROUTNUM,
 };
+// artifact trait ==================================================================
+#define ATRAIT_CTYSTALLINE_SWORDS           (ARTIFACT_TRAITS_0)  //This gon be hard, mon     
+#define ATRAIT_AMBIDEXTERITY                (ARTIFACT_TRAITS_1)   
+#define ATRAIT_BAD_TO_THE_BONE              (ARTIFACT_TRAITS_2)  //Since I will probably redo razorice, this is not yet implemented    
+#define ATRAIT_BLADES_OF_FROST              (ARTIFACT_TRAITS_3)  //How to set this correctly, as attack speed might effect RPPM?
+#define ATRAIT_BLAST_RADIOUS                (ARTIFACT_TRAITS_4)   
+#define ATRAIT_CHILL_OF_THE_GRAVE           (ARTIFACT_TRAITS_5)        
+#define ATRAIT_COLD_AS_ICE                  (ARTIFACT_TRAITS_6) 
+#define ATRAIT_DEAD_OF_WINTER               (ARTIFACT_TRAITS_7)    
+#define ATRAIT_FROZEN_CORE                  (ARTIFACT_TRAITS_8) 
+#define ATRAIT_FROZEN_SKIN                  (ARTIFACT_TRAITS_9) 
+#define ATRAIT_FROZEN_SOUL                  (ARTIFACT_TRAITS_10) //nope
+#define ATRAIT_HYPOTHERMIA                  (ARTIFACT_TRAITS_11) //nope
+#define ATRAIT_ICE_IN_YOUR_VEINS            (ARTIFACT_TRAITS_12)       
+#define ATRAIT_MIRROR_BALLS                 (ARTIFACT_TRAITS_13)  
+#define ATRAIT_NOTHING_BUT_THE_BOOTS        (ARTIFACT_TRAITS_14)           
+#define ATRAIT_OVER_POWERED                 (ARTIFACT_TRAITS_15)  
+#define ATRAIT_SINDRAGOSAS_FURY             (ARTIFACT_TRAITS_16)      
+#define ATRAIT_SOULBITER                    (ARTIFACT_TRAITS_17)
 //Stat&Uitility=====================================================================
 float spec_str_coefficient( rtinfo_t* rti ) {
     float coeff = 1.0f;
@@ -292,15 +351,18 @@ float deal_damage( rtinfo_t* rti, k32u target_id, float dmg, k32u dmgtype, k32u 
     }
     dmg *= 1.0f + rti->player.stat.vers;
     if ( UP( thorasus_the_stone_heart_of_draenor_expire ) )         dmg *= 1.0f + legendary_ring * 0.0001f;
-    if ( ENEMY_IS_DEMONIC && UP( gronntooth_war_horn_expire ) )      dmg *= 1.1f;
+    if ( ENEMY_IS_DEMONIC && UP( gronntooth_war_horn_expire ) )     dmg *= 1.1f;
     if ( RACE == RACE_DWARF || RACE == RACE_TAUREN )                cdb *= 1.02f;
     if ( DTYPE_PHYSICAL == dmgtype ) {
         if ( !ignore_armor )                                        dmg *= 0.680228f; // @110lvl
     }
     if ( DICE_CRIT == dice )                                        dmg *= cdb;
-    if( DTYPE_FROST == dmgtype )                                      dmg *= ( 1.0f + rti->player.stat.mastery ); //added mastery
+    if( DTYPE_FROST == dmgtype )                                    dmg *= ( 1.0f + rti->player.stat.mastery ); //added mastery
+    if( DTYPE_FROST == dmgtype && ATRAIT_COLD_AS_ICE > 0)           dmg *= 1.0f + ATRAIT_COLD_AS_ICE * 0.01f; 
+    if( DTYPE_FROST == dmgtype && UP(pillar_of_frost_expire) && ATRAIT_FROZEN_CORE)
+                                                                    dmg *= 1.1f; 
     if( rti->enemy[target_id].spec->razorice.stack > 0 && DTYPE_FROST == dmgtype )
-        dmg *= ( 1.0f + 0.02f * rti->enemy[target_id].spec->razorice.stack );
+                                                                    dmg *= ( 1.0f + 0.02f * rti->enemy[target_id].spec->razorice.stack );
     //TODO: check on razorice later
     //TODO: extra damage
     rti->damage_collected += dmg;
@@ -465,20 +527,32 @@ DECL_EVENT( frost_strike_cast ) {
 #if(TALENT_SHATTERING_STRIKES)
     if( rti->enemy[target_id].spec->razorice.stack == 5 )
     {
-        float d = weapon_dmg( rti, 2.65f, 1, 0 ) * 1.5;
-        float dOH = weapon_dmg( rti, 2.65f, 1, 1 ) * 1.5;
+        float d = weapon_dmg( rti, 2.25f, 1, 0 ) * 1.5;
+        float dOH = weapon_dmg( rti, 2.25f, 1, 1 ) * 1.5;
+// artifact trait ambidexterity implementation
+        if(ATRAIT_AMBIDEXTERITY > 0)
+        {
+            dOH = dOH * (1 + ATRAIT_AMBIDEXTERITY * 0.1 )
+        }
         k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 ); //TODO: is this a spell
         deal_damage( rti, target_id, d, DTYPE_FROST, dice, 0, 0 );
         deal_damage( rti, target_id, dOH, DTYPE_FROST, dice, 0, 0 );
-        rti->enemy[target_id].spec->razorice.stack = 0;//as of Jun 16 2016, on ptr Pre0Patch 7.03, frost strike does damage before consuming the stacks
+        rti->enemy[target_id].spec->razorice.stack = 0;//as of Jun 16 2016, on ptr PrePatch 7.03, frost strike does damage before consuming the stacks
         lprintf( ( "frost strike hit, consumed 5 stacks of razorice to increase damage by 50 percent" ) );
     }
-#endif
+#else
     float d = weapon_dmg( rti, 2.25f, 1, 0 );
     float dOH = weapon_dmg( rti, 2.25f, 1, 1 );
+// artifact trait ambidexterity implementation
+    if(ATRAIT_AMBIDEXTERITY > 0)
+    {
+            dOH = dOH * (1 + ATRAIT_AMBIDEXTERITY * 0.1 )
+    }
     k32u dice = round_table_dice( rti, target_id, ATYPE_YELLOW_MELEE, 0 ); //TODO: is this a spell
     deal_damage( rti, target_id, d, DTYPE_FROST, dice, 0, 0 );
     deal_damage( rti, target_id, dOH, DTYPE_FROST, dice, 0, 0 );
+    lprintf( ( "frost strike hit" ) )
+#endif
     //icecap implementation
 #if(TALENT_ICECAP)
     if( dice == DICE_CRIT )
@@ -495,7 +569,7 @@ DECL_EVENT( frost_strike_cast ) {
     if( UP( obliteration_expire ) )
     {
         eq_enqueue( rti, rti->timestamp, routnum_killing_machine_trigger, 0 );
-        lprintf( ( "killing machine gained from using frost strike duing obliteration" ) );
+        lprintf( ( "killing machine gained from using frost strike during obliteration" ) );
     }
 #endif
     //icy talon implementation
@@ -506,6 +580,49 @@ DECL_EVENT( frost_strike_cast ) {
     if( dice == DICE_CRIT )
     {
         eq_enqueue( rti, rti->timestamp, routnum_t18frozen_wake_cast, 0 );
+    }
+#endif
+        //razorice implementation
+#if(razorice_mh)
+    {
+        float dF = weapon_dmg( rti, 0.1f, 0, 0 );
+        deal_damage( rti, target_id, dF, DTYPE_FROST, diceMH, 0, 0 );
+        if( UP( razorice_expire( target_id ) ) )
+        {
+            if( razorice_stack( target_id ) < 5 )
+            {
+                razorice_stack( target_id ) += 1;
+            }
+            else
+            {
+                razorice_stack( target_id ) = 1;
+            }
+            razorice_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 20.0f ) );
+            eq_enqueue( rti , razorice_expire( target_id ), routnum_razorice_expire, rti->player.target );
+        }
+
+    }
+#endif
+
+    //razorice
+#if(razorice_oh)
+    {
+        float dF = weapon_dmg( rti, 0.1f, 0, 1 );
+        deal_damage( rti, rti->player.target, dF, DTYPE_FROST, diceOH, 0, 0 );
+        if( UP( razorice_expire( target_id ) ) )
+        {
+            if( razorice_stack( target_id ) < 5 )
+            {
+                razorice_stack( target_id ) += 1;
+            }
+            else
+            {
+                razorice_stack( target_id ) = 1;
+            }
+            razorice_expire( target_id ) = TIME_OFFSET( FROM_SECONDS( 20.0f ) );
+            eq_enqueue( rti , razorice_expire( target_id ), routnum_razorice_expire, rti->player.target );
+        }
+
     }
 #endif
 }
@@ -522,6 +639,17 @@ DECL_SPELL( frost_strike ) {
 DECL_EVENT( obliterate_cast ) {
     float d = weapon_dmg( rti, 3.2f, 1, 0 );
     float dOH = weapon_dmg( rti, 3.2f, 1, 1 );
+// artifact trait ambidexterity implementation
+    if(ATRAIT_AMBIDEXTERITY > 0)
+    {
+        dOH = dOH * (1 + ATRAIT_AMBIDEXTERITY * 0.1 )
+    }
+// artifact trait nothing but the boots implementation
+    if(ATRAIT_NOTHING_BUT_THE_BOOTS > 0)
+    {
+        d *= 1 + ATRAIT_NOTHING_BUT_THE_BOOTS * 0.06f;
+        dOH *= 1 + ATRAIT_NOTHING_BUT_THE_BOOTS * 0.06f;
+    }
     k32u dice;
 #if defined (trinket_reapers_harvest)
     {   //TODO find scale
@@ -597,6 +725,11 @@ DECL_EVENT( obliterate_cast ) {
         eq_enqueue( rti, rti->timestamp, routnum_t18obliteration_cast, 0 );
     }
 #endif
+//artifact trait over-powered implementation
+    if(0.1f > uni_rng( rti ))
+    {
+        power_gain( rti, 10 );
+    }
 }
 DECL_SPELL( obliterate ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
@@ -625,10 +758,15 @@ DECL_SPELL( obliterate ) {
 // === howling blast ==========================================================
 DECL_EVENT( howling_blast_cast ) {
     float dMain = ap_dmg( rti, 0.50f );
-    //freezing fog implementation
-#if(TALENT_FREEZING_FOG)
-    dMain *= 1.3f;
-#endif
+//freezing fog implementation
+    #if(TALENT_FREEZING_FOG)
+        dMain *= 1.3f;
+    #endif
+//artifact trait blast radius implementation
+    if(ATRAIT_BLAST_RADIOUS > 0 )
+    {
+        dMain *= 1 + ATRAIT_BLAST_RADIOUS * 0.1;
+    }
     if( UP( rime_expire ) )
     {
         dMain = dMain * 3.0f;
@@ -748,8 +886,13 @@ DECL_EVENT ( remorseless_winter_cd ) {
 DECL_EVENT( remorseless_winter_tick ) {
     if( remorseless_winter_expire < rti->timestamp ) return;
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( 1.0f ) ), routnum_remorseless_winter_tick, 0 );
+    float d = ap_dmg( rti, .24f ) * ( 1 + ( remorseless_winter_stack * 0.1f ) );
+// artifact trait dead of winter implementation
+    if(ATRAIT_DEAD_OF_WINTER > 0)
+    {
+        d *= 1 + ATRAIT_DEAD_OF_WINTER * 0.05f;
+    }
     for ( int i = 0; i < num_enemies; i++ ) {
-        float d = ap_dmg( rti, .24f ) * ( 1 + ( remorseless_winter_stack * 0.1f ) );
         k32u dice = round_table_dice( rti, i, ATYPE_SPELL, 0 ); //TODO: does this proc trinks?
         deal_damage( rti, i, d, DTYPE_FROST, dice, 0, 0 );
         lprintf( ( "remorseless winter does damage to tar %d", i ) );
@@ -913,6 +1056,11 @@ DECL_SPELL( frostscythe ) {
 }
 DECL_EVENT ( frostscythe_cast ) {
     float d = weapon_dmg( rti, 1.2f, 1, 0 ) + weapon_dmg( rti, 1.2f, 1, 1 );
+// artifact trait nothing but the boots implementation
+    if(ATRAIT_NOTHING_BUT_THE_BOOTS > 0)
+    {
+        d *= 1 + ATRAIT_NOTHING_BUT_THE_BOOTS * 0.06f;
+    }
     k32u dice;
     //kiling machine implementation
     if( UP ( killing_machine_expire ) ) {
