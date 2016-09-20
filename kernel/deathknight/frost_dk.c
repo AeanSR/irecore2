@@ -5,7 +5,27 @@
 //  Created by Cothurn on 4/6/16.
 //
 //
+// artifact trait ==================================================================
+#define ATRAIT_CTYSTALLINE_SWORDS           (ARTIFACT_TRAITS_0)  //This gon be hard, mon     
+#define ATRAIT_AMBIDEXTERITY                (ARTIFACT_TRAITS_1)   
+#define ATRAIT_BAD_TO_THE_BONE              (ARTIFACT_TRAITS_2)    
+#define ATRAIT_BLADES_OF_FROST              (ARTIFACT_TRAITS_3)
+#define ATRAIT_BLAST_RADIOUS                (ARTIFACT_TRAITS_4)   
+#define ATRAIT_CHILL_OF_THE_GRAVE           (ARTIFACT_TRAITS_5)        
+#define ATRAIT_COLD_AS_ICE                  (ARTIFACT_TRAITS_6) 
+#define ATRAIT_DEAD_OF_WINTER               (ARTIFACT_TRAITS_7)    
+#define ATRAIT_FROZEN_CORE                  (ARTIFACT_TRAITS_8) 
+#define ATRAIT_FROZEN_SKIN                  (ARTIFACT_TRAITS_9) 
+#define ATRAIT_FROZEN_SOUL                  (ARTIFACT_TRAITS_10) //nope. nope again.
+#define ATRAIT_HYPOTHERMIA                  (ARTIFACT_TRAITS_11) //According to WoWhead, the probability of this triggering is 10%. Further testing needed. 
+#define ATRAIT_ICE_IN_YOUR_VEINS            (ARTIFACT_TRAITS_12)       
+#define ATRAIT_MIRROR_BALLS                 (ARTIFACT_TRAITS_13)  
+#define ATRAIT_NOTHING_BUT_THE_BOOTS        (ARTIFACT_TRAITS_14)           
+#define ATRAIT_OVER_POWERED                 (ARTIFACT_TRAITS_15)  
+#define ATRAIT_SINDRAGOSAS_FURY             (ARTIFACT_TRAITS_16)      
+#define ATRAIT_SOULBITER                    (ARTIFACT_TRAITS_17)
 
+//stuff ============================================================================
 struct spec_state_t {
     struct {
         time_t cd;
@@ -133,11 +153,16 @@ struct spec_debuff_t {
 #define razorice_expire(target) (rti->enemy[target].spec->razorice.expire)
 #define razorice_stack(target) (rti->enemy[target].spec->razorice.stack)
 };
+
 void razorice_apply(k32u target_id, k32u MoO)
 {
     if(!MoO)
     {
         float dF = weapon_dmg( rti, 0.1f, 0, 0 );
+//artifact trait bad to the bones implementation
+#if(ATRAIT_BAD_TO_THE_BONE)
+        dF *= 1.0f + .15f * ATRAIT_BAD_TO_THE_BONE;
+#endif
         deal_damage( rti, target_id, dF, DTYPE_FROST, diceMH, 0, 0 );
         if( UP( razorice_expire( target_id ) ) )
         {
@@ -156,6 +181,10 @@ void razorice_apply(k32u target_id, k32u MoO)
     else
     {
         float dF = weapon_dmg( rti, 0.1f, 0, 1 );
+//artifact trait bad to the bones implementation
+#if(ATRAIT_BAD_TO_THE_BONE)
+        dF *= 1.0f + .15f * ATRAIT_BAD_TO_THE_BONE;
+#endif
         deal_damage( rti, rti->player.target, dF, DTYPE_FROST, diceOH, 0, 0 );
         if( UP( razorice_expire( target_id ) ) )
         {
@@ -172,7 +201,8 @@ void razorice_apply(k32u target_id, k32u MoO)
         }
     }
 }
-#define apply_razorice(target, MoO) razorice_apply(target, MoO)
+#define apply_razorice(target, MoO) (razorice_apply(target, MoO))
+
 //Skills=======================================================================
 enum {
     END_OF_CLASS_ROUTNUM = START_OF_SPEC_ROUTNUM - 1,
@@ -240,25 +270,7 @@ enum {
 #endif
     START_OF_WILD_ROUTNUM,
 };
-// artifact trait ==================================================================
-#define ATRAIT_CTYSTALLINE_SWORDS           (ARTIFACT_TRAITS_0)  //This gon be hard, mon     
-#define ATRAIT_AMBIDEXTERITY                (ARTIFACT_TRAITS_1)   
-#define ATRAIT_BAD_TO_THE_BONE              (ARTIFACT_TRAITS_2)  //Since I will probably redo razorice, this is not yet implemented    
-#define ATRAIT_BLADES_OF_FROST              (ARTIFACT_TRAITS_3)  //How to set this correctly, as attack speed might effect RPPM?
-#define ATRAIT_BLAST_RADIOUS                (ARTIFACT_TRAITS_4)   
-#define ATRAIT_CHILL_OF_THE_GRAVE           (ARTIFACT_TRAITS_5)        
-#define ATRAIT_COLD_AS_ICE                  (ARTIFACT_TRAITS_6) 
-#define ATRAIT_DEAD_OF_WINTER               (ARTIFACT_TRAITS_7)    
-#define ATRAIT_FROZEN_CORE                  (ARTIFACT_TRAITS_8) 
-#define ATRAIT_FROZEN_SKIN                  (ARTIFACT_TRAITS_9) 
-#define ATRAIT_FROZEN_SOUL                  (ARTIFACT_TRAITS_10) //nope
-#define ATRAIT_HYPOTHERMIA                  (ARTIFACT_TRAITS_11) //nope
-#define ATRAIT_ICE_IN_YOUR_VEINS            (ARTIFACT_TRAITS_12)       
-#define ATRAIT_MIRROR_BALLS                 (ARTIFACT_TRAITS_13)  
-#define ATRAIT_NOTHING_BUT_THE_BOOTS        (ARTIFACT_TRAITS_14)           
-#define ATRAIT_OVER_POWERED                 (ARTIFACT_TRAITS_15)  
-#define ATRAIT_SINDRAGOSAS_FURY             (ARTIFACT_TRAITS_16)      
-#define ATRAIT_SOULBITER                    (ARTIFACT_TRAITS_17)
+
 //Stat&Uitility=====================================================================
 float spec_str_coefficient( rtinfo_t* rti ) {
     float coeff = 1.0f;
@@ -413,6 +425,10 @@ DECL_EVENT( auto_attack_mh ) {
     }
 #endif
     float aspeed = ( 1.0f + rti->player.stat.haste );
+// artifact trait blades of frost
+#if(ATRAIT_BLADES_OF_FROST)
+    aspeed *= 1.12f;
+#endif
 #if(TALENT_ICY_TALONS)
     aspeed = aspeed * ( 1 + 0.12f * icy_talons_stack );
 #endif
@@ -432,6 +448,11 @@ DECL_EVENT( auto_attack_mh ) {
 #endif
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( weapon[0].speed / aspeed ) ), routnum_auto_attack_mh, rti->player.target );
     //razorice implementation
+    if(razorice_mh)
+    {
+        razorice_apply(rti->player.target, 0);
+    }
+    /*old razorice implementation
 #if(razorice_mh)
     {
         float dF = weapon_dmg( rti, 0.1f, 0, 0 );
@@ -452,6 +473,7 @@ DECL_EVENT( auto_attack_mh ) {
 
     }
 #endif
+*/
 }
 DECL_EVENT( auto_attack_oh ) {
     float d = weapon_dmg( rti, 1.0f, 0, 1 );
@@ -476,6 +498,10 @@ DECL_EVENT( auto_attack_oh ) {
     }
 #endif
     float aspeed = ( 1.0f + rti->player.stat.haste );
+// artifact trait blades of frost
+#if(ATRAIT_BLADES_OF_FROST)
+    aspeed *= 1.12f;
+#endif
     //#if(/*razorice blahblahblah*/)
 
     //#endif
@@ -498,7 +524,12 @@ DECL_EVENT( auto_attack_oh ) {
     power_gain( rti, 1 );
 #endif
     eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS( weapon[1].speed / aspeed ) ), routnum_auto_attack_oh, rti->player.target );
-    //razorice
+    //razorice implementation
+    if(razorice_oh)
+    {
+        razorice_apply(rti->player.target, 1);
+    }
+    /*old razorice implementation
 #if(razorice_oh)
     {
         float dF = weapon_dmg( rti, 0.1f, 0, 1 );
@@ -519,6 +550,7 @@ DECL_EVENT( auto_attack_oh ) {
 
     }
 #endif
+*/
 }
 // === Frost Strike ===========================================================
 //TODO: change damage calculation
@@ -582,6 +614,17 @@ DECL_EVENT( frost_strike_cast ) {
         eq_enqueue( rti, rti->timestamp, routnum_t18frozen_wake_cast, 0 );
     }
 #endif
+    //razorice implementation
+    if(razorice_mh)
+    {
+        razorice_apply(target_id,0);
+    }
+    if(razorice_oh)
+    {
+        razorice_apply(target_id,1);
+    }
+    //old razorice implementation
+    /*
         //razorice implementation
 #if(razorice_mh)
     {
@@ -625,6 +668,7 @@ DECL_EVENT( frost_strike_cast ) {
 
     }
 #endif
+*/
 }
 DECL_SPELL( frost_strike ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
@@ -730,6 +774,15 @@ DECL_EVENT( obliterate_cast ) {
     {
         power_gain( rti, 10 );
     }
+    //razorice implementation
+    if(razorice_mh)
+    {
+        razorice_apply(target_id,0);
+    }
+    if(razorice_oh)
+    {
+        razorice_apply(target_id,1);
+    }
 }
 DECL_SPELL( obliterate ) {
     if ( rti->player.gcd > rti->timestamp ) return 0;
@@ -760,7 +813,7 @@ DECL_EVENT( howling_blast_cast ) {
     float dMain = ap_dmg( rti, 0.50f );
 //freezing fog implementation
     #if(TALENT_FREEZING_FOG)
-        dMain *= 1.3f;
+        dMain *= 1.25f;
     #endif
 //artifact trait blast radius implementation
     if(ATRAIT_BLAST_RADIOUS > 0 )
@@ -809,7 +862,7 @@ DECL_EVENT( frost_fever_tick ) {
     float d = ap_dmg( rti, .55f );
     //freezing fog implementation
 #if(TALENT_FREEZING_FOG)
-    d *= 1.5f; // Comment by Aean: '*' or '*=' ?
+    d *= 1.25f;
 #endif
     k32u dice = round_table_dice( rti, target_id, ATYPE_SPELL, 0 ); //TODO: does this proc trinks?Is disease a special atype?
     deal_damage( rti, target_id, d, DTYPE_FROST, dice, 0, 0 );
@@ -817,6 +870,14 @@ DECL_EVENT( frost_fever_tick ) {
     lprintf( ( "frost fever tick on tar %d, grants the dk 5 runic power", target_id ) );
     if( TIME_DISTANT( frost_fever_expire( target_id ) ) >= FROM_SECONDS( 3 ) ) {
         eq_enqueue( rti, TIME_OFFSET( FROM_SECONDS ( 3.0f ) ), routnum_frost_fever_tick, target_id );
+    }
+    //artifact trait hypothermia implementation
+#if(ATRAIT_HYPOTHERMIA)
+    if(uni_rng( rti ) < 0.1 )
+    {
+        float dF = ap_dmg( rti, 3.0f);
+        k32u diceF = round_table_dice( rti, target_id, ATYPE_SPELL, 0 ) 
+        deal_damage( rti, target_id, dF, DTYPE_FROST, diceF, 0, 0);
     }
 }
 DECL_EVENT( frost_fever_cast ) {
@@ -1106,6 +1167,11 @@ DECL_EVENT ( frostscythe_cast ) {
         //TODO: check if this is correct in terms of game mechanics and code
     }
 #endif
+    //razorice implementation
+    if(razorice_mh)
+    {
+        razorice_apply(target_id,0);
+    }
 }
 #else
 DECL_SPELL( frostscythe ) {
